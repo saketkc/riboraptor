@@ -712,3 +712,8 @@ def summarize_counters(samplewise_dict):
         totals[key] = np.nansum(
             [np.nansum(d) for d in list(sample_dict.values)])
     return totals
+
+def guess_strand_protocol(bam):
+    """Guess strand protocol from bam"""
+    pass
+
