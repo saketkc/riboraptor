@@ -26,6 +26,8 @@ from .count import bedgraph_to_bigwig
 from .count import bam_to_bedgraph
 from .count import count_uniq_mapping_reads
 from .count import extract_uniq_mapping_reads
+from .count import get_bam_coverage
+from .count import get_bam_coverage_on_bed
 
 from .sequence import export_gene_sequences
 
@@ -418,6 +420,46 @@ def uniq_mapping_cmd(bam):
     count = count_uniq_mapping_reads(bam)
     sys.stdout.write(str(count))
     sys.stdout.write(os.linesep)
+
+
+###################### get-bam-coverage ######################################
+@cli.command(
+    'bam-coverage',
+    context_settings=CONTEXT_SETTINGS,
+    help='Get strandwise coerage from bam')
+@click.option('--bam', help='Path to BAM file', required=True)
+@click.option('--saveto', help='Path to store coverage stats', required=True)
+@click.option('--orientation', default='5prime', help='track 5prime or 3prime')
+def bam_coverage_cmd(bam, saveto, orientation):
+    get_bam_coverage(bam, orientation=orientation, saveto=saveto)
+
+
+###################### get-bam-metagene-coverage ######################################
+@cli.command(
+    'bam-metagene-coverage',
+    context_settings=CONTEXT_SETTINGS,
+    help='Get metagene coverage from bam')
+@click.option('--bam', help='Path to BAM file', required=True)
+@click.option('--bed', help='Path to bed file', required=True)
+@click.option(
+    '--protocol',
+    default='stranded',
+    help='Library preparation protocol',
+    required=True)
+@click.option('--orientation', default='5prime', help='track 5prime or 3prime')
+@click.option(
+    '--max_positions',
+    help='maximum positions to count',
+    type=int,
+    default=1000,
+    show_default=True)
+@click.option(
+    '--offset', help='Number of upstream bases to count', type=int, default=60)
+@click.option('--saveto', help='Path to store coverage stats', required=True)
+def get_bam_coverage_on_bed_cmd(bam, bed, protocol, orientation, max_positions,
+                                offset, saveto):
+    get_bam_coverage_on_bed(bam, bed, protocol, orientation, max_positions,
+                            offset, saveto)
 
 
 ###################### download function #########################################

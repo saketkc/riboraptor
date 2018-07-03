@@ -532,7 +532,7 @@ def merge_intervals(intervals,
                     offset_3p=0,
                     zero_based=True):
     """Collapse intervals into non overlapping manner
-    
+
     Parameters
     ----------
     intervals : list of Interval
@@ -558,7 +558,7 @@ def merge_intervals(intervals,
                         chr1 319 324 gene1 +
                         Returns:
                         chr1 310 324 gene1 +
-    
+
     gene_offset_5p: Gene wise 5 prime offset
                     This might be different from `offset_5p` in cases where
                     `offset_5p` leads to a negative coordinate
@@ -674,3 +674,25 @@ def summarize_counters(samplewise_dict):
         totals[key] = np.nansum(
             [np.nansum(d) for d in list(sample_dict.values)])
     return totals
+
+
+def complementary_strand(strand):
+    """Get complementary strand
+
+    Parameters
+    ----------
+    strand: string
+            +/-
+
+    Returns
+    -------
+    rs: string
+        -/+
+
+    """
+    if strand == '+':
+        return '-'
+    elif strand == '-':
+        return '+'
+    else:
+        raise ValueError('Not a valid strand: {}'.format(strand))
