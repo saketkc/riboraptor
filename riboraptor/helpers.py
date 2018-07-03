@@ -17,6 +17,7 @@ from scipy import stats
 import numpy as np
 import pandas as pd
 import six
+from bx.intervals.intersection import IntervalTree
 
 import warnings
 from .interval import Interval
@@ -696,3 +697,31 @@ def complementary_strand(strand):
         return '+'
     else:
         raise ValueError('Not a valid strand: {}'.format(strand))
+
+       
+def read_refseq_bed(filepath):
+    """Read refseq bed12 from UCSC.
+
+    Parameters
+    ----------
+    filepath: string
+              Location to bed12
+
+    Returns
+    -------
+    refseq: dict
+            dict with keys as gene name and values as intervaltree
+
+    """
+    refseq = defaultdict(IntervalTree)
+    with open(filepath, 'r') as fh:
+        for line in fh:
+            line = line.strip()
+            if line.startswith(('#', 'track', 'browser')):
+                continue
+            fields = line.split('\t')
+            chrom, tx_start, tx_end, name, score, strand = fields[:6]
+            tx_start = int(tx_start)
+            tx_end = int(tx_end)
+            refseq[chrom].insert(tx_start, tx_end, strand)
+    return refseq

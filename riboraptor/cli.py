@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import os
 import sys
+from textwrap import dedent
 
 import click
 from click_help_colors import HelpColorsGroup
@@ -28,6 +29,8 @@ from .count import count_uniq_mapping_reads
 from .count import extract_uniq_mapping_reads
 from .count import get_bam_coverage
 from .count import get_bam_coverage_on_bed
+
+from .infer_protocol import infer_protocol
 
 from .sequence import export_gene_sequences
 
@@ -477,3 +480,28 @@ def get_bam_coverage_on_bed_cmd(bam, bed, protocol, orientation, max_positions,
 @click.argument('srp_id_list', nargs=-1, required=True)
 def download_srp_cmd(out, ascp, srpfile, srp_id_list):
     run_download_sra_script(out, ascp, srpfile, list(srp_id_list))
+
+
+###################### infer-protocol function #########################################
+@cli.command(
+    'infer-protocol',
+    context_settings=CONTEXT_SETTINGS,
+    help='Infer protocol from BAM')
+@click.option('--bam', help='Path to bam file')
+@click.option(
+    '--refseq',
+    help='Path to reseq file to be used for defining the gene strands')
+@click.option(
+    '--n_reads',
+    type=int,
+    default=10000,
+    help='Number of mapped reads to use for estimation')
+def infer_protocol_cmd(bam, refseq, n_reads):
+    protocol, forward_mapped, reverse_mapped = infer_protocol(
+        bam, refseq, n_reads)
+    print(
+        dedent('''\
+                 Forward mapped proportion: {:.4f}
+                 Reverse mapped proportion: {:.4f}
+                 Likely protocol: {}'''.format(forward_mapped, reverse_mapped,
+                                               protocol)))

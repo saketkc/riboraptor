@@ -15,3 +15,4 @@ HTSeq>=0.9.1
 Biopython>=1.70
 pytest>=2.8.7
 tqdm>=4.23.4
+bx-python>=0.8.0
