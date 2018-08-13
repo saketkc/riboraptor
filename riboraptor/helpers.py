@@ -17,6 +17,7 @@ from scipy import stats
 import numpy as np
 import pandas as pd
 import six
+import pybedtools
 from bx.intervals.intersection import IntervalTree
 
 import warnings
@@ -698,7 +699,7 @@ def complementary_strand(strand):
     else:
         raise ValueError('Not a valid strand: {}'.format(strand))
 
-       
+
 def read_refseq_bed(filepath):
     """Read refseq bed12 from UCSC.
 
@@ -725,3 +726,32 @@ def read_refseq_bed(filepath):
             tx_end = int(tx_end)
             refseq[chrom].insert(tx_start, tx_end, strand)
     return refseq
+
+def read_bed_as_intervaltree(filepath):
+    """Read bed as interval tree
+
+    Useful for reading start/stop codon beds
+
+    Parameters
+    ----------
+    filepath: string
+              Location to bed
+
+    Returns
+    -------
+    bedint_tree: dict
+                 dict with keys as gene name and values as intervaltree
+
+    """
+    bed_df = pybedtools.BedTool(filepath).sort().to_dataframe()
+    bed_df['chrom'] = bed_df['chrom'].astype(str)
+    bed_df['name'] = bed_df['name'].astype(str)
+    bed_grouped = bed_df.groupby('chrom')
+
+    bedint_tree = defaultdict(IntervalTree)
+    for chrom, df in bed_grouped:
+        df_list = df[['start', 'end', 'strand']].tolist()
+        for start, end, strand in df_list:
+            bedint_tree[chrom].insert(start, end, strand)
+    return bedint_tree
+

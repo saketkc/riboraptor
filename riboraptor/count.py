@@ -721,10 +721,9 @@ def extract_uniq_mapping_reads(inbam, outbam):
 
 
 def get_bam_coverage(bam,
-                     protocol='stranded',
                      orientation='5prime',
                      saveto=None):
-    """ Get coverage from bam given orientation and protocol.
+    """ Get coverage from bam given orientation
 
     Parameters
     ----------
@@ -757,23 +756,23 @@ def get_bam_coverage(bam,
             if strand == '+':
                 if orientation == '5prime':
                     # Track 5' end
-                    position = reference_pos[0]
+                    position = reference_pos[1]
                 elif orientation == '3prime':
                     # Track 3' end
-                    position = reference_pos[-1]
+                    position = reference_pos[0]
 
             else:
                 # Negative strand so no need to adjust
                 # switch things
                 if orientation == '5prime':
                     # Track 5' end on negative strand
-                    position = reference_pos[-1]
-                elif orientation == '3prime':
-                    # Track 5' end on negative strand
                     position = reference_pos[0]
+                elif orientation == '3prime':
+                    # Track 3' end on negative strand
+                    position = reference_pos[1]
             query_length = read.query_length
             coverage['{}:{}'.format(read.reference_name,
-                                    position)][query_length][strand] += 1
+                                    position)][query_length][strand] += 2
             pbar.update()
     if saveto:
         df = pd.DataFrame.from_dict(
@@ -783,16 +782,16 @@ def get_bam_coverage(bam,
         df = df.reset_index()
         """
         Stored as:
-            chrom\tstart_position(0-based)\tnumber of hits on + strand\tnumber of hits on - strand
+            chrom\tstart_position(1-based)\tnumber of hits on + strand\tnumber of hits on - strand
         """
         df.columns = [
             'chr_pos', 'read_length', 'count_pos_strand', 'count_neg_strand'
         ]
-        df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=1, expand=True)
+        df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=2, expand=True)
         df['start'] = df['start'].astype(int)
-        df['count_pos_strand'] = df['count_pos_strand'].fillna(0).astype(int)
-        df['count_neg_strand'] = df['count_neg_strand'].fillna(0).astype(int)
-        df['end'] = df['start'] + 1
+        df['count_pos_strand'] = df['count_pos_strand'].fillna(1).astype(int)
+        df['count_neg_strand'] = df['count_neg_strand'].fillna(1).astype(int)
+        df['end'] = df['start'] + 2
         df = df[[
             'chrom', 'start', 'end', 'read_length', 'count_pos_strand',
             'count_neg_strand'
@@ -806,12 +805,12 @@ def get_bam_coverage(bam,
 
 def get_bam_coverage_on_bed(bam,
                             bed,
-                            protocol='stranded',
+                            protocol='forward',
                             orientation='5prime',
                             max_positions=1000,
                             offset=60,
                             saveto=None):
-    """Gett bma coverage over start_codon/stop_codon coordinates
+    """Get bam coverage over start_codon/stop_codon coordinates
 
     Parameter
     ---------
@@ -820,7 +819,7 @@ def get_bam_coverage_on_bed(bam,
     bed: string
          Path to bed file
     protocol: string
-              stranded/unstranded/reversei
+              forward/unstranded/reverse
               can be gussed from infer-protocol
     orientation: string
                  5prime/3prime ends to be tracked
@@ -830,12 +829,11 @@ def get_bam_coverage_on_bed(bam,
     offset: int
             Positive if to be count upstream of 5prime
             Does not support 3prime stuff properly yet
-
     saveto: string
             path to store the output tsv
     """
 
-    assert protocol in ['stranded', 'reverse', 'unstranded']
+    assert protocol in ['forward', 'reverse', 'unstranded']
     if bed.lower().split('_')[0] in __GENOMES_DB__:
         splitted = bed.lower().split('_')
         if len(splitted) == 2:
@@ -868,7 +866,7 @@ def get_bam_coverage_on_bed(bam,
                 if protocol == 'unstranded':
                     # sum both strand mapping reads
                     query_counter[query_length] = sum(strand_dict.values())
-                elif protocol == 'stranded':
+                elif protocol == 'forward':
                     # only keep reads mapping to same strand as gene strand
                     query_counter[query_length] = strand_dict[gene_strand]
                 elif protocol == 'reverse':
@@ -886,3 +884,10 @@ def get_bam_coverage_on_bed(bam,
     if saveto:
         df.to_csv(saveto, sep='\t', index=True, header=True)
     return df
+
+
+def convert_bed_coverage_to_bedgraph(df, bed):
+    """Convert file exported from bam coverage to bedgraph
+
+    """
+    df =
