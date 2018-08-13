@@ -885,9 +885,3 @@ def get_bam_coverage_on_bed(bam,
         df.to_csv(saveto, sep='\t', index=True, header=True)
     return df
 
-
-def convert_bed_coverage_to_bedgraph(df, bed):
-    """Convert file exported from bam coverage to bedgraph
-
-    """
-    df =
