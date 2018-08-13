@@ -47,6 +47,9 @@ clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
 	rm -fr htmlcov/
 
+develop:
+	python setup.py develop --no-deps
+
 lint: ## check style with flake8
 	flake8 riboraptor tests
 
