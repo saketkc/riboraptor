@@ -756,23 +756,23 @@ def get_bam_coverage(bam,
             if strand == '+':
                 if orientation == '5prime':
                     # Track 5' end
-                    position = reference_pos[1]
+                    position = reference_pos[0]
                 elif orientation == '3prime':
                     # Track 3' end
-                    position = reference_pos[0]
+                    position = reference_pos[-1]
 
             else:
                 # Negative strand so no need to adjust
                 # switch things
                 if orientation == '5prime':
                     # Track 5' end on negative strand
-                    position = reference_pos[0]
+                    position = reference_pos[-1]
                 elif orientation == '3prime':
                     # Track 3' end on negative strand
-                    position = reference_pos[1]
+                    position = reference_pos[0]
             query_length = read.query_length
             coverage['{}:{}'.format(read.reference_name,
-                                    position)][query_length][strand] += 2
+                                    position)][query_length][strand] += 1
             pbar.update()
     if saveto:
         df = pd.DataFrame.from_dict(
@@ -782,16 +782,16 @@ def get_bam_coverage(bam,
         df = df.reset_index()
         """
         Stored as:
-            chrom\tstart_position(1-based)\tnumber of hits on + strand\tnumber of hits on - strand
+            chrom\tstart_position(0-based)\tnumber of hits on + strand\tnumber of hits on - strand
         """
         df.columns = [
             'chr_pos', 'read_length', 'count_pos_strand', 'count_neg_strand'
         ]
-        df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=2, expand=True)
+        df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=1, expand=True)
         df['start'] = df['start'].astype(int)
-        df['count_pos_strand'] = df['count_pos_strand'].fillna(1).astype(int)
-        df['count_neg_strand'] = df['count_neg_strand'].fillna(1).astype(int)
-        df['end'] = df['start'] + 2
+        df['count_pos_strand'] = df['count_pos_strand'].fillna(0).astype(int)
+        df['count_neg_strand'] = df['count_neg_strand'].fillna(0).astype(int)
+        df['end'] = df['start'] + 1
         df = df[[
             'chrom', 'start', 'end', 'read_length', 'count_pos_strand',
             'count_neg_strand'
