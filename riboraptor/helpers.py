@@ -29,6 +29,25 @@ CBB_PALETTE = [
 ]
 
 
+def order_dataframe(df, columns):
+    """Order a dataframe
+
+    Order a dataframe by moving the `columns` in the front
+
+    Parameters
+    ----------
+    df: Dataframe
+        Dataframe
+    columns: list
+             List of columns that need to be put in front
+    """
+    if isinstance(columns, six.string_types):
+        columns = [columns]  #let the command take a string or list
+    remaining_columns = [w for w in df.columns if w not in columns]
+    df = df[columns + remaining_columns]
+    return df
+
+
 def _fix_bed_coltype(bed):
     """Fix bed chrom and name columns to be string
 

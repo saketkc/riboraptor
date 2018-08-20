@@ -12,7 +12,6 @@ from collections import Counter
 from collections import OrderedDict
 from functools import reduce
 import os
-import re
 import subprocess
 import sys
 
@@ -21,6 +20,7 @@ import pandas as pd
 import pybedtools
 import pysam
 import six
+import h5py
 from tqdm import tqdm
 
 from .genome import _get_sizes
@@ -30,6 +30,7 @@ from .genome import __GENOMES_DB__
 from .helpers import merge_intervals
 from .helpers import mkdir_p
 from .helpers import complementary_strand
+from .helpers import order_dataframe
 
 from .wig import WigReader
 from .interval import Interval
@@ -742,6 +743,7 @@ def get_bam_coverage(bam,
         bam = pysam.AlignmentFile(bam, 'rb')
 
     coverage = defaultdict(lambda: defaultdict(Counter))
+    _create_bam_index(bam)
     total_counts = bam.count()
     with tqdm(total=total_counts) as pbar:
         for read in bam.fetch():
@@ -771,8 +773,7 @@ def get_bam_coverage(bam,
                     # Track 3' end on negative strand
                     position = reference_pos[0]
             query_length = read.query_length
-            coverage['{}:{}'.format(read.reference_name,
-                                    position)][query_length][strand] += 1
+            coverage[query_length][strand] ['{}:{}'.format(read.reference_name,  position)] += 1
             pbar.update()
     if saveto:
         df = pd.DataFrame.from_dict(
@@ -784,9 +785,12 @@ def get_bam_coverage(bam,
         Stored as:
             chrom\tstart_position(0-based)\tnumber of hits on + strand\tnumber of hits on - strand
         """
+        print(df.head())
         df.columns = [
-            'chr_pos', 'read_length', 'count_pos_strand', 'count_neg_strand'
+             'read_length', 'count_pos_strand', 'count_neg_strand', 'chr_pos'
         ]
+        column_order = ['chr_pos', 'read_length', 'count_pos_strand', 'count_neg_strand']
+        df = order_dataframe(df, column_order)
         df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=1, expand=True)
         df['start'] = df['start'].astype(int)
         df['count_pos_strand'] = df['count_pos_strand'].fillna(0).astype(int)
@@ -799,7 +803,11 @@ def get_bam_coverage(bam,
         df = df.sort_values(
             by=['chrom', 'start', 'read_length', 'count_pos_strand'])
         df.to_csv(saveto, sep='\t', index=False, header=True)
+        references_and_length = zip(bam.header.references, bam.header.lengths)
         return df
+
+
+
     return coverage
 
 
