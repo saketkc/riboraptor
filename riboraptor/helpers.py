@@ -746,6 +746,7 @@ def read_refseq_bed(filepath):
             refseq[chrom].insert(tx_start, tx_end, strand)
     return refseq
 
+
 def read_bed_as_intervaltree(filepath):
     """Read bed as interval tree
 
@@ -773,4 +774,3 @@ def read_bed_as_intervaltree(filepath):
         for start, end, strand in df_list:
             bedint_tree[chrom].insert(start, end, strand)
     return bedint_tree
-

@@ -30,7 +30,6 @@ from .genome import __GENOMES_DB__
 from .helpers import merge_intervals
 from .helpers import mkdir_p
 from .helpers import complementary_strand
-from .helpers import order_dataframe
 
 from .wig import WigReader
 from .interval import Interval
@@ -50,6 +49,8 @@ def _create_bam_index(bam):
     bam : str
           Path to bam file
     """
+    if isinstance(bam, pysam.AlignmentFile):
+        bam = bam.filename
     if not os.path.exists('{}.bai'.format(bam)):
         pysam.index(bam)
 
@@ -721,9 +722,7 @@ def extract_uniq_mapping_reads(inbam, outbam):
     uniquereadsbam.close()
 
 
-def get_bam_coverage(bam,
-                     orientation='5prime',
-                     saveto=None):
+def get_bam_coverage(bam, orientation='5prime', saveto=None):
     """ Get coverage from bam given orientation
 
     Parameters
@@ -740,10 +739,10 @@ def get_bam_coverage(bam,
               dict with keys as chrom:position with query lengths as keys
     """
     if isinstance(bam, six.string_types):
+        _create_bam_index(bam)
         bam = pysam.AlignmentFile(bam, 'rb')
 
     coverage = defaultdict(lambda: defaultdict(Counter))
-    _create_bam_index(bam)
     total_counts = bam.count()
     with tqdm(total=total_counts) as pbar:
         for read in bam.fetch():
@@ -773,7 +772,8 @@ def get_bam_coverage(bam,
                     # Track 3' end on negative strand
                     position = reference_pos[0]
             query_length = read.query_length
-            coverage[query_length][strand] ['{}:{}'.format(read.reference_name,  position)] += 1
+            coverage['{}:{}'.format(read.reference_name,
+                                    position)][query_length][strand] += 1
             pbar.update()
     if saveto:
         df = pd.DataFrame.from_dict(
@@ -785,12 +785,12 @@ def get_bam_coverage(bam,
         Stored as:
             chrom\tstart_position(0-based)\tnumber of hits on + strand\tnumber of hits on - strand
         """
-        print(df.head())
         df.columns = [
-             'read_length', 'count_pos_strand', 'count_neg_strand', 'chr_pos'
+            'chr_pos',
+            'read_length',
+            'count_pos_strand',
+            'count_neg_strand',
         ]
-        column_order = ['chr_pos', 'read_length', 'count_pos_strand', 'count_neg_strand']
-        df = order_dataframe(df, column_order)
         df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=1, expand=True)
         df['start'] = df['start'].astype(int)
         df['count_pos_strand'] = df['count_pos_strand'].fillna(0).astype(int)
@@ -803,11 +803,51 @@ def get_bam_coverage(bam,
         df = df.sort_values(
             by=['chrom', 'start', 'read_length', 'count_pos_strand'])
         df.to_csv(saveto, sep='\t', index=False, header=True)
-        references_and_length = zip(bam.header.references, bam.header.lengths)
+
+        reference_and_length = dict(
+            zip(bam.header.references, bam.header.lengths))
+        df = df.sort_values(
+            by=['read_length', 'chrom', 'start', 'count_pos_strand'])
+        df = df.rename(columns={
+            'count_pos_strand': 'pos',
+            'count_neg_strand': 'neg'
+        })
+        df_molten = pd.melt(
+            df,
+            id_vars=['chrom', 'start', 'end', 'read_length'],
+            value_vars=['pos', 'neg'])
+        df_molten = df_molten.rename(columns={'variable': 'strand'})
+        df_molten['chrom'] = df_molten.chrom.str.cat(df_molten.strand, sep='_')
+        df_molten['read_length'] = df_molten.read_length.astype(str)
+        df_molten = df_molten.drop(columns=['end', 'strand'])
+        df_grouped = df_molten.groupby(['read_length'])
+        with tqdm(total=len(df_grouped)) as pbar:
+            with h5py.File('{}.hdf5'.format(os.path.splitext(saveto)[0]),
+                           'w') as h5py_file:
+                for fragment_length, group in df_grouped:
+                    h5py_frag_group = h5py_file.create_group(fragment_length)
+                    df_chrom_grouped = group.groupby('chrom')
+                    for chrom, chrom_group in df_chrom_grouped:
+                        chrom_size = reference_and_length[chrom.strip('_neg')
+                                                          .strip('_pos')]
+                        counts_series = pd.Series(
+                            chrom_group['value'].tolist())
+                        positions_series = pd.Series(
+                            chrom_group['start'].tolist())
+                        chrom_group = h5py_frag_group.create_group(chrom)
+                        dset = chrom_group.create_dataset(
+                            'chrom_size', (1, ), dtype='i')
+                        dset[...] = chrom_size
+                        dset = chrom_group.create_dataset(
+                            'positions', (len(counts_series), ), dtype='i')
+                        dset[...] = positions_series
+                        dset.attrs['orientation'] = orientation
+                        dset = chrom_group.create_dataset(
+                            'counts', (len(counts_series), ), dtype='i')
+                        dset[...] = counts_series
+                        dset.attrs['orientation'] = orientation
+                    pbar.update()
         return df
-
-
-
     return coverage
 
 
@@ -892,4 +932,3 @@ def get_bam_coverage_on_bed(bam,
     if saveto:
         df.to_csv(saveto, sep='\t', index=True, header=True)
     return df
-
