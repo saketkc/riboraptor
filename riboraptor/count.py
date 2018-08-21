@@ -722,6 +722,7 @@ def extract_uniq_mapping_reads(inbam, outbam):
     uniquereadsbam.close()
 
 
+
 def get_bam_coverage(bam, orientation='5prime', saveto=None):
     """ Get coverage from bam given orientation
 
@@ -761,7 +762,6 @@ def get_bam_coverage(bam, orientation='5prime', saveto=None):
                 elif orientation == '3prime':
                     # Track 3' end
                     position = reference_pos[-1]
-
             else:
                 # Negative strand so no need to adjust
                 # switch things
@@ -783,6 +783,7 @@ def get_bam_coverage(bam, orientation='5prime', saveto=None):
         df = df.reset_index()
         """
         Stored as:
+
             chrom\tstart_position(0-based)\tnumber of hits on + strand\tnumber of hits on - strand
         """
         df.columns = [
