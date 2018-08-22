@@ -722,7 +722,6 @@ def extract_uniq_mapping_reads(inbam, outbam):
     uniquereadsbam.close()
 
 
-
 def get_bam_coverage(bam, orientation='5prime', saveto=None):
     """ Get coverage from bam given orientation
 

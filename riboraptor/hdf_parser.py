@@ -13,7 +13,9 @@ class HDFParser(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.h5py_obj.close()
 
-    def get_coverage(self, region=(None, None, None, None), fragment_length=None):
+    def get_coverage(self,
+                     region=(None, None, None, None),
+                     fragment_length=None):
         """Get coverage for a selected region.
 
         Paramters
@@ -26,19 +28,21 @@ class HDFParser(object):
 
         """
         chrom, start, stop, strand = region
+        start = int(start)
+        stop = int(stop)
         assert chrom is not None, 'chromosome not set'
         assert start is not None, 'start position is not set'
         assert stop is not None, 'end position not set'
         assert strand is not None, 'strand is not set'
+        assert start < stop, 'start should be < stop'
         assert fragment_length is not None, 'fragment_length not set'
-
         if isinstance(fragment_length, int):
             fragment_length = [fragment_length]
 
         h5py_fragments = self.h5py_obj.keys()
         if fragment_length == 'all':
             fragment_length = h5py_fragments
-
+        fragment_length = list(map(lambda x: str(x), fragment_length))
         coverages = []
         for l in fragment_length:
             root_obj = self.h5py_obj[l]
@@ -48,23 +52,22 @@ class HDFParser(object):
                 chrom_obj = root_obj['{}_pos'.format(chrom)]
             else:
                 raise ValueError('strand ill-defined')
-            #chrom_size = chrom_obj['chrom_size'][0]
-            #null_series = pd.Series([0]*chrom_size, index=range(chrom_size))
-            counts_series = pd.Series(chrom_obj['counts'], index=chrom_obj['positions'])
+            counts_series = pd.Series(
+                chrom_obj['counts'], index=chrom_obj['positions'])
             try:
-                coverage = counts_series[range(start, stop)]
+                coverage = counts_series[list(range(start, stop))]
                 coverage = coverage.fillna(0).tolist()
             except KeyError:
                 # None of the integers in (start, stop) are in
                 # the index, so it must be all zero coverage
-                coverage =  [0]*(stop-start)
+                coverage = [0] * (stop - start)
             coverages.append(coverage)
 
-        coverages = pd.DataFrame(coverages, header=None)
-        coverages.columns = range(start, stop)
+        coverages = pd.DataFrame(coverages)
+        coverages = coverages.astype(int)
+        coverages.columns = list(range(start, stop))
         coverages.index = fragment_length
+        coverages = coverages.T.reset_index()
+        coverages = coverages.rename(columns={'index': 'start'})
+        coverages.columns = ['start'] + list(coverages.columns[1:])
         return coverages
-
-
-
-
