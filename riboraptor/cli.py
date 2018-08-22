@@ -431,10 +431,11 @@ def uniq_mapping_cmd(bam):
     context_settings=CONTEXT_SETTINGS,
     help='Get strandwise coerage from bam')
 @click.option('--bam', help='Path to BAM file', required=True)
-@click.option('--saveto', help='Path to store coverage stats', required=True)
-@click.option('--orientation', default='5prime', help='track 5prime or 3prime')
-def bam_coverage_cmd(bam, saveto, orientation):
-    get_bam_coverage(bam, orientation=orientation, saveto=saveto)
+@click.option(
+    '--outprefix', help='Prefix to store coverage output', required=True)
+@click.option('--orientation', help='track 5prime or 3prime', required=True)
+def bam_coverage_cmd(bam, outprefix, orientation):
+    get_bam_coverage(bam, orientation=orientation, outprefix=outprefix)
 
 
 ###################### get-bam-metagene-coverage ######################################

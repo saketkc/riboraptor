@@ -722,7 +722,7 @@ def extract_uniq_mapping_reads(inbam, outbam):
     uniquereadsbam.close()
 
 
-def get_bam_coverage(bam, orientation='5prime', saveto=None):
+def get_bam_coverage(bam, orientation='5prime', outprefix=None):
     """ Get coverage from bam given orientation
 
     Parameters
@@ -774,7 +774,7 @@ def get_bam_coverage(bam, orientation='5prime', saveto=None):
             coverage['{}:{}'.format(read.reference_name,
                                     position)][query_length][strand] += 1
             pbar.update()
-    if saveto:
+    if outprefix:
         df = pd.DataFrame.from_dict(
             {(i, j): coverage[i][j]
              for i in coverage.keys() for j in coverage[i].keys()},
@@ -802,7 +802,8 @@ def get_bam_coverage(bam, orientation='5prime', saveto=None):
         ]]
         df = df.sort_values(
             by=['chrom', 'start', 'read_length', 'count_pos_strand'])
-        df.to_csv(saveto, sep='\t', index=False, header=True)
+        df.to_csv(
+            '{}.tsv'.format(outprefix), sep='\t', index=False, header=True)
 
         reference_and_length = dict(
             zip(bam.header.references, bam.header.lengths))
@@ -822,8 +823,7 @@ def get_bam_coverage(bam, orientation='5prime', saveto=None):
         df_molten = df_molten.drop(columns=['end', 'strand'])
         df_grouped = df_molten.groupby(['read_length'])
         with tqdm(total=len(df_grouped)) as pbar:
-            with h5py.File('{}.hdf5'.format(os.path.splitext(saveto)[0]),
-                           'w') as h5py_file:
+            with h5py.File('{}.hdf5'.format(outprefix), 'w') as h5py_file:
                 for fragment_length, group in df_grouped:
                     h5py_frag_group = h5py_file.create_group(fragment_length)
                     df_chrom_grouped = group.groupby('chrom')
