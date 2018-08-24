@@ -62,7 +62,7 @@ for sample in ALL_SRA_FILES:
 #print(SRX_ID_DICT)
 
 SRX_ID_DICT_VALUES = list(SRX_ID_DICT.values())
-SRX_ID_DICT_KEYS = list(SRX_ID_DICT.keys())
+SRX_SAMPLES = list(SRX_ID_DICT.keys())
 
 ALL_SRR = [item for sublist in SRX_ID_DICT_VALUES for item in sublist]
 
@@ -84,20 +84,22 @@ rule all:
     input:
         expand('sratofastq/{sample}.fastq.gz', sample=ALL_SRR),
         expand('preprocessed/{sample}_trimmed.fq.gz', sample=ALL_SRR),
-        expand('mapped/bams/{sample}.bam', sample=SRX_ID_DICT_KEYS),
-        expand('mapped/bigWigs/{sample}.bw', sample=SRX_ID_DICT_KEYS),
-        expand('mapped/plots/metagene/{sample}.png', sample=SRX_ID_DICT_KEYS),
-        expand('mapped/plots/read_length/{sample}.png', sample=SRX_ID_DICT_KEYS),
-        'riboraptor_report.html'
-        #expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
-        #expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
-        #expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_ID_DICT_KEYS),
-        #expand('mapped/genewise_counts_CDS/{sample}.tsv', sample=SRX_ID_DICT_KEYS),
+        expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
+        expand('mapped/bigWigs/{sample}.bw', sample=SRX_SAMPLES),
+        expand('mapped/hdf/{sample}.hdf5', samples=SRX_SAMPLES),
+        expand('mapped/infer_protocol/{sample}.txt', sample=SRX_SAMPLES),
+        #expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
+        #expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
+        #'riboraptor_report.html'
+        #expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_SAMPLES),
+        #expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_SAMPLES),
+        #expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_SAMPLES),
+        #expand('mapped/genewise_counts_CDS/{sample}.tsv', sample=SRX_SAMPLES),
 
 
 rule sra_to_fastq:
     input: sra_to_fastq_input
-    output: 'sratofastq/{sample}.fastq.gz'
+    output: temp('sratofastq/{sample}.fastq.gz')
     params:
         prefix='sratofastq/{sample}.fastq'
     shell:
@@ -112,7 +114,7 @@ rule perfom_trimming:
         out_dir='preprocessed/',
         phred_cutoff=5
     output:
-        'preprocessed/{sample}_trimmed.fq.gz',
+        temp('preprocessed/{sample}_trimmed.fq.gz')
     shell:
         r'''
         trim_galore -o {params.out_dir} -q {params.phred_cutoff} {input.R1}
@@ -124,13 +126,12 @@ rule map_star:
         R1='preprocessed/{sample}_trimmed.fq.gz',
         index=STAR_INDEX
     output:
-        bam='mapped/srr_bams/{sample}.bam',
+        bam=temp('mapped/srr_bams/{sample}.bam'),
         txbam='mapped/srr_tx_bams/{sample}.bam',
         counts='mapped/STARcounts/{sample}.counts',
     params:
         name = '{sample}',
         prefix = 'mapped/srr_bams/{sample}',
-        unmapped = 'unmapped_fastq/{sample}',
         starlogs = 'mapped/starlogs',
     threads: 16
     run:
@@ -155,15 +156,14 @@ rule map_star:
                        && mv {params.prefix}ReadsPerGene.out.tab {output.counts}\
                        && mkdir -p {params.starlogs}\
                        && mv {params.prefix}Log.final.out {params.prefix}Log.out {params.prefix}SJ.out.tab\
-                       {params.prefix}Log.progress.out {params.starlogs}\
-                       && mkdir -p {params.unmapped}
+                       {params.prefix}Log.progress.out {params.starlogs}
                  ''')
 
 
 rule merge_bams:
     input: merge_bams_input
     threads: 16
-    output: 'mapped/bams/{sample}.bam'
+    output: temp('mapped/bams/{sample}.bam')
     run:
         if len(input) > 1:
             with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
@@ -177,10 +177,24 @@ rule merge_bams:
             shell('''mv {cmd} {output} \
             && mv {cmd}.bai {output}.bai''')
 
+rule extract_uniq_mapping:
+    input: 'mapped/bams/{sample}.bam'
+    output: 'mapped/bams_unique/{sample}.bam'
+    threads: 16
+    run:
+        with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
+            shell(r'''
+            samtools view -b -q 255 {input} -o {output}.temp \
+            && samtools sort -@ {threads} {output}.temp -o {output} -T {temp_dir}/{wildcards.sample}_sort \
+            && rm -rf {output}.temp \
+            && samtools index {output}
+            ''')
+
+
 
 rule create_uniq_bedgraph_from_bam:
     input: 'mapped/bams_unique/{sample}.bam'
-    output: 'mapped/bedGraphs/{sample}.bg'
+    output: temp('mapped/bedGraphs/{sample}.bg')
     params: 
     shell:
         r'''
@@ -234,19 +248,6 @@ rule export_utr3_coverage:
            --offset_5p {params.offset_5p}'''
 
 
-rule extract_uniq_mapping:
-    input: 'mapped/bams/{sample}.bam'
-    output: 'mapped/bams_unique/{sample}.bam'
-    threads: 16
-    run:
-        with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
-            shell(r'''
-            samtools view -b -q 255 {input} -o {output}.temp \
-            && samtools sort -@ {threads} {output}.temp -o {output} -T {temp_dir}/{wildcards.sample}_sort \
-            && rm -rf {output}.temp \
-            && samtools index {output}
-            ''')
-
 rule fragment_length_pickle:
     input: 'mapped/bams_unique/{sample}.bam'
     output: 'mapped/fragment_length_pickle/{sample}.tsv'
@@ -294,10 +295,29 @@ rule metagene_coverage_cds2:
         r'''riboraptor count-reads-bed --bam {input} --bed {CDS_BED} --saveto {output}
         '''
 
+rule infer_protocol:
+    input: 'mapped/bams_unique/{sample}.bam'
+    output: 'mapped/infer_protocol/{sample}.txt'
+    shell: 
+        r'''riboraptor infer-protocol --bam {input} --refseq {GENE_BED}
+
+        '''
+
+    
+
+rule create_hdf:
+    input: 'mapped/bams_unique/{sample}.bam'
+    output: 'mapped/hdf/{sample}.hdf5'
+    params:
+        prefix = 'mapped/hdf/{sample}'
+    shell:
+        r'''riboraptor bam-coverage --bam {input} --outprefix {params.prefix}
+        '''
+
 rule report:
     input:
-      metagene = expand('mapped/plots/metagene/{sample}.png', sample=SRX_ID_DICT_KEYS),
-      fragment_length = expand('mapped/plots/read_length/{sample}.png', sample=SRX_ID_DICT_KEYS),
+      metagene = expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
+      fragment_length = expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
     output:
         html='riboraptor_report.html'
     run:

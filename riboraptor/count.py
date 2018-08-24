@@ -722,16 +722,13 @@ def extract_uniq_mapping_reads(inbam, outbam):
     uniquereadsbam.close()
 
 
-def get_bam_coverage(bam, orientation='5prime', outprefix=None):
+def get_bam_coverage(bam, outprefix=None):
     """ Get coverage from bam given orientation
 
     Parameters
     ----------
     bam: string
          Path to bam file
-
-    orientation: string
-                 5prime/3prime/both
 
     Returns
     -------
@@ -754,25 +751,26 @@ def get_bam_coverage(bam, orientation='5prime', outprefix=None):
             else:
                 strand = '+'
             reference_pos = read.get_reference_positions()
+            # Store 5' position
+            position_5prime = None
+            # Store 3' position
+            position_3prime = None
+
             if strand == '+':
-                if orientation == '5prime':
-                    # Track 5' end
-                    position = reference_pos[0]
-                elif orientation == '3prime':
-                    # Track 3' end
-                    position = reference_pos[-1]
+                position_5prime = reference_pos[0]
+                position_3prime = reference_pos[-1]
             else:
                 # Negative strand so no need to adjust
                 # switch things
-                if orientation == '5prime':
-                    # Track 5' end on negative strand
-                    position = reference_pos[-1]
-                elif orientation == '3prime':
-                    # Track 3' end on negative strand
-                    position = reference_pos[0]
+                position_5prime = reference_pos[-1]
+                position_3prime = reference_pos[0]
             query_length = read.query_length
-            coverage['{}:{}'.format(read.reference_name,
-                                    position)][query_length][strand] += 1
+            coverage['{}:{}:5prime'.format(
+                read.reference_name,
+                position_5prime)][query_length][strand] += 1
+            coverage['{}:{}:3prime'.format(
+                read.reference_name,
+                position_3prime)][query_length][strand] += 1
             pbar.update()
     if outprefix:
         df = pd.DataFrame.from_dict(
@@ -786,66 +784,130 @@ def get_bam_coverage(bam, orientation='5prime', outprefix=None):
             chrom\tstart_position(0-based)\tnumber of hits on + strand\tnumber of hits on - strand
         """
         df.columns = [
-            'chr_pos',
+            'chr_pos_orient',
             'read_length',
             'count_pos_strand',
             'count_neg_strand',
         ]
-        df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=1, expand=True)
+        # n=-1 tto expand all splits
+        df[['chrom', 'start', 'orientation']] = df['chr_pos_orient'].str.split(
+            ':', n=-1, expand=True)
         df['start'] = df['start'].astype(int)
         df['count_pos_strand'] = df['count_pos_strand'].fillna(0).astype(int)
         df['count_neg_strand'] = df['count_neg_strand'].fillna(0).astype(int)
         df['end'] = df['start'] + 1
         df = df[[
-            'chrom', 'start', 'end', 'read_length', 'count_pos_strand',
-            'count_neg_strand'
+            'chrom', 'start', 'end', 'read_length', 'orientation',
+            'count_pos_strand', 'count_neg_strand'
         ]]
-        df = df.sort_values(
-            by=['chrom', 'start', 'read_length', 'count_pos_strand'])
+        df = df.sort_values(by=[
+            'chrom', 'start', 'read_length', 'orientation', 'count_pos_strand'
+        ])
         df.to_csv(
             '{}.tsv'.format(outprefix), sep='\t', index=False, header=True)
 
         reference_and_length = dict(
             zip(bam.header.references, bam.header.lengths))
-        df = df.sort_values(
-            by=['read_length', 'chrom', 'start', 'count_pos_strand'])
+        df = df.sort_values(by=[
+            'read_length', 'chrom', 'start', 'orientation', 'count_pos_strand'
+        ])
         df = df.rename(columns={
             'count_pos_strand': 'pos',
             'count_neg_strand': 'neg'
         })
         df_molten = pd.melt(
             df,
-            id_vars=['chrom', 'start', 'end', 'read_length'],
+            id_vars=['chrom', 'start', 'end', 'read_length', 'orientation'],
             value_vars=['pos', 'neg'])
         df_molten = df_molten.rename(columns={'variable': 'strand'})
         df_molten['chrom'] = df_molten.chrom.str.cat(df_molten.strand, sep='_')
+        # Convert read length dtype to make it more compatible to h5py (requires string keys)
         df_molten['read_length'] = df_molten.read_length.astype(str)
         df_molten = df_molten.drop(columns=['end', 'strand'])
-        df_grouped = df_molten.groupby(['read_length'])
-        with tqdm(total=len(df_grouped)) as pbar:
+        df_readlen_grouped = df_molten.groupby(['read_length'])
+
+        chrom_list = list(sorted(df_molten['chrom'].unique()))
+        chrom_sizes = [
+            reference_and_length[chrom.strip('_neg').strip('_pos')]
+            for chrom in chrom_list
+        ]
+        assert len(chrom_list) >= 1, 'No chromosomes found'
+
+        df_readlen_orient = pd.DataFrame(
+            df_molten.groupby(['read_length',
+                               'orientation']).value.agg('sum')).reset_index()
+        # Check if the counts are same irrespective of orientation
+        df_readlen_orient_unmelt = df_readlen_orient.pivot(
+            index='read_length', columns='orientation', values='value')
+        assert (df_readlen_orient_unmelt['5prime'] == df_readlen_orient_unmelt[
+            '3prime']).all()
+        dt = h5py.special_dtype(vlen=str)
+        read_lengths_list = df_readlen_orient_unmelt.index.tolist()
+        read_lengths_counts = df_readlen_orient_unmelt.loc[read_lengths_list,
+                                                           '5prime'].tolist()
+
+        with tqdm(total=len(df_readlen_grouped)) as pbar:
             with h5py.File('{}.hdf5'.format(outprefix), 'w') as h5py_file:
-                for fragment_length, group in df_grouped:
-                    h5py_frag_group = h5py_file.create_group(fragment_length)
-                    df_chrom_grouped = group.groupby('chrom')
-                    for chrom, chrom_group in df_chrom_grouped:
-                        chrom_size = reference_and_length[chrom.strip('_neg')
-                                                          .strip('_pos')]
-                        counts_series = pd.Series(
-                            chrom_group['value'].tolist())
-                        positions_series = pd.Series(
-                            chrom_group['start'].tolist())
-                        chrom_group = h5py_frag_group.create_group(chrom)
-                        dset = chrom_group.create_dataset(
-                            'chrom_size', (1, ), dtype='i')
-                        dset[...] = chrom_size
-                        dset = chrom_group.create_dataset(
-                            'positions', (len(counts_series), ), dtype='i')
-                        dset[...] = positions_series
-                        dset.attrs['orientation'] = orientation
-                        dset = chrom_group.create_dataset(
-                            'counts', (len(counts_series), ), dtype='i')
-                        dset[...] = counts_series
-                        dset.attrs['orientation'] = orientation
+
+                dset = h5py_file.create_dataset(
+                    'read_lengths', (len(read_lengths_list), ),
+                    dtype=dt,
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(read_lengths_list)
+
+                dset = h5py_file.create_dataset(
+                    'read_lengths_counts', (len(read_lengths_list), ),
+                    dtype=np.dtype('int32'),
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(read_lengths_counts)
+
+                dset = h5py_file.create_dataset(
+                    'chrom_names', (len(chrom_list), ),
+                    dtype=dt,
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(chrom_list)
+
+                dset = h5py_file.create_dataset(
+                    'chrom_sizes', (len(chrom_list), ),
+                    dtype=np.dtype('int32'),
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(chrom_sizes)
+
+                h5_readlen_group = h5py_file.create_group('fragments')
+
+                for read_length, df_readlen_group in df_readlen_grouped:
+                    h5_readlen_subgroup = h5_readlen_group.create_group(
+                        read_length)
+                    df_orientation_grouped = df_readlen_group.groupby(
+                        'orientation')
+                    for orientation, df_orientation_group in df_orientation_grouped:
+                        h5_orientation_subgroup = h5_readlen_subgroup.create_group(
+                            orientation)
+                        df_chrom_grouped = df_orientation_group.groupby(
+                            'chrom')
+                        for chrom, chrom_group in df_chrom_grouped:
+                            counts_series = pd.Series(
+                                chrom_group['value'].tolist())
+                            positions_series = pd.Series(
+                                chrom_group['start'].tolist())
+                            chrom_group = h5_orientation_subgroup.create_group(
+                                chrom)
+                            dset = chrom_group.create_dataset(
+                                'positions', (len(counts_series), ),
+                                dtype=np.dtype('int32'),
+                                compression='gzip',
+                                compression_opts=9)
+                            dset[...] = positions_series
+                            dset = chrom_group.create_dataset(
+                                'counts', (len(counts_series), ),
+                                dtype=np.dtype('int32'),
+                                compression='gzip',
+                                compression_opts=9)
+                            dset[...] = counts_series
                     pbar.update()
         return df
     return coverage

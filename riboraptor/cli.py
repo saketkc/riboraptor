@@ -433,9 +433,8 @@ def uniq_mapping_cmd(bam):
 @click.option('--bam', help='Path to BAM file', required=True)
 @click.option(
     '--outprefix', help='Prefix to store coverage output', required=True)
-@click.option('--orientation', help='track 5prime or 3prime', required=True)
-def bam_coverage_cmd(bam, outprefix, orientation):
-    get_bam_coverage(bam, orientation=orientation, outprefix=outprefix)
+def bam_coverage_cmd(bam, outprefix):
+    get_bam_coverage(bam, outprefix)
 
 
 ###################### get-bam-metagene-coverage ######################################

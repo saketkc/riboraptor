@@ -2,6 +2,12 @@
 RAWDATA_DIR = ''
 #RAWDATA_DIR = '/staging/as/skchoudh/SRA_datasets/SRP012648'
 
+## Your $PATH variable
+PATH = ''
+
+## Conda environment name
+CONDA_ENV = ''
+
 ## Output directory (will be created if does not exist)
 OUT_DIR = ''
 #OUT_DIR = '/staging/as/skchoudh/riboraptor-analysis/SRP012648'

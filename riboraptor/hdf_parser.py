@@ -7,6 +7,9 @@ class HDFParser(object):
         self.filepath = filepath
         self.h5py_obj = h5py.File(filepath, 'r')
 
+    def close(self):
+        self.h5py_obj.close()
+
     def __enter__(self):
         return self
 
@@ -15,7 +18,8 @@ class HDFParser(object):
 
     def get_coverage(self,
                      region=(None, None, None, None),
-                     fragment_length=None):
+                     fragment_length=None,
+                     orientation='5prime'):
         """Get coverage for a selected region.
 
         Paramters
@@ -39,13 +43,13 @@ class HDFParser(object):
         if isinstance(fragment_length, int):
             fragment_length = [fragment_length]
 
-        h5py_fragments = self.h5py_obj.keys()
+        h5py_fragments = self.h5py_obj['read_lengths']
         if fragment_length == 'all':
             fragment_length = h5py_fragments
         fragment_length = list(map(lambda x: str(x), fragment_length))
         coverages = []
         for l in fragment_length:
-            root_obj = self.h5py_obj[l]
+            root_obj = self.h5py_obj['fragments'][l][orientation]
             if strand == '-':
                 chrom_obj = root_obj['{}_neg'.format(chrom)]
             elif strand == '+':
@@ -71,3 +75,9 @@ class HDFParser(object):
         coverages = coverages.rename(columns={'index': 'start'})
         coverages.columns = ['start'] + list(coverages.columns[1:])
         return coverages
+
+    def get_read_length_dist(self):
+        """Get fragment length distribution"""
+        return pd.Series(
+            self.h5py_obj['read_lengths_counts'],
+            index=[int(x) for x in self.h5py_obj['read_lengths']])
