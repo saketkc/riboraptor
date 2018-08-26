@@ -111,14 +111,21 @@ def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
     type=int,
     default=0,
     show_default=True)
-def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
-                                 offset_3p):
-    metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
-                                                offset_5p, offset_3p)
+@click.option(
+    '--threads',
+    help='Number of threads to use',
+    type=int,
+    default=1,
+    show_default=True)
 
-    for i, count in six.iteritems(metagene_profile):
-        sys.stdout.write('{}\t{}'.format(i, count))
-        sys.stdout.write(os.linesep)
+def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
+                                 offset_3p, threads):
+    metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
+                                                offset_5p, offset_3p, threads)
+    if saveto is None:
+        for i, count in six.iteritems(metagene_profile):
+            sys.stdout.write('{}\t{}'.format(i, count))
+            sys.stdout.write(os.linesep)
 
 
 ###################### export-read-counts ##############################

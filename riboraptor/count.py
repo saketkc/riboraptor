@@ -33,6 +33,8 @@ from .helpers import complementary_strand
 
 from .wig import WigReader
 from .interval import Interval
+from .parallel import ParallelExecutor
+from joblib import delayed
 
 # Unmapped, Unmapped+Reverse strand, Not primary alignment,
 # Not primary alignment + reverse strand, supplementary alignment
@@ -203,12 +205,35 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         outfile.write(to_write)
 
 
+
+
+def _multiprocess_gene_coverage(data):
+    gene_group, bw, offset_5p, offset_3p, max_positions = data
+    bw = WigReader(bw)
+    coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
+    coverage = coverage.fillna(0)
+
+    if max_positions is not None and len(coverage.index) > 0:
+        min_index = min(coverage.index.tolist())
+        max_index = max(coverage.index.tolist())
+        coverage = coverage[np.arange(min_index,
+                                        min(max_index, max_positions))]
+    coverage_mean = coverage.mean()
+    norm_cov = coverage / coverage_mean
+    norm_cov = norm_cov.fillna(0)
+    return norm_cov
+
+
+
+
+
 def export_metagene_coverage(bed,
                              bw,
                              max_positions=None,
                              saveto=None,
                              offset_5p=0,
-                             offset_3p=0):
+                             offset_3p=0,
+                             n_jobs=1):
     """Export metagene coverage.
 
     Parameters
@@ -259,6 +284,7 @@ def export_metagene_coverage(bed,
     position_counter = Counter()
     metagene_coverage = pd.Series()
 
+    """
     for gene_name, gene_group in tqdm(bed_grouped):
         coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
         coverage = coverage.fillna(0)
@@ -273,6 +299,15 @@ def export_metagene_coverage(bed,
             norm_cov = coverage / coverage_mean
             metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
             position_counter += Counter(coverage.index.tolist())
+    """
+
+    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions) for gene_name, gene_group in bed_grouped]
+    aprun = ParallelExecutor(n_jobs=n_jobs)
+    total = len(bed_grouped.groups)
+    all_coverages = aprun(total=total)(delayed(_multiprocess_gene_coverage)(d) for d in data)
+    for norm_cov in all_coverages:
+        metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
+        position_counter += Counter(norm_cov.index.tolist())
 
     if len(position_counter) != len(metagene_coverage):
         raise RuntimeError('Gene normalizaed counter mismatch')
@@ -806,7 +841,7 @@ def get_bam_coverage(bam, outprefix=None):
         df.to_csv(
             '{}.tsv'.format(outprefix), sep='\t', index=False, header=True)
 
-        reference_and_length = dict(
+        reference_and_length = OrderedDict(
             zip(bam.header.references, bam.header.lengths))
         df = df.sort_values(by=[
             'read_length', 'chrom', 'start', 'orientation', 'count_pos_strand'
@@ -825,13 +860,6 @@ def get_bam_coverage(bam, outprefix=None):
         df_molten['read_length'] = df_molten.read_length.astype(str)
         df_molten = df_molten.drop(columns=['end', 'strand'])
         df_readlen_grouped = df_molten.groupby(['read_length'])
-
-        chrom_list = list(sorted(df_molten['chrom'].unique()))
-        chrom_sizes = [
-            reference_and_length[chrom.strip('_neg').strip('_pos')]
-            for chrom in chrom_list
-        ]
-        assert len(chrom_list) >= 1, 'No chromosomes found'
 
         df_readlen_orient = pd.DataFrame(
             df_molten.groupby(['read_length',
@@ -864,18 +892,18 @@ def get_bam_coverage(bam, outprefix=None):
                 dset[...] = np.array(read_lengths_counts)
 
                 dset = h5py_file.create_dataset(
-                    'chrom_names', (len(chrom_list), ),
+                    'chrom_names', (len(reference_and_length.keys()), ),
                     dtype=dt,
                     compression='gzip',
                     compression_opts=9)
-                dset[...] = np.array(chrom_list)
+                dset[...] = np.array(list(reference_and_length.keys()))
 
                 dset = h5py_file.create_dataset(
-                    'chrom_sizes', (len(chrom_list), ),
+                    'chrom_sizes', (len(reference_and_length.values()), ),
                     dtype=np.dtype('int32'),
                     compression='gzip',
                     compression_opts=9)
-                dset[...] = np.array(chrom_sizes)
+                dset[...] = np.array(list(reference_and_length.values()))
 
                 h5_readlen_group = h5py_file.create_group('fragments')
 
