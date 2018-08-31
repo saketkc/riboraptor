@@ -35,58 +35,44 @@ from .wig import WigReader
 from .interval import Interval
 from .parallel import ParallelExecutor
 from joblib import delayed
-
-# Unmapped, Unmapped+Reverse strand, Not primary alignment,
-# Not primary alignment + reverse strand, supplementary alignment
-
-# Source: https://broadinstitute.github.io/picard/explain-flags.html
-__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
+from .infer_protocol import infer_protocol
+from .helpers import read_bed_as_intervaltree
+from .helpers import is_read_uniq_mapping, create_bam_index
 
 
-def _create_bam_index(bam):
-    """Create bam index.
+def _get_gene_strand(refseq, chrom, mapped_start, mapped_end):
+    """Lookup a particular location on chromosome to determine
+    its strand
+
 
     Parameters
     ----------
-    bam : str
-          Path to bam file
+    refseq: string or intervaltree
+            refseq genes.bed file loaded as
+
     """
-    if isinstance(bam, pysam.AlignmentFile):
-        bam = bam.filename
-    if not os.path.exists('{}.bai'.format(bam)):
-        pysam.index(bam)
-
-
-def _is_read_uniq_mapping(read):
-    """Check if read is uniquely mappable.
-
-    Parameters
-    ----------
-    read : pysam.Alignment.fetch object
-
-
-    Most reliable: ['NH'] tag
-    """
-    # Filter out secondary alignments
-    if read.is_secondary:
-        return False
-    tags = dict(read.get_tags())
-    try:
-        nh_count = tags['NH']
-    except KeyError:
-        # Reliable in case of STAR
-        if read.mapping_quality == 255:
-            return True
-        if read.mapping_quality < 1:
-            return False
-        # NH tag not set so rely on flags
-        if read.flag in __SAM_NOT_UNIQ_FLAGS__:
-            return False
-        else:
-            raise RuntimeError('Malformed BAM?')
-    if nh_count == 1:
-        return True
-    return False
+    if isinstance(refseq, six.string_types):
+        refseq = read_bed_as_intervaltree(refseq)
+    gene_strand = list(set(refseq[chrom].find(mapped_start, mapped_end)))
+    if len(gene_strand) > 1:
+        return 'ambiguous'
+    if len(gene_strand) == 0:
+        # Try searching upstream 30 and downstream 30 nt
+        gene_strand = list(
+            set(refseq[chrom].find(mapped_start - 30, mapped_end - 30)))
+        if len(gene_strand) == 0:
+            # Downstream
+            gene_strand = list(
+                set(refseq[chrom].find(mapped_start + 30, mapped_end + 30)))
+            if len(gene_strand) == 0:
+                return 'not_found'
+            if len(gene_strand) > 1:
+                return 'ambiguous'
+            return gene_strand[0]
+        if len(gene_strand) > 1:
+            return 'ambiguous'
+        return gene_strand[0]
+    return gene_strand[0]
 
 
 def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
@@ -196,7 +182,6 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         coverage = coverage.fillna(0)
         coverage = coverage.astype(int)
         coverage = coverage.tolist()
-
         to_write += '{}\t{}\t{}\t{}\n'.format(gene_name, int(gene_offset_5p),
                                               int(gene_offset_3p), coverage)
 
@@ -205,9 +190,22 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         outfile.write(to_write)
 
 
+def multiprocess_gene_coverage(data):
+    """Process gene_coverage given a bigwig and a genegroup.
 
+    WigReader is not pickleable when passed as an argument so we use strings
+    as input for the bigwig
 
-def _multiprocess_gene_coverage(data):
+    Parameters
+    ----------
+    data: tuple
+          gene_gorup, bigwig, offset_5p, offset_3p, max_positions
+
+    Returns
+    -------
+    norm_cob: Series
+              normalized coverage
+    """
     gene_group, bw, offset_5p, offset_3p, max_positions = data
     bw = WigReader(bw)
     coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
@@ -216,15 +214,13 @@ def _multiprocess_gene_coverage(data):
     if max_positions is not None and len(coverage.index) > 0:
         min_index = min(coverage.index.tolist())
         max_index = max(coverage.index.tolist())
-        coverage = coverage[np.arange(min_index,
-                                        min(max_index, max_positions))]
+        coverage = coverage[np.arange(min_index, min(max_index,
+                                                     max_positions))]
     coverage_mean = coverage.mean()
     norm_cov = coverage / coverage_mean
     norm_cov = norm_cov.fillna(0)
+    bw.close()
     return norm_cov
-
-
-
 
 
 def export_metagene_coverage(bed,
@@ -283,7 +279,6 @@ def export_metagene_coverage(bed,
 
     position_counter = Counter()
     metagene_coverage = pd.Series()
-
     """
     for gene_name, gene_group in tqdm(bed_grouped):
         coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
@@ -301,10 +296,12 @@ def export_metagene_coverage(bed,
             position_counter += Counter(coverage.index.tolist())
     """
 
-    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions) for gene_name, gene_group in bed_grouped]
+    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions)
+            for gene_name, gene_group in bed_grouped]
     aprun = ParallelExecutor(n_jobs=n_jobs)
     total = len(bed_grouped.groups)
-    all_coverages = aprun(total=total)(delayed(_multiprocess_gene_coverage)(d) for d in data)
+    all_coverages = aprun(total=total)(
+        delayed(multiprocess_gene_coverage)(d) for d in data)
     for norm_cov in all_coverages:
         metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
         position_counter += Counter(norm_cov.index.tolist())
@@ -483,11 +480,10 @@ def export_read_length(bam, saveto=None):
              Counter of read length and counts
 
     """
-    _create_bam_index(bam)
+    create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     read_counts = Counter([
-        read.query_length for read in bam.fetch()
-        if _is_read_uniq_mapping(read)
+        read.query_length for read in bam.fetch() if is_read_uniq_mapping(read)
     ])
     if saveto:
         mkdir_p(os.path.dirname(saveto))
@@ -689,7 +685,7 @@ def mapping_reads_summary(bam, saveto=None):
              Counter with keys as number of times read maps
              and values as number of reads of that type
     """
-    _create_bam_index(bam)
+    create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     counts = Counter()
     for read in bam.fetch():
@@ -724,11 +720,11 @@ def count_uniq_mapping_reads(bam):
     n_mapped: int
               Count of uniquely mapped reads
     """
-    _create_bam_index(bam)
+    create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     n_mapped = 0
     for read in bam.fetch():
-        if _is_read_uniq_mapping(read):
+        if is_read_uniq_mapping(read):
             n_mapped += 1
     bam.close()
     return n_mapped
@@ -744,41 +740,45 @@ def extract_uniq_mapping_reads(inbam, outbam):
     outbam: string
             Path to write unique reads bam to
     """
-    _create_bam_index(inbam)
+    create_bam_index(inbam)
     allreadsbam = pysam.AlignmentFile(inbam, 'rb')
     uniquereadsbam = pysam.AlignmentFile(outbam, 'wb', template=allreadsbam)
     total_count = allreadsbam.count()
     with tqdm(total=total_count) as pbar:
         for read in allreadsbam.fetch():
-            if _is_read_uniq_mapping(read):
+            if is_read_uniq_mapping(read):
                 uniquereadsbam.write(read)
             pbar.update()
     allreadsbam.close()
     uniquereadsbam.close()
 
 
-def get_bam_coverage(bam, outprefix=None):
-    """ Get coverage from bam given orientation
+def get_bam_coverage(bam, bed, outprefix=None):
+    """Get coverage from bam
 
     Parameters
     ----------
     bam: string
          Path to bam file
+    bed: string
+         Path to genes.bed or cds.bed file required for inferring protocol of bam
 
     Returns
     -------
     coverage: dict(dict)
               dict with keys as chrom:position with query lengths as keys
     """
+    protocol, forward_mapped_reads, reverse_mapped_reads, total_reads = infer_protocol(
+        bam, bed)
     if isinstance(bam, six.string_types):
-        _create_bam_index(bam)
+        create_bam_index(bam)
         bam = pysam.AlignmentFile(bam, 'rb')
 
     coverage = defaultdict(lambda: defaultdict(Counter))
     total_counts = bam.count()
     with tqdm(total=total_counts) as pbar:
         for read in bam.fetch():
-            if not _is_read_uniq_mapping(read):
+            if not is_read_uniq_mapping(read):
                 pbar.update()
                 continue
             if read.is_reverse:
@@ -838,11 +838,19 @@ def get_bam_coverage(bam, outprefix=None):
         df = df.sort_values(by=[
             'chrom', 'start', 'read_length', 'orientation', 'count_pos_strand'
         ])
+
+        bed_tree = read_bed_as_intervaltree(bed)
+        df['gene_strand'] = df.apply(
+            lambda row: _get_gene_strand(bed_tree, row['chrom'], row['start'], row['end']),
+            axis=1)
         df.to_csv(
             '{}.tsv'.format(outprefix), sep='\t', index=False, header=True)
 
         reference_and_length = OrderedDict(
-            zip(bam.header.references, bam.header.lengths))
+            sorted(
+                zip(bam.header.references, bam.header.lengths),
+                key=lambda x: x[0]))
+
         df = df.sort_values(by=[
             'read_length', 'chrom', 'start', 'orientation', 'count_pos_strand'
         ])
@@ -852,10 +860,18 @@ def get_bam_coverage(bam, outprefix=None):
         })
         df_molten = pd.melt(
             df,
-            id_vars=['chrom', 'start', 'end', 'read_length', 'orientation'],
+            id_vars=[
+                'chrom', 'start', 'end', 'read_length', 'orientation',
+                'gene_strand'
+            ],
             value_vars=['pos', 'neg'])
         df_molten = df_molten.rename(columns={'variable': 'strand'})
-        df_molten['chrom'] = df_molten.chrom.str.cat(df_molten.strand, sep='_')
+        df_molten = df_molten.sort_values(by=[
+            'chrom', 'start', 'end', 'read_length', 'orientation', 'strand',
+            'gene_strand'
+        ])
+        df_molten['chrom'] = df_molten.chrom.str.cat(
+            df_molten.strand, sep='__')
         # Convert read length dtype to make it more compatible to h5py (requires string keys)
         df_molten['read_length'] = df_molten.read_length.astype(str)
         df_molten = df_molten.drop(columns=['end', 'strand'])
@@ -876,7 +892,7 @@ def get_bam_coverage(bam, outprefix=None):
 
         with tqdm(total=len(df_readlen_grouped)) as pbar:
             with h5py.File('{}.hdf5'.format(outprefix), 'w') as h5py_file:
-
+                h5py_file.attrs['protocol'] = protocol
                 dset = h5py_file.create_dataset(
                     'read_lengths', (len(read_lengths_list), ),
                     dtype=dt,
@@ -886,7 +902,7 @@ def get_bam_coverage(bam, outprefix=None):
 
                 dset = h5py_file.create_dataset(
                     'read_lengths_counts', (len(read_lengths_list), ),
-                    dtype=np.dtype('int32'),
+                    dtype=np.dtype('int64'),
                     compression='gzip',
                     compression_opts=9)
                 dset[...] = np.array(read_lengths_counts)
@@ -900,7 +916,7 @@ def get_bam_coverage(bam, outprefix=None):
 
                 dset = h5py_file.create_dataset(
                     'chrom_sizes', (len(reference_and_length.values()), ),
-                    dtype=np.dtype('int32'),
+                    dtype=np.dtype('int64'),
                     compression='gzip',
                     compression_opts=9)
                 dset[...] = np.array(list(reference_and_length.values()))
@@ -926,16 +942,24 @@ def get_bam_coverage(bam, outprefix=None):
                                 chrom)
                             dset = chrom_group.create_dataset(
                                 'positions', (len(counts_series), ),
-                                dtype=np.dtype('int32'),
+                                dtype=np.dtype('int64'),
                                 compression='gzip',
                                 compression_opts=9)
                             dset[...] = positions_series
+
                             dset = chrom_group.create_dataset(
                                 'counts', (len(counts_series), ),
-                                dtype=np.dtype('int32'),
+                                dtype=np.dtype('float64'),
                                 compression='gzip',
                                 compression_opts=9)
                             dset[...] = counts_series
+
+                            dset = chrom_group.create_dataset(
+                                'gene_strand', (len(counts_series), ),
+                                dtype=dt,
+                                compression='gzip',
+                                compression_opts=9)
+                            dset[...] = chrom_group['gene_strand']
                     pbar.update()
         return df
     return coverage

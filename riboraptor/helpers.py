@@ -18,10 +18,17 @@ import numpy as np
 import pandas as pd
 import six
 import pybedtools
+import pysam
 from bx.intervals.intersection import IntervalTree
 
 import warnings
 from .interval import Interval
+
+# Unmapped, Unmapped+Reverse strand, Not primary alignment,
+# Not primary alignment + reverse strand, supplementary alignment
+
+# Source: https://broadinstitute.github.io/picard/explain-flags.html
+__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
 
 CBB_PALETTE = [
     "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
@@ -770,7 +777,75 @@ def read_bed_as_intervaltree(filepath):
 
     bedint_tree = defaultdict(IntervalTree)
     for chrom, df in bed_grouped:
-        df_list = df[['start', 'end', 'strand']].tolist()
+        df_list = zip(df['start'], df['end'], df['strand'])
         for start, end, strand in df_list:
             bedint_tree[chrom].insert(start, end, strand)
     return bedint_tree
+
+
+def read_chrom_sizes(filepath):
+    """Read chr.sizes file sorted by chromosome name
+
+    Parameters
+    ----------
+    filepath: string
+              Location to chr.sizes
+
+    Returns
+    -------
+    chrom_lengths: list of tuple
+                   A list of tuples with chromsome name and their size
+    """
+
+    chrom_lengths = []
+    with open(filepath, 'r') as fh:
+        for line in fh:
+            chrom, size = line.strip().split('\t')
+            chrom_lengths.append((chrom, int(size)))
+        chrom_lengths = list(sorted(chrom_lengths, key=lambda x: x[0]))
+
+
+def create_bam_index(bam):
+    """Create bam index.
+
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    """
+    if isinstance(bam, pysam.AlignmentFile):
+        bam = bam.filename
+    if not os.path.exists('{}.bai'.format(bam)):
+        pysam.index(bam)
+
+
+def is_read_uniq_mapping(read):
+    """Check if read is uniquely mappable.
+
+    Parameters
+    ----------
+    read : pysam.Alignment.fetch object
+
+
+    Most reliable: ['NH'] tag
+    """
+    # Filter out secondary alignments
+    if read.is_secondary:
+        return False
+    tags = dict(read.get_tags())
+    try:
+        nh_count = tags['NH']
+    except KeyError:
+        # Reliable in case of STAR
+        if read.mapping_quality == 255:
+            return True
+        if read.mapping_quality < 1:
+            return False
+        # NH tag not set so rely on flags
+        if read.flag in __SAM_NOT_UNIQ_FLAGS__:
+            return False
+        else:
+            raise RuntimeError('Malformed BAM?')
+    if nh_count == 1:
+        return True
+    return False

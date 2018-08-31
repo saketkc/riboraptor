@@ -117,7 +117,6 @@ def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
     type=int,
     default=1,
     show_default=True)
-
 def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
                                  offset_3p, threads):
     metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
@@ -438,10 +437,11 @@ def uniq_mapping_cmd(bam):
     context_settings=CONTEXT_SETTINGS,
     help='Get strandwise coerage from bam')
 @click.option('--bam', help='Path to BAM file', required=True)
+@click.option('--genebed', help='Path to genes.bed file', required=True)
 @click.option(
     '--outprefix', help='Prefix to store coverage output', required=True)
-def bam_coverage_cmd(bam, outprefix):
-    get_bam_coverage(bam, outprefix)
+def bam_coverage_cmd(bam, genebed, outprefix):
+    get_bam_coverage(bam, genebed, outprefix)
 
 
 ###################### get-bam-metagene-coverage ######################################

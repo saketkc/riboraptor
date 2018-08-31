@@ -86,8 +86,9 @@ rule all:
         expand('preprocessed/{sample}_trimmed.fq.gz', sample=ALL_SRR),
         expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
         expand('mapped/bigWigs/{sample}.bw', sample=SRX_SAMPLES),
-        expand('mapped/hdf/{sample}.hdf5', samples=SRX_SAMPLES),
+        expand('mapped/hdf/{sample}.hdf5', sample=SRX_SAMPLES),
         expand('mapped/infer_protocol/{sample}.txt', sample=SRX_SAMPLES),
+        expand('mapped/metagene_coverages/{sample}.tsv', sample=SRX_SAMPLES),
         #expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
         #expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
         #'riboraptor_report.html'
@@ -299,11 +300,9 @@ rule infer_protocol:
     input: 'mapped/bams_unique/{sample}.bam'
     output: 'mapped/infer_protocol/{sample}.txt'
     shell: 
-        r'''riboraptor infer-protocol --bam {input} --refseq {GENE_BED}
+        r'''riboraptor infer-protocol --bam {input} --refseq {GENE_BED} > {output}
 
         '''
-
-    
 
 rule create_hdf:
     input: 'mapped/bams_unique/{sample}.bam'
