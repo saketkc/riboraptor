@@ -41,6 +41,7 @@ from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist
 from .hdf_parser import create_metagene_from_multi_bigwig
 from .hdf_parser import hdf_to_bigwig
+from .hdf_parser import tsv_to_bigwig
 from .hdf_parser import merge_bigwigs
 
 click.disable_unicode_literals_warning = True
@@ -544,6 +545,18 @@ def merge_multiple_bw(pattern, bed, saveto, max_positions, offset_5p,
         n_jobs=16,
         saveto=saveto)
 
+#######$$############ Create bigwig from tsv #################################
+@cli.command(
+    'tsv-to-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Create bigwig from tsv')
+@click.option('--tsv', type=str, help='Path to tsv file', required=True)
+@click.option(
+    '--chromsizes', type=str, help='Path to chrom.sizes file', required=True)
+@click.option('--prefix', type=str, help='Prefix ', required=True)
+def tsv_to_bw_cmd(tsv, chromsizes, prefix):
+    tsv_to_bigwig(tsv, chromsizes, prefix)
+
 
 ################### Create metagene from multiple bigwigs #####################
 @cli.command(
@@ -581,6 +594,5 @@ def bam_coverage_cmd(bam, genebed, outprefix):
 @click.option(
     '--saveto', type=str, help='Save output bigwig to', required=True)
 def merge_bw_cmd(pattern, chromsizes, saveto):
-    print(os.path.abspath(pattern))
     bigwigs = glob.glob(os.path.abspath(pattern), recursive=True)
     merge_bigwigs(bigwigs, chromsizes, saveto)

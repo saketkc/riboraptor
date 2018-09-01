@@ -939,8 +939,6 @@ def get_bam_coverage(bam, bed, outprefix=None):
             mismatches['{}:{}:5prime:{}'.format(
                 read.reference_name, position_5prime,
                 strand)][query_length]['mismatch'] += int(mismatch_at_5prime)
-            # print(mismatches)
-            # sys.exit(1)
 
             pbar.update()
     if outprefix:

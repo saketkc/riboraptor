@@ -186,6 +186,15 @@ def tsv_to_bigwig(df, chrom_lengths, prefix):
     prefix: string
             Path to store the final tsv
     """
+    if isinstance(chrom_lengths, six.string_types):
+        if not os.path.isfile(chrom_lengths):
+            raise RuntimeError('Need either list of tuples or chrom.sizes file to proceed')
+        sizes = []
+        with open(chrom_lengths) as fh:
+            for line in fh:
+                chrom, size = line.strip().split('\t')
+                sizes.append((str(chrom), int(size)))
+        chrom_lengths = sizes
     chrom_lengths = list(sorted(chrom_lengths, key=lambda x: x[0]))
     if isinstance(df, six.string_types):
         df = pd.read_table(df)
@@ -210,10 +219,10 @@ def tsv_to_bigwig(df, chrom_lengths, prefix):
             orientation_group_neg = orientation_group_neg.sort_values(
                 by=['chrom', 'start', 'end'])
             _create_bigwig_from_bed(
-                orientation_group_pos, chrom_lengths, '{}_{}_{}.bw'.format(
+                orientation_group_pos, chrom_lengths, '{}_{}_{}_{}.bw'.format(
                     prefix, read_length, orientation, 'pos'))
             _create_bigwig_from_bed(
-                orientation_group_neg, chrom_lengths, '{}_{}_{}.bw'.format(
+                orientation_group_neg, chrom_lengths, '{}_{}_{}_{}.bw'.format(
                     prefix, read_length, orientation, 'neg'))
 
 
@@ -538,13 +547,9 @@ class HDFParser(object):
         for coverage_normalized in coverages_normalized[1:]:
             coverage_normalized_sum = coverage_normalized_sum.add(
                 coverage_normalized, fill_value=0)
-        print('coverage_normalized_sum: {}'.format(coverage_normalized_sum))
-        #print('coverge_normalized_sum: {}'.format(coverage_normalized_sum))
         coverage_sum_div = coverage_sum.divide(position_counter, axis='index')
         coverage_normalized_sum_div = coverage_normalized_sum.divide(
             position_counter, axis='index')
-        print('coverge_normalized_sum_div: {}'.format(
-            coverage_normalized_sum_div))
         coverage_sum_div = coverage_sum_div.reset_index()
         coverage_normalized_sum_div = coverage_normalized_sum_div.reset_index()
         if outprefix:
