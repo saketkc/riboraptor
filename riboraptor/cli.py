@@ -10,6 +10,7 @@ import sys
 from textwrap import dedent
 
 import click
+import glob
 from click_help_colors import HelpColorsGroup
 import six
 import pandas as pd
@@ -38,6 +39,9 @@ from .download import run_download_sra_script
 from .coherence import naive_periodicity
 from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist
+from .hdf_parser import create_metagene_from_multi_bigwig
+from .hdf_parser import hdf_to_bigwig
+from .hdf_parser import merge_bigwigs
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -431,19 +435,6 @@ def uniq_mapping_cmd(bam):
     sys.stdout.write(os.linesep)
 
 
-###################### get-bam-coverage ######################################
-@cli.command(
-    'bam-coverage',
-    context_settings=CONTEXT_SETTINGS,
-    help='Get strandwise coerage from bam')
-@click.option('--bam', help='Path to BAM file', required=True)
-@click.option('--genebed', help='Path to genes.bed file', required=True)
-@click.option(
-    '--outprefix', help='Prefix to store coverage output', required=True)
-def bam_coverage_cmd(bam, genebed, outprefix):
-    get_bam_coverage(bam, genebed, outprefix)
-
-
 ###################### get-bam-metagene-coverage ######################################
 @cli.command(
     'bam-metagene-coverage',
@@ -506,9 +497,90 @@ def download_srp_cmd(out, ascp, srpfile, srp_id_list):
 def infer_protocol_cmd(bam, refseq, n_reads):
     protocol, forward_mapped, reverse_mapped = infer_protocol(
         bam, refseq, n_reads)
-    print(
-        dedent('''\
+    print(dedent('''\
                  Forward mapped proportion: {:.4f}
                  Reverse mapped proportion: {:.4f}
                  Likely protocol: {}'''.format(forward_mapped, reverse_mapped,
                                                protocol)))
+
+
+################### Create metagene from multiple bigwigs #####################
+@cli.command(
+    'metagene-multi-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Merge multiple bigwigs')
+@click.option(
+    '--pattern', type=str, help='Pattern to search for', required=True)
+@click.option('--bed', type=str, help='Path to BED file', required=True)
+@click.option(
+    '--saveto', type=str, help='Save output bigwig to', required=True)
+@click.option(
+    '--max_positions',
+    help='maximum positions to count',
+    type=int,
+    default=500,
+    show_default=True)
+@click.option(
+    '--offset_5p',
+    help='Number of upstream bases to count(5\')',
+    type=int,
+    default=0,
+    show_default=True)
+@click.option(
+    '--offset_3p',
+    help='Number of downstream bases to count(3\')',
+    type=int,
+    default=0,
+    show_default=True)
+def merge_multiple_bw(pattern, bed, saveto, max_positions, offset_5p,
+                      offset_3p):
+    bigwigs = glob.glob(pattern, recursive=True)
+    create_metagene_from_multi_bigwig(
+        bed,
+        bigwigs,
+        max_positions,
+        offset_5p,
+        offset_3p,
+        n_jobs=16,
+        saveto=saveto)
+
+
+################### Create metagene from multiple bigwigs #####################
+@cli.command(
+    'hdf-to-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Create bigwig from hdf')
+@click.option('--hdf', type=str, help='Path to hdf file', required=True)
+@click.option('--prefix', type=str, help='Prefix ', required=True)
+def hdf_to_bw_cmd(hdf, prefix):
+    hdf_to_bigwig(hdf, prefix)
+
+
+###################### get-bam-coverage ######################################
+@cli.command(
+    'bam-coverage',
+    context_settings=CONTEXT_SETTINGS,
+    help='Get strandwise coerage from bam')
+@click.option('--bam', help='Path to BAM file', required=True)
+@click.option('--genebed', help='Path to genes.bed file', required=True)
+@click.option(
+    '--outprefix', help='Prefix to store coverage output', required=True)
+def bam_coverage_cmd(bam, genebed, outprefix):
+    get_bam_coverage(bam, genebed, outprefix)
+
+
+################### Merge multiple bigwigs #####################
+@cli.command(
+    'merge-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Merge multiple bigwigs')
+@click.option(
+    '--pattern', type=str, help='Pattern to search for', required=True)
+@click.option(
+    '--chromsizes', type=str, help='Path to chrom.sizes file', required=True)
+@click.option(
+    '--saveto', type=str, help='Save output bigwig to', required=True)
+def merge_bw_cmd(pattern, chromsizes, saveto):
+    print(os.path.abspath(pattern))
+    bigwigs = glob.glob(os.path.abspath(pattern), recursive=True)
+    merge_bigwigs(bigwigs, chromsizes, saveto)

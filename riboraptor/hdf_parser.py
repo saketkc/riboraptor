@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 from collections import Counter
 import os
+import subprocess
 
 import numpy as np
 import pandas as pd
@@ -24,8 +25,11 @@ from .interval import Interval
 from .helpers import complementary_strand
 from .helpers import mkdir_p
 from .helpers import merge_intervals
+from .helpers import path_leaf
 from .parallel import ParallelExecutor
 from .count import multiprocess_gene_coverage
+import tempfile
+TMP_DIR_ROOT = '/tmp'
 
 #from multiprocessing import Pool
 
@@ -55,7 +59,7 @@ def _create_bigwig_from_bed(bed, chrom_lengths, outfile):
     bw.close()
 
 
-def create_bigwig_from_hdf(hdf, prefix):
+def hdf_to_bigwig(hdf, prefix):
     """Create fragment and strand specific bigwigs from hdf
 
     Parameters
@@ -64,7 +68,8 @@ def create_bigwig_from_hdf(hdf, prefix):
          Path to hdf file
     prefix: string
             Prefix to store output files
-
+    TODO: one fix for this would be to create separate nonoverlapping bigwigs
+    and then merge them with bigWigCat (one more dependency)
     """
     hdf = h5py.File(hdf, 'r')
     chrom_names = list(map(lambda x: str(x), hdf['chrom_names']))
@@ -72,8 +77,9 @@ def create_bigwig_from_hdf(hdf, prefix):
     chrom_sizes = hdf['chrom_sizes']
     # This is already sorted in the file
     # So no need to sort again (as required by bigwig)
-    chrom_lengths = zip(chrom_names, chrom_sizes)
+    chrom_lengths = list(zip(chrom_names, chrom_sizes))
     read_lengths = hdf['read_lengths']
+    mkdir_p(os.path.dirname(prefix))
     for read_length in read_lengths:
         read_len_group = hdf['fragments'][read_length]
         for orientation in hdf['fragments'][read_length].keys():
@@ -99,6 +105,7 @@ def create_bigwig_from_hdf(hdf, prefix):
             for chrom, mapped_strand in chrom_strand:
 
                 chrom = str(chrom)
+                chrom_strand = '{}__{}'.format(chrom, mapped_strand)
                 assert mapped_strand in [
                     'pos', 'neg'
                 ], 'Found strand {}'.format(mapped_strand)
@@ -107,7 +114,6 @@ def create_bigwig_from_hdf(hdf, prefix):
                 elif mapped_strand == 'neg':
                     mapped_strand = '-'
 
-                chrom_strand = '{}__{}'.format(chrom, mapped_strand)
                 chrom_obj = orientation_group[chrom_strand]
                 starts = np.array(chrom_obj['positions'])
                 ends = starts + 1
@@ -362,6 +368,74 @@ def create_metagene_from_multi_bigwig(bed,
         to_write.to_csv(saveto, sep=str('\t'), index=False)
 
     return metagene_coverage
+
+
+def merge_bigwigs(bigwigs, chrom_sizes, saveto, scale=False):
+    """Merge multiple bigwigs into one.
+
+    Note: This seems impossible doing it through pybigWig way
+    and hence the dependency on ucsc-bigWigMerge
+
+    Parameters
+    ----------
+    bigwigs: list
+             List of path to bigwigs
+    chrom_size: string
+                Path to chromsome.sizes file
+    saveto: string
+            Path for outputting bigwig
+
+    """
+    assert len(bigwigs) > 1, 'Need more bigwigs to merge'
+    with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
+        bedgraph = os.path.join(temp_dir, '{}.bedGraph'.format(
+            path_leaf(saveto)))
+        cmds = ['bigWigMerge'] + bigwigs + [bedgraph]
+        try:
+            p = subprocess.Popen(
+                cmds,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True)
+            stdout, stderr = p.communicate()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "bigWigMerge not found on the path. This is an external "
+                "tool from UCSC which can be downloaded from "
+                "http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use "
+                "`conda install ucsc-bigwigmerge`")
+        cmds = ['bedSort', bedgraph, '{}.sorted'.format(bedgraph)]
+        try:
+            p = subprocess.Popen(
+                cmds,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True)
+            stdout, stderr = p.communicate()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "bedSort not found on the path. This is an external "
+                "tool from UCSC which can be downloaded from "
+                "http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use "
+                "`conda install ucsc-bedsort`")
+
+        cmds = [
+            'bedGraphToBigWig', '{}.sorted'.format(bedgraph), chrom_sizes,
+            saveto
+        ]
+        try:
+            p = subprocess.Popen(
+                cmds,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True)
+            stdout, stderr = p.communicate()
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "bedGraphToBigwig not found on the path. This is an external "
+                "tool from UCSC which can be downloaded from "
+                "http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use "
+                "`conda install ucsc-bedgraphtobigwig`")
 
 
 class HDFParser(object):

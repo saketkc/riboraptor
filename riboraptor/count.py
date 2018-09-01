@@ -38,6 +38,17 @@ from joblib import delayed
 from .infer_protocol import infer_protocol
 from .helpers import read_bed_as_intervaltree
 from .helpers import is_read_uniq_mapping, create_bam_index
+from .helpers import find_first_non_none, find_last_non_none
+
+
+class OrderedCounter(Counter, OrderedDict):
+    'Counter that remembers the order elements are first encountered'
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, OrderedDict(self))
+
+    def __reduce__(self):
+        return self.__class__, (OrderedDict(self), )
 
 
 def _get_gene_strand(refseq, chrom, mapped_start, mapped_end):
@@ -774,8 +785,9 @@ def get_bam_coverage(bam, bed, outprefix=None):
         create_bam_index(bam)
         bam = pysam.AlignmentFile(bam, 'rb')
 
-    coverage = defaultdict(lambda: defaultdict(Counter))
+    coverage = defaultdict(lambda: defaultdict(OrderedCounter))
     total_counts = bam.count()
+    mismatches = defaultdict(lambda: defaultdict(OrderedCounter))
     with tqdm(total=total_counts) as pbar:
         for read in bam.fetch():
             if not is_read_uniq_mapping(read):
@@ -785,27 +797,151 @@ def get_bam_coverage(bam, bed, outprefix=None):
                 strand = '-'
             else:
                 strand = '+'
-            reference_pos = read.get_reference_positions()
+            # Why full_length?
+            # If full_length is set, None values will be included for any soft-clipped or unaligned positions within the read.i
+            # The returned list will thus be of the same length as the read.
+            reference_pos = read.get_reference_positions(full_length=True)
             # Store 5' position
             position_5prime = None
             # Store 3' position
             position_3prime = None
 
+            # We track 0-based start
+            # the start coordinates are always 0-based
+            # irrepective of the strand
+
+            ######################################################
+            """
+            Forward strand:
+
+            -------------------------
+            0                       24
+                  -------------------
+                  5'                3'
+            5' position = 6 (0-based)
+            3' position = 24 (0-based)
+            Read length = 24-6+1 = 19
+
+            Reverse strand
+            -------------------------
+            0                       24
+                  -------------------
+                  3'                5'
+
+            5' position = 24 (0-based)
+            3' position = 6 (0-based)
+
+            """
+            # query_alignment_start = read.query_alignment_start
+            # query_alignment_end = read.query_alignment_end
+
+            query_alignment_length = read.query_alignment_length
+
+            mismatches_or_softclipping = False
+            query_length = read.query_length
+            if query_alignment_length < query_length:
+                # the aligned length of this
+                # read is shorter than the original
+                # read length
+                # could happen because of soft-clipping or mismatches
+                # STAR and most other RNA-seq mappers do not recommend using a masked
+                # genome and we don't too, so these will almost always
+                # be mismatches
+                mismatches_or_softclipping = True
+            assert query_length == len(
+                reference_pos
+            ), 'reference_pos and query_length should be equal'
+            mismatch_at_3prime = False
+            mismatch_at_5prime = False
             if strand == '+':
                 position_5prime = reference_pos[0]
                 position_3prime = reference_pos[-1]
+                if position_5prime is None:
+                    # print('query_alignment_start: {} | read_length: {}'.format(query_alignment_start, query_length))
+                    # Mismatch/sofclip at 5'
+                    # Need to do some adjusting
+                    # query_alignment_start refers to the first position on the read whihch has a non-mismatch non-softclipped
+                    # base
+                    # This is a bit ahead in the read so we subtract
+                    # position_5prime = reference_pos[query_alignment_end] - query_alignment_start
+                    idx, position = find_first_non_none(reference_pos)
+                    position_5prime = position - idx
+                    mismatch_at_5prime = True
+                if position_3prime is None:
+                    # print('query_alignment_end: {} | read_length: {}'.format(query_alignment_end, query_length))
+                    # position_3prime = reference_pos[query_alignment_end] + query_length - query_alignment_end - 1
+
+                    # We cannot do the folowing since this would force no splicing
+                    # position_3prime = position_5prime + query_length - 1
+                    idx, position = find_last_non_none(reference_pos)
+                    position_3prime = position + idx
+                    mismatch_at_3prime = True
+                #   assert position_3prime == position_5prime + query_length - 1, 'Position prime not equal? {} vs {}'.format(
+                #   position_3prime, position_5prime + query_length - 1)
+
             else:
                 # Negative strand so no need to adjust
                 # switch things
                 position_5prime = reference_pos[-1]
                 position_3prime = reference_pos[0]
-            query_length = read.query_length
+
+                if position_5prime is None:
+                    # print(reference_pos, read.reference_end)
+                    # print('query_alignment_end: {} | read_length: {}'.format(query_alignment_end, query_length))
+                    # position_5prime = reference_pos[query_alignment_end] + query_length - query_alignment_end - 1
+                    idx, position = find_last_non_none(reference_pos)
+                    position_5prime = position + idx
+                    mismatch_at_5prime = True
+                    # print(position_5prime)
+                    #sys.exit(1)
+                if position_3prime is None:
+                    # print('query_alignment_start: {} | read_length: {}'.format(query_alignment_start, query_length))
+                    # position_3prime = reference_pos[query_alignment_start] - query_alignment_start
+                    idx, position = find_first_non_none(reference_pos)
+                    position_3prime = position - idx
+                    mismatch_at_3prime = True
+                    # print(position_3prime)
+                    #sys.exit(1)
+                #   assert position_5prime == position_3prime + query_length - 1, 'Position prime not equal? {} vs {}'.format(
+                #    position_5prime, position_3prime + query_length - 1)
+
+            assert position_5prime >= 0, 'Wrong 5prime position: {}'.format(
+                position_5prime)
+            assert position_3prime >= 0, 'Wrong 3prime position: {}'.format(
+                position_3prime)
+
+            coverage['{}:{}:5prime'.format(
+                read.reference_name, position_5prime)][query_length]['+'] += 0
+            coverage['{}:{}:5prime'.format(
+                read.reference_name, position_5prime)][query_length]['-'] += 0
+            coverage['{}:{}:3prime'.format(
+                read.reference_name, position_3prime)][query_length]['+'] += 0
+            coverage['{}:{}:3prime'.format(
+                read.reference_name, position_3prime)][query_length]['-'] += 0
+
             coverage['{}:{}:5prime'.format(
                 read.reference_name,
                 position_5prime)][query_length][strand] += 1
             coverage['{}:{}:3prime'.format(
                 read.reference_name,
                 position_3prime)][query_length][strand] += 1
+
+            mismatches['{}:{}:3prime:{}'.format(
+                read.reference_name, position_3prime,
+                strand)][query_length]['match'] += int(not mismatch_at_3prime)
+            mismatches['{}:{}:3prime:{}'.format(
+                read.reference_name, position_3prime,
+                strand)][query_length]['mismatch'] += int(mismatch_at_3prime)
+
+            mismatches['{}:{}:5prime:{}'.format(
+                read.reference_name, position_5prime,
+                strand)][query_length]['match'] += int(not mismatch_at_5prime)
+            mismatches['{}:{}:5prime:{}'.format(
+                read.reference_name, position_5prime,
+                strand)][query_length]['mismatch'] += int(mismatch_at_5prime)
+            # print(mismatches)
+            # sys.exit(1)
+
             pbar.update()
     if outprefix:
         df = pd.DataFrame.from_dict(
@@ -813,6 +949,33 @@ def get_bam_coverage(bam, bed, outprefix=None):
              for i in coverage.keys() for j in coverage[i].keys()},
             orient='index')
         df = df.reset_index()
+
+        mismatches_df = pd.DataFrame.from_dict(
+            {(i, j): mismatches[i][j]
+             for i in mismatches.keys() for j in mismatches[i].keys()},
+            orient='index')
+        mismatches_df = mismatches_df.reset_index()
+        mismatches_df.columns = [
+            'chr_pos_orient_strand', 'read_length', 'match', 'mismatch'
+        ]
+
+        mismatches_df[['chrom', 'start', 'orientation', 'strand'
+                       ]] = mismatches_df['chr_pos_orient_strand'].str.split(
+                           ':', n=-1, expand=True)
+        #assert list(df.copy().columns)[::-1][0:2] == ['-', '+'], 'column orders out of order: {}'.format(list(df.columns)[::-1])
+        mismatches_df = mismatches_df.drop(columns=['chr_pos_orient_strand'])
+        mismatches_df = mismatches_df[[
+            'chrom', 'start', 'orientation', 'strand', 'read_length', 'match',
+            'mismatch'
+        ]]
+        mismatches_df['start'] = mismatches_df['start'].astype(int)
+        mismatches_df = mismatches_df.sort_values(
+            by=['chrom', 'start', 'read_length', 'orientation'])
+        mismatches_df.to_csv(
+            '{}_mismatches.tsv'.format(outprefix),
+            sep='\t',
+            index=False,
+            header=True)
         """
         Stored as:
 
@@ -835,14 +998,15 @@ def get_bam_coverage(bam, bed, outprefix=None):
             'chrom', 'start', 'end', 'read_length', 'orientation',
             'count_pos_strand', 'count_neg_strand'
         ]]
-        df = df.sort_values(by=[
-            'chrom', 'start', 'read_length', 'orientation', 'count_pos_strand'
-        ])
-
         bed_tree = read_bed_as_intervaltree(bed)
         df['gene_strand'] = df.apply(
             lambda row: _get_gene_strand(bed_tree, row['chrom'], row['start'], row['end']),
             axis=1)
+        df = df.sort_values(by=[
+            'chrom', 'start', 'end', 'read_length', 'orientation',
+            'count_pos_strand', 'count_neg_strand', 'gene_strand'
+        ])
+
         df.to_csv(
             '{}.tsv'.format(outprefix), sep='\t', index=False, header=True)
 

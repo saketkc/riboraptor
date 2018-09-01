@@ -9,3 +9,4 @@ riboraptor export-gene-coverages --bw tests/data/SRX2536403_subsampled.unique.bi
 riboraptor bam-coverage --bam tests/data/SRX2536403_subsampled.unique.bam --saveto tests/data/SRX2536403_subsampled.unique.bam_coverage.stats
 riboraptor bam-metagene-coverage  --bam tests/data/SRX2536403_subsampled.unique.bam --bed hg38_start_codon --saveto tests/data/SRX2536403_subsampled.unique.bam_metagene_coverage.stats
 
+riboraptor bam-coverage --bam tests/data/SRX2536403_subsampled.unique.bam --genebed riboraptor/annotation/hg38/gene.bed.gz --outprefix tests/data/SRX2536403_subsampled.unique.bam_coverage

@@ -1,5 +1,9 @@
-import os
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import warnings
+import os
 
 import numpy as np
 import pyBigWig
@@ -28,7 +32,7 @@ class WigReader(object):
 
         Parameters
         ----------
-        intervals : list of Interval 
+        intervals : list of Interval
 
         Returns
         -------
@@ -80,3 +84,10 @@ class WigReader(object):
             .WigReader
         """
         return self.wig.chroms()
+
+
+def normalize_bigwig_to_rpm(bigwig):
+    """Scale a bigwig to RPM """
+    bw = pyBigWig.open(bigwig, 'r')
+    total_reads = 1
+    scale = 1 / (total_reads / 1e6)

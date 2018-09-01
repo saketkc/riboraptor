@@ -849,3 +849,53 @@ def is_read_uniq_mapping(read):
     if nh_count == 1:
         return True
     return False
+
+
+def find_first_non_none(positions):
+    """Given a list of positions, find the index and value of first non-none element.
+
+    This method is specifically designed for pysam, which has a weird way of returning
+    the reference positions. If they are mismatched/softmasked it returns None
+    when fetched using get_reference_positions.
+
+    query_alignment_start and query_alignment_end give you indexes of position in the read
+    which technically align, but are not softmasked i.e. it is set to None even if the position does not align
+
+    Parameters
+    ----------
+    positions: list of int
+               Positions as returned by pysam.fetch.get_reference_positions
+
+    Return
+    ------
+    index: int
+           Index of first non-None value
+    position: int
+               Value at that index
+    """
+    for idx, position in enumerate(positions):
+        if position is not None:
+            return idx, position
+
+
+def find_last_non_none(positions):
+    """Given a list of positions, find the index and value of last non-none element.
+
+
+    This function is similar to the `find_first_non_none` function, but does it for the reversed
+    list. It is specifically useful for reverse strand cases
+
+
+    Parameters
+    ----------
+    positions: list of int
+               Positions as returned by pysam.fetch.get_reference_positions
+
+    Return
+    ------
+    index: int
+           Index of first non-None value
+    position: int
+               Value at that index
+    """
+    return find_first_non_none(positions[::-1])
