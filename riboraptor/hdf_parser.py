@@ -188,7 +188,8 @@ def tsv_to_bigwig(df, chrom_lengths, prefix):
     """
     if isinstance(chrom_lengths, six.string_types):
         if not os.path.isfile(chrom_lengths):
-            raise RuntimeError('Need either list of tuples or chrom.sizes file to proceed')
+            raise RuntimeError(
+                'Need either list of tuples or chrom.sizes file to proceed')
         sizes = []
         with open(chrom_lengths) as fh:
             for line in fh:
@@ -502,14 +503,14 @@ class HDFParser(object):
             h5py_fragments = self.h5py_obj['read_lengths']
             fragment_length = h5py_fragments
         fragment_length = list(map(lambda x: str(x), fragment_length))
-        coverages_normalized = []
-        coverages = []
+        coverages_normalized = pd.DataFrame()
+        coverages = pd.DataFrame()
         position_counter = Counter()
         for l in fragment_length:
             if strand == '-':
-                chrom_name = '{}_neg'.format(chrom)
+                chrom_name = '{}__neg'.format(chrom)
             elif strand == '+':
-                chrom_name = '{}_pos'.format(chrom)
+                chrom_name = '{}__pos'.format(chrom)
             else:
                 raise ValueError('strand ill-defined: {}'.format(strand))
             root_obj = self.h5py_obj['fragments'][l][orientation]
@@ -517,41 +518,38 @@ class HDFParser(object):
                 # This chromosome does not exist in the
                 # key value store
                 # So should returns zeros all way
-                coverage = [0] * (stop - start)
+                coverage = pd.Series(
+                    [0] * (stop - start), index=range(start, stop))
 
             else:
                 chrom_obj = root_obj[chrom_name]
                 counts_series = pd.Series(
-                    chrom_obj['counts'], index=chrom_obj['positions'])
-                try:
-                    coverage = counts_series[list(range(start, stop))]
-                except:
-                    coverage = [0] * (stop - start)
-
+                    list(chrom_obj['counts']),
+                    index=list(chrom_obj['positions']))
+                #print(counts_series)
+                coverage = counts_series.get(list(range(start, stop)))
+                if coverage is None:
+                    coverage = pd.Series(
+                        [0] * (stop - start), index=range(start, stop))
+                coverage = coverage.fillna(0)
             # Mean is taken by summing the rows
-            coverage_mean = coverage.mean(axis=0, skipna=True).fillna(0)
+            coverage_mean = coverage.mean(axis=0, skipna=True)
             # to normalize
             # we divide the sum by vector obtained in previous
             # such that each column gets divided
             coverage_normalized = coverage.divide(coverage_mean).fillna(0)
-            coverages.append(coverage)
-            coverages_normalized.append(coverage_normalized)
-            position_counter += coverage.index.tolist()
-
+            coverages = coverages.join(
+                pd.DataFrame(coverage, columns=[str(l)]), how='outer')
+            coverages_normalized = coverages_normalized.join(
+                pd.DataFrame(coverage_normalized, columns=[str(l)]),
+                how='outer')
+            position_counter += Counter(coverage.index.tolist())
         position_counter = pd.Series(Counter(position_counter)).sort_index()
-        coverage_sum = coverages[0]
-        coverage_normalized_sum = coverages_normalized[0]
-        #print('position_counter: {}'.format(position_counter))
-        for coverage in coverages[1:]:
-            coverage_sum = coverage_sum.add(coverage, fill_value=0)
-        for coverage_normalized in coverages_normalized[1:]:
-            coverage_normalized_sum = coverage_normalized_sum.add(
-                coverage_normalized, fill_value=0)
+        coverage_sum = coverages.sum(axis=1)
+        coverage_normalized_sum = coverages_normalized.sum(axis=1)
         coverage_sum_div = coverage_sum.divide(position_counter, axis='index')
         coverage_normalized_sum_div = coverage_normalized_sum.divide(
             position_counter, axis='index')
-        coverage_sum_div = coverage_sum_div.reset_index()
-        coverage_normalized_sum_div = coverage_normalized_sum_div.reset_index()
         if outprefix:
             mkdir_p(os.path.dirname(outprefix))
             coverage_sum_div.to_csv(
@@ -559,4 +557,14 @@ class HDFParser(object):
             coverage_normalized_sum_div.to_csv(
                 '{}_normalized.tsv', index=False, header=True, sep='\t')
 
-        return coverage_sum_div, coverage_normalized_sum_div
+        coverages.index.name = 'start'
+        coverages = coverages.reset_index()
+        coverages_normalized.index.name = 'start'
+        coverages_normalized = coverages_normalized.reset_index()
+        return coverages, coverages_normalized, coverage_sum_div, coverage_normalized_sum_div
+
+    def get_read_length_dist(self):
+        read_lengths = list(
+            map(lambda x: int(x), self.h5py_obj['read_lengths']))
+        read_counts = list(self.h5py_obj['read_lengths_counts'])
+        return pd.Series(read_counts, index=read_lengths).sort_index()

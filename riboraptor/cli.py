@@ -545,6 +545,7 @@ def merge_multiple_bw(pattern, bed, saveto, max_positions, offset_5p,
         n_jobs=16,
         saveto=saveto)
 
+
 #######$$############ Create bigwig from tsv #################################
 @cli.command(
     'tsv-to-bw',
