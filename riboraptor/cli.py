@@ -108,24 +108,29 @@ def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
     type=int,
-    default=0,
+    default=60,
     show_default=True)
 @click.option(
     '--offset_3p',
     help='Number of downstream bases to count(3\')',
     type=int,
-    default=0,
+    default=60,
     show_default=True)
+@click.option(
+    '--orientation',
+    help='Orientation of read ends',
+    type=click.Choice(['5prime', '3prime']),
+    required=True)
 @click.option(
     '--threads',
     help='Number of threads to use',
     type=int,
-    default=1,
+    default=16,
     show_default=True)
 def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
-                                 offset_3p, threads):
+                                 offset_3p, orientation, threads):
     metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
-                                                offset_5p, offset_3p, threads)
+                                                offset_5p, offset_3p, orientation, threads)
     if saveto is None:
         for i, count in six.iteritems(metagene_profile):
             sys.stdout.write('{}\t{}'.format(i, count))

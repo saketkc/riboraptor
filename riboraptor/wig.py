@@ -27,6 +27,9 @@ class WigReader(object):
             raise Exception('Error reading wig file {} : {}'.format(
                 os.path.abspath(self.wig_location), e))
 
+    def close(self):
+        self.wig.close()
+
     def query(self, intervals):
         """ Query regions for scores.
 

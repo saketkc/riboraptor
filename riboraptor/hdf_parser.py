@@ -59,7 +59,7 @@ def _create_bigwig_from_bed(bed, chrom_lengths, outfile):
     bw.close()
 
 
-def hdf_to_bigwig(hdf, prefix):
+def hdf_to_bigwig(hdf, prefixdir):
     """Create fragment and strand specific bigwigs from hdf
 
     Parameters
@@ -79,19 +79,20 @@ def hdf_to_bigwig(hdf, prefix):
     # So no need to sort again (as required by bigwig)
     chrom_lengths = list(zip(chrom_names, chrom_sizes))
     read_lengths = hdf['read_lengths']
-    mkdir_p(os.path.dirname(prefix))
+    mkdir_p(prefixdir)
     for read_length in read_lengths:
         read_len_group = hdf['fragments'][read_length]
         for orientation in hdf['fragments'][read_length].keys():
             orientation_group = read_len_group[orientation]
-            pos_bw = '{}_{}_{}_{}.bw'.format(prefix, read_length, orientation,
-                                             'pos')
-            neg_bw = '{}_{}_{}_{}.bw'.format(prefix, read_length, orientation,
-                                             'neg')
+            mkdir_p(os.path.join(prefixdir, str(read_length)))
+            pos_bw = os.path.join(prefixdir, str(read_length), '{}_{}.bw'.format(orientation,
+                                                                                 'pos'))
+            neg_bw = os.path.join(prefixdir, str(read_length), '{}_{}.bw'.format(orientation,
+                                                                                 'neg'))
             # This flle will store only the relevant
             # strand information
-            collapsed_bw = '{}_{}_{}_{}.bw'.format(prefix, read_length,
-                                                   orientation, 'collapsed')
+            collapsed_bw = os.path.join(prefixdir, str(read_length), '{}_{}.bw'.format(orientation,
+                                                                                       'collapsed'))
             pos_bw = pyBigWig.open(pos_bw, 'w')
             neg_bw = pyBigWig.open(neg_bw, 'w')
             collapsed_bw = pyBigWig.open(collapsed_bw, 'w')

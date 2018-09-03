@@ -110,6 +110,8 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     gene_offset_3p: Gene wise 3 prime offset
                     This might be different from `offset_3p` in cases where
                     `offset_3p` leads to position beyond chromsome length
+    original_interval_length: int
+                              Total length of the entire gene interval (not accounting for any offsets)
     """
     if offset_5p < 0 or offset_3p < 0:
         raise RuntimeError('Offsets must be non-negative')
@@ -137,14 +139,21 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     coverages_combined = []
     for cov in coverages:
         coverages_combined += list(cov)
+
+    # if it is located on negative strand
+    # reverse the values since we no longer
+    # want to track the individual position
+    # but just an indexed version
     if strand == '-':
         coverages_combined.reverse()
     coverages_combined = np.array(coverages_combined).flatten()
+    original_interval_length = len(coverages_combined) - gene_offset_5p - gene_offset_3p
     coverages_combined = pd.Series(
         coverages_combined,
         index=np.arange(-gene_offset_5p,
                         len(coverages_combined) - gene_offset_5p))
-    return (coverages_combined, gene_offset_5p, gene_offset_3p)
+
+    return (coverages_combined, gene_offset_5p, gene_offset_3p, original_interval_length)
 
 
 def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
@@ -202,7 +211,7 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
 
 
 def multiprocess_gene_coverage(data):
-    """Process gene_coverage given a bigwig and a genegroup.
+    """Process gene_c overage given a bigwig and a genegroup.
 
     WigReader is not pickleable when passed as an argument so we use strings
     as input for the bigwig
@@ -210,23 +219,50 @@ def multiprocess_gene_coverage(data):
     Parameters
     ----------
     data: tuple
-          gene_gorup, bigwig, offset_5p, offset_3p, max_positions
+          gene_gorup, bigwig, offset_5p, offset_3p, max_positions, orientation
 
     Returns
     -------
-    norm_cob: Series
+    norm_cov: Series
               normalized coverage
     """
-    gene_group, bw, offset_5p, offset_3p, max_positions = data
+    gene_group, bw, offset_5p, offset_3p, max_positions, orientation = data
     bw = WigReader(bw)
-    coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
+    coverage, gene_offset_5p, gene_offset_3p, original_gene_length = gene_coverage(gene_group, bw, offset_5p, offset_3p)
     coverage = coverage.fillna(0)
 
-    if max_positions is not None and len(coverage.index) > 0:
-        min_index = min(coverage.index.tolist())
-        max_index = max(coverage.index.tolist())
-        coverage = coverage[np.arange(min_index, min(max_index,
-                                                     max_positions))]
+
+    if orientation == '5prime':
+        if max_positions is not None and len(coverage.index) > 0:
+            # min_index will correspond to the gene_offset_5p in general
+            min_index = min(coverage.index.tolist())
+            max_index = max(coverage.index.tolist())
+            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(min_index,
+                                                                                                                                        -gene_offset_5p)
+            coverage = coverage.get(np.arange(min_index, min(max_index,
+                                                        max_positions)))
+    elif orientation == '3prime':
+        # We now want to be tracking things from the end position
+        # we can do this since gene_coverage() takes care of the strand
+        # so a 3prime is always the tail of the array
+        # note that if gene_offset_5p >0, in this case, it is almost never used
+        # since we restrict ourselves to max_positions, which itself is almost
+        # always < 1000
+        if max_positions is not None and len(coverage.index) > 0:
+            max_index = max(coverage.index.tolist())
+            min_index = min(coverage.index.tolist())
+            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(min_index,
+                                                                                                                                        -gene_offset_5p)
+            # max_index is the maximum we can go to the right
+            # our stop codon will be located gene_offset_3p upstream of this index
+            # Let's reindex our series so that we set
+            coverage = coverage.reindex(np.arange(-max_index, -min_index, 1))
+            coverage = coverage.get(np.arange(-max_positions, gene_offset_3p))
+    else:
+        raise ValueError('{} orientation not supported'.format(orientation))
+
+    assert coverage is not None, 'coverage is none | max_index={} | min_index={}| gene_offset_3p={} | gene_offset_5p={}'.format(max_index, min_index,
+                                                                                                                                gene_offset_3p, gene_offset_5p)
     coverage_mean = coverage.mean()
     norm_cov = coverage / coverage_mean
     norm_cov = norm_cov.fillna(0)
@@ -240,7 +276,8 @@ def export_metagene_coverage(bed,
                              saveto=None,
                              offset_5p=0,
                              offset_3p=0,
-                             n_jobs=1):
+                             orientation='5prime',
+                             n_jobs=16):
     """Export metagene coverage.
 
     Parameters
@@ -259,6 +296,13 @@ def export_metagene_coverage(bed,
                Number of bases to count upstream (5')
     offset_3p: int (positive)
                Number of bases to count downstream (3')
+    orientation: string
+                 ['5prime', '3prime'] indicating the end of read
+                 being tracked
+    n_jobs: int
+            Number of paralle threads to open
+            Better to do on a multi-cpu machine, but also works decently on
+            a single core machine
 
     Returns
     -------
@@ -290,24 +334,7 @@ def export_metagene_coverage(bed,
 
     position_counter = Counter()
     metagene_coverage = pd.Series()
-    """
-    for gene_name, gene_group in tqdm(bed_grouped):
-        coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
-        coverage = coverage.fillna(0)
-
-        if max_positions is not None and len(coverage.index) > 0:
-            min_index = min(coverage.index.tolist())
-            max_index = max(coverage.index.tolist())
-            coverage = coverage[np.arange(min_index,
-                                          min(max_index, max_positions))]
-        coverage_mean = coverage.mean()
-        if coverage_mean > 0:
-            norm_cov = coverage / coverage_mean
-            metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
-            position_counter += Counter(coverage.index.tolist())
-    """
-
-    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions)
+    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions, orientation)
             for gene_name, gene_group in bed_grouped]
     aprun = ParallelExecutor(n_jobs=n_jobs)
     total = len(bed_grouped.groups)
@@ -316,9 +343,9 @@ def export_metagene_coverage(bed,
     for norm_cov in all_coverages:
         metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
         position_counter += Counter(norm_cov.index.tolist())
-
+    del all_coverages
     if len(position_counter) != len(metagene_coverage):
-        raise RuntimeError('Gene normalizaed counter mismatch')
+        raise RuntimeError('Gene normalized counter mismatch')
         sys.exit(1)
 
     position_counter = pd.Series(position_counter)
@@ -867,6 +894,9 @@ def get_bam_coverage(bam, bed, outprefix=None):
                     idx, position = find_first_non_none(reference_pos)
                     position_5prime = position - idx
                     mismatch_at_5prime = True
+                    if position_5prime <0:
+                        sys.stderr.write('position_5prime<0 | idx : {} | position: {} | reference_pos: {}'.format(idx, position, reference_pos))
+                        sys.exit(1)
                 if position_3prime is None:
                     # print('query_alignment_end: {} | read_length: {}'.format(query_alignment_end, query_length))
                     # position_3prime = reference_pos[query_alignment_end] + query_length - query_alignment_end - 1
@@ -900,6 +930,9 @@ def get_bam_coverage(bam, bed, outprefix=None):
                     idx, position = find_first_non_none(reference_pos)
                     position_3prime = position - idx
                     mismatch_at_3prime = True
+                    if position_3prime <0:
+                        sys.stderr.write('position_3prime<0 | idx : {} | position: {} | reference_pos: {}'.format(idx, position, reference_pos))
+                        sys.exit(1)
                     # print(position_3prime)
                     #sys.exit(1)
                 #   assert position_5prime == position_3prime + query_length - 1, 'Position prime not equal? {} vs {}'.format(
