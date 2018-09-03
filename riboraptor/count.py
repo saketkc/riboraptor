@@ -38,7 +38,7 @@ from joblib import delayed
 from .infer_protocol import infer_protocol
 from .helpers import read_bed_as_intervaltree
 from .helpers import is_read_uniq_mapping, create_bam_index
-from .helpers import find_first_non_none, find_last_non_none
+from . import __version__
 
 
 class OrderedCounter(Counter, OrderedDict):
@@ -147,13 +147,15 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     if strand == '-':
         coverages_combined.reverse()
     coverages_combined = np.array(coverages_combined).flatten()
-    original_interval_length = len(coverages_combined) - gene_offset_5p - gene_offset_3p
+    original_interval_length = len(
+        coverages_combined) - gene_offset_5p - gene_offset_3p
     coverages_combined = pd.Series(
         coverages_combined,
         index=np.arange(-gene_offset_5p,
                         len(coverages_combined) - gene_offset_5p))
 
-    return (coverages_combined, gene_offset_5p, gene_offset_3p, original_interval_length)
+    return (coverages_combined, gene_offset_5p, gene_offset_3p,
+            original_interval_length)
 
 
 def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
@@ -228,19 +230,19 @@ def multiprocess_gene_coverage(data):
     """
     gene_group, bw, offset_5p, offset_3p, max_positions, orientation = data
     bw = WigReader(bw)
-    coverage, gene_offset_5p, gene_offset_3p, original_gene_length = gene_coverage(gene_group, bw, offset_5p, offset_3p)
+    coverage, gene_offset_5p, gene_offset_3p, original_gene_length = gene_coverage(
+        gene_group, bw, offset_5p, offset_3p)
     coverage = coverage.fillna(0)
-
 
     if orientation == '5prime':
         if max_positions is not None and len(coverage.index) > 0:
             # min_index will correspond to the gene_offset_5p in general
             min_index = min(coverage.index.tolist())
             max_index = max(coverage.index.tolist())
-            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(min_index,
-                                                                                                                                        -gene_offset_5p)
-            coverage = coverage.get(np.arange(min_index, min(max_index,
-                                                        max_positions)))
+            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(
+                min_index, -gene_offset_5p)
+            coverage = coverage[np.arange(min_index,
+                                          min(max_index, max_positions))]
     elif orientation == '3prime':
         # We now want to be tracking things from the end position
         # we can do this since gene_coverage() takes care of the strand
@@ -251,18 +253,18 @@ def multiprocess_gene_coverage(data):
         if max_positions is not None and len(coverage.index) > 0:
             max_index = max(coverage.index.tolist())
             min_index = min(coverage.index.tolist())
-            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(min_index,
-                                                                                                                                        -gene_offset_5p)
+            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(
+                min_index, -gene_offset_5p)
             # max_index is the maximum we can go to the right
             # our stop codon will be located gene_offset_3p upstream of this index
             # Let's reindex our series so that we set
             coverage = coverage.reindex(np.arange(-max_index, -min_index, 1))
-            coverage = coverage.get(np.arange(-max_positions, gene_offset_3p))
+            coverage = coverage[np.arange(-max_positions, gene_offset_3p)]
     else:
         raise ValueError('{} orientation not supported'.format(orientation))
 
-    assert coverage is not None, 'coverage is none | max_index={} | min_index={}| gene_offset_3p={} | gene_offset_5p={}'.format(max_index, min_index,
-                                                                                                                                gene_offset_3p, gene_offset_5p)
+    assert coverage is not None, 'coverage is none | max_index={} | min_index={}| gene_offset_3p={} | gene_offset_5p={}'.format(
+        max_index, min_index, gene_offset_3p, gene_offset_5p)
     coverage_mean = coverage.mean()
     norm_cov = coverage / coverage_mean
     norm_cov = norm_cov.fillna(0)
@@ -334,8 +336,8 @@ def export_metagene_coverage(bed,
 
     position_counter = Counter()
     metagene_coverage = pd.Series()
-    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions, orientation)
-            for gene_name, gene_group in bed_grouped]
+    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions,
+             orientation) for gene_name, gene_group in bed_grouped]
     aprun = ParallelExecutor(n_jobs=n_jobs)
     total = len(bed_grouped.groups)
     all_coverages = aprun(total=total)(
@@ -343,14 +345,17 @@ def export_metagene_coverage(bed,
     for norm_cov in all_coverages:
         metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
         position_counter += Counter(norm_cov.index.tolist())
-    del all_coverages
     if len(position_counter) != len(metagene_coverage):
         raise RuntimeError('Gene normalized counter mismatch')
         sys.exit(1)
 
     position_counter = pd.Series(position_counter)
     metagene_coverage = metagene_coverage.div(position_counter)
-
+    if len(metagene_coverage.index) == 0:
+        # If nothing is found in the bigwig, return zeros
+        metagene_coverage = pd.Series(
+            [0] * (max_positions + offset_5p),
+            index=np.arange(-offset_5p, max_positions))
     if saveto:
         mkdir_p(os.path.dirname(saveto))
         to_write = pd.DataFrame({
@@ -814,7 +819,7 @@ def get_bam_coverage(bam, bed, outprefix=None):
 
     coverage = defaultdict(lambda: defaultdict(OrderedCounter))
     total_counts = bam.count()
-    mismatches = defaultdict(lambda: defaultdict(OrderedCounter))
+    query_alignment_lengths = Counter()
     with tqdm(total=total_counts) as pbar:
         for read in bam.fetch():
             if not is_read_uniq_mapping(read):
@@ -827,7 +832,16 @@ def get_bam_coverage(bam, bed, outprefix=None):
             # Why full_length?
             # If full_length is set, None values will be included for any soft-clipped or unaligned positions within the read.i
             # The returned list will thus be of the same length as the read.
-            reference_pos = read.get_reference_positions(full_length=True)
+
+            # Update: It appears that the read can also be alligned in the following manner
+            # [None, None, None, 0, 1, 2,3,4] implying that the first few bases do not
+            # align at all and then the real alignment starts at base 0
+            # This is not deirable,  hence we go back to our original definition
+            # of using 0 and -1 to retrieve positions
+
+            # reference_pos = read.get_reference_positions(full_length=True)
+
+            reference_pos = read.get_reference_positions()
             # Store 5' position
             position_5prime = None
             # Store 3' position
@@ -863,7 +877,7 @@ def get_bam_coverage(bam, bed, outprefix=None):
             # query_alignment_end = read.query_alignment_end
 
             query_alignment_length = read.query_alignment_length
-
+            query_alignment_lengths[query_alignment_length] += 1
             mismatches_or_softclipping = False
             query_length = read.query_length
             if query_alignment_length < query_length:
@@ -875,68 +889,15 @@ def get_bam_coverage(bam, bed, outprefix=None):
                 # genome and we don't too, so these will almost always
                 # be mismatches
                 mismatches_or_softclipping = True
-            assert query_length == len(
-                reference_pos
-            ), 'reference_pos and query_length should be equal'
-            mismatch_at_3prime = False
-            mismatch_at_5prime = False
             if strand == '+':
                 position_5prime = reference_pos[0]
                 position_3prime = reference_pos[-1]
-                if position_5prime is None:
-                    # print('query_alignment_start: {} | read_length: {}'.format(query_alignment_start, query_length))
-                    # Mismatch/sofclip at 5'
-                    # Need to do some adjusting
-                    # query_alignment_start refers to the first position on the read whihch has a non-mismatch non-softclipped
-                    # base
-                    # This is a bit ahead in the read so we subtract
-                    # position_5prime = reference_pos[query_alignment_end] - query_alignment_start
-                    idx, position = find_first_non_none(reference_pos)
-                    position_5prime = position - idx
-                    mismatch_at_5prime = True
-                    if position_5prime <0:
-                        sys.stderr.write('position_5prime<0 | idx : {} | position: {} | reference_pos: {}'.format(idx, position, reference_pos))
-                        sys.exit(1)
-                if position_3prime is None:
-                    # print('query_alignment_end: {} | read_length: {}'.format(query_alignment_end, query_length))
-                    # position_3prime = reference_pos[query_alignment_end] + query_length - query_alignment_end - 1
-
-                    # We cannot do the folowing since this would force no splicing
-                    # position_3prime = position_5prime + query_length - 1
-                    idx, position = find_last_non_none(reference_pos)
-                    position_3prime = position + idx
-                    mismatch_at_3prime = True
-                #   assert position_3prime == position_5prime + query_length - 1, 'Position prime not equal? {} vs {}'.format(
-                #   position_3prime, position_5prime + query_length - 1)
 
             else:
                 # Negative strand so no need to adjust
                 # switch things
                 position_5prime = reference_pos[-1]
                 position_3prime = reference_pos[0]
-
-                if position_5prime is None:
-                    # print(reference_pos, read.reference_end)
-                    # print('query_alignment_end: {} | read_length: {}'.format(query_alignment_end, query_length))
-                    # position_5prime = reference_pos[query_alignment_end] + query_length - query_alignment_end - 1
-                    idx, position = find_last_non_none(reference_pos)
-                    position_5prime = position + idx
-                    mismatch_at_5prime = True
-                    # print(position_5prime)
-                    #sys.exit(1)
-                if position_3prime is None:
-                    # print('query_alignment_start: {} | read_length: {}'.format(query_alignment_start, query_length))
-                    # position_3prime = reference_pos[query_alignment_start] - query_alignment_start
-                    idx, position = find_first_non_none(reference_pos)
-                    position_3prime = position - idx
-                    mismatch_at_3prime = True
-                    if position_3prime <0:
-                        sys.stderr.write('position_3prime<0 | idx : {} | position: {} | reference_pos: {}'.format(idx, position, reference_pos))
-                        sys.exit(1)
-                    # print(position_3prime)
-                    #sys.exit(1)
-                #   assert position_5prime == position_3prime + query_length - 1, 'Position prime not equal? {} vs {}'.format(
-                #    position_5prime, position_3prime + query_length - 1)
 
             assert position_5prime >= 0, 'Wrong 5prime position: {}'.format(
                 position_5prime)
@@ -959,20 +920,6 @@ def get_bam_coverage(bam, bed, outprefix=None):
                 read.reference_name,
                 position_3prime)][query_length][strand] += 1
 
-            mismatches['{}:{}:3prime:{}'.format(
-                read.reference_name, position_3prime,
-                strand)][query_length]['match'] += int(not mismatch_at_3prime)
-            mismatches['{}:{}:3prime:{}'.format(
-                read.reference_name, position_3prime,
-                strand)][query_length]['mismatch'] += int(mismatch_at_3prime)
-
-            mismatches['{}:{}:5prime:{}'.format(
-                read.reference_name, position_5prime,
-                strand)][query_length]['match'] += int(not mismatch_at_5prime)
-            mismatches['{}:{}:5prime:{}'.format(
-                read.reference_name, position_5prime,
-                strand)][query_length]['mismatch'] += int(mismatch_at_5prime)
-
             pbar.update()
     if outprefix:
         df = pd.DataFrame.from_dict(
@@ -981,37 +928,6 @@ def get_bam_coverage(bam, bed, outprefix=None):
             orient='index')
         df = df.reset_index()
 
-        mismatches_df = pd.DataFrame.from_dict(
-            {(i, j): mismatches[i][j]
-             for i in mismatches.keys() for j in mismatches[i].keys()},
-            orient='index')
-        mismatches_df = mismatches_df.reset_index()
-        mismatches_df.columns = [
-            'chr_pos_orient_strand', 'read_length', 'match', 'mismatch'
-        ]
-
-        mismatches_df[['chrom', 'start', 'orientation', 'strand'
-                       ]] = mismatches_df['chr_pos_orient_strand'].str.split(
-                           ':', n=-1, expand=True)
-        #assert list(df.copy().columns)[::-1][0:2] == ['-', '+'], 'column orders out of order: {}'.format(list(df.columns)[::-1])
-        mismatches_df = mismatches_df.drop(columns=['chr_pos_orient_strand'])
-        mismatches_df = mismatches_df[[
-            'chrom', 'start', 'orientation', 'strand', 'read_length', 'match',
-            'mismatch'
-        ]]
-        mismatches_df['start'] = mismatches_df['start'].astype(int)
-        mismatches_df = mismatches_df.sort_values(
-            by=['chrom', 'start', 'read_length', 'orientation'])
-        mismatches_df.to_csv(
-            '{}_mismatches.tsv'.format(outprefix),
-            sep='\t',
-            index=False,
-            header=True)
-        """
-        Stored as:
-
-            chrom\tstart_position(0-based)\tnumber of hits on + strand\tnumber of hits on - strand
-        """
         df.columns = [
             'chr_pos_orient',
             'read_length',
@@ -1085,9 +1001,13 @@ def get_bam_coverage(bam, bed, outprefix=None):
         read_lengths_counts = df_readlen_orient_unmelt.loc[read_lengths_list,
                                                            '5prime'].tolist()
 
+        query_alignment_lengths = pd.Series(
+            query_alignment_lengths).sort_index()
+
         with tqdm(total=len(df_readlen_grouped)) as pbar:
             with h5py.File('{}.hdf5'.format(outprefix), 'w') as h5py_file:
                 h5py_file.attrs['protocol'] = protocol
+                h5py_file.attrs['version'] = __version__
                 dset = h5py_file.create_dataset(
                     'read_lengths', (len(read_lengths_list), ),
                     dtype=dt,
@@ -1101,6 +1021,22 @@ def get_bam_coverage(bam, bed, outprefix=None):
                     compression='gzip',
                     compression_opts=9)
                 dset[...] = np.array(read_lengths_counts)
+
+                dset = h5py_file.create_dataset(
+                    'query_alignment_lengths',
+                    (len(query_alignment_lengths), ),
+                    dtype=dt,
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = query_alignment_lengths.index
+
+                dset = h5py_file.create_dataset(
+                    'query_alignment_lengths_counts',
+                    (len(query_alignment_lengths), ),
+                    dtype=np.dtype('int64'),
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = query_alignment_lengths.values
 
                 dset = h5py_file.create_dataset(
                     'chrom_names', (len(reference_and_length.keys()), ),

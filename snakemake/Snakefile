@@ -16,6 +16,10 @@ from textwrap import dedent
 import base64
 from riboraptor.helpers import mkdir_p
 
+ORIENTATIONS =['5prime', '3prime']
+STRANDS = ['pos', 'neg']# 'collapsed']
+# collapsed strand = When we consider reads
+# mapping only to strand where the gene is defined
 
 TMP_DIR_ROOT = None
 INTRON_BED = None
@@ -78,29 +82,24 @@ def sra_to_fastq_input(wildcards):
             srx_id = key
             return str(os.path.join(RAWDATA_DIR, srx_id, srr_id+'.sra'))
     print("WRONG encodeterend: {}".format(srr_id))
-#print (ALL_SRR)
 
 rule all:
     input:
-        expand('sratofastq/{sample}.fastq.gz', sample=ALL_SRR),
-        expand('preprocessed/{sample}_trimmed.fq.gz', sample=ALL_SRR),
-        expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
-        expand('mapped/bigWigs/{sample}.bw', sample=SRX_SAMPLES),
-        expand('mapped/hdf/{sample}.hdf5', sample=SRX_SAMPLES),
-        expand('mapped/infer_protocol/{sample}.txt', sample=SRX_SAMPLES),
-        expand('mapped/metagene_coverages/{sample}.tsv', sample=SRX_SAMPLES),
-        #expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
-        #expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
-        #'riboraptor_report.html'
-        #expand('mapped/gene_coverages/CDS/{sample}_gene_coverages.tsv', sample=SRX_SAMPLES),
-        #expand('mapped/gene_coverages/UTR5/{sample}_gene_coverages.tsv', sample=SRX_SAMPLES),
-        #expand('mapped/gene_coverages/UTR3/{sample}_gene_coverages.tsv', sample=SRX_SAMPLES),
-        #expand('mapped/genewise_counts_CDS/{sample}.tsv', sample=SRX_SAMPLES),
+        expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
+        dynamic(expand('mapped/fragment_lengthwise_bigwigs/{sample}/{{fragment_length}}/{orientation}_{strand}.bw',
+                sample=SRX_SAMPLES, orientation=ORIENTATIONS, strand=STRANDS)),
+        dynamic(expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{{fragment_length}}/{orientation}_{strand}.tsv',
+                sample=SRX_SAMPLES,
+                orientation=ORIENTATIONS,
+                strand=STRANDS)),
+        dynamic(expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{{fragment_length}}/{orientation}_{strand}.png',
+                sample=SRX_SAMPLES, orientation=ORIENTATIONS, strand=STRANDS)),
+        #expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
 
 
 rule sra_to_fastq:
     input: sra_to_fastq_input
-    output: temp('sratofastq/{sample}.fastq.gz')
+    output: 'sratofastq/{sample}.fastq.gz'
     params:
         prefix='sratofastq/{sample}.fastq'
     shell:
@@ -115,7 +114,7 @@ rule perfom_trimming:
         out_dir='preprocessed/',
         phred_cutoff=5
     output:
-        temp('preprocessed/{sample}_trimmed.fq.gz')
+        'preprocessed/{sample}_trimmed.fq.gz'
     shell:
         r'''
         trim_galore -o {params.out_dir} -q {params.phred_cutoff} {input.R1}
@@ -127,7 +126,7 @@ rule map_star:
         R1='preprocessed/{sample}_trimmed.fq.gz',
         index=STAR_INDEX
     output:
-        bam=temp('mapped/srr_bams/{sample}.bam'),
+        bam='mapped/srr_bams/{sample}.bam',
         txbam='mapped/srr_tx_bams/{sample}.bam',
         counts='mapped/STARcounts/{sample}.counts',
     params:
@@ -164,7 +163,7 @@ rule map_star:
 rule merge_bams:
     input: merge_bams_input
     threads: 16
-    output: temp('mapped/bams/{sample}.bam')
+    output: 'mapped/bams/{sample}.bam'
     run:
         if len(input) > 1:
             with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
@@ -195,8 +194,8 @@ rule extract_uniq_mapping:
 
 rule create_uniq_bedgraph_from_bam:
     input: 'mapped/bams_unique/{sample}.bam'
-    output: temp('mapped/bedGraphs/{sample}.bg')
-    params: 
+    output: 'mapped/bedGraphs/{sample}.bg'
+    params:
     shell:
         r'''
         riboraptor bam-to-bedgraph --bam {input} \
@@ -259,7 +258,7 @@ rule fragment_length_pickle:
 rule export_read_length:
     input: 'mapped/bams_unique/{sample}.bam'
     output: 'mapped/read_lengths/{sample}.tsv'
-    shell: 
+    shell:
         r'''
         riboraptor export-read-length --bam {input} --saveto {output}
         '''
@@ -281,12 +280,13 @@ rule export_metagene:
         --bed {CDS_BED} --saveto {output}
         '''
 
+
 rule plot_metagene:
     input: 'mapped/metagene_coverages/{sample}.tsv'
     output: 'mapped/plots/metagene/{sample}.png'
     shell: 
         r'''
-        riboraptor plot-metagene --counts {input} --saveto {output} --positions -60:300 --xrotation 90
+        riboraptor plot-metagene --counts {input} --saveto {output} --positions -60:100
         '''
 
 rule metagene_coverage_cds2:
@@ -306,23 +306,59 @@ rule infer_protocol:
 
 rule create_hdf:
     input: 'mapped/bams_unique/{sample}.bam'
-    output: 'mapped/hdf/{sample}.hdf5'
+    output:
+        hdf = 'mapped/hdf/{sample}.hdf5',
+        tsv = 'mapped/hdf/{sample}.tsv',
+        mismatches = 'mapped/hdf/{sample}_mismatches.tsv',
     params:
         prefix = 'mapped/hdf/{sample}'
     shell:
-        r'''riboraptor bam-coverage --bam {input} --outprefix {params.prefix}
+        r'''riboraptor bam-coverage --bam {input} --genebed {GENE_BED} --outprefix {params.prefix}
         '''
+
+rule hdf_to_bw:
+    input: 'mapped/hdf/{sample}.hdf5'
+    output: dynamic('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw')
+    params:
+        prefix = 'mapped/fragment_lengthwise_bigwigs/{sample}'
+    shell:
+        r'''riboraptor hdf-to-bw --hdf {input} --prefix {params.prefix}'''
+
+
+rule export_metagene_individual:
+    input: 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw'
+    output: 'mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
+    params:
+        orientation = '{orientation}'
+    shell:
+        r'''
+        riboraptor export-metagene-coverage --bw {input} --bed {CDS_BED} --orientation {params.orientation} --saveto {output} --offset_5p 60 --offset_3p 60
+        '''
+
+rule plot_metagene_individual_length:
+    input: 'mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
+    output: 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png'
+    run:
+        if wildcards.orientation == '5prime':
+            range = '-60:100'
+        else:
+            range = '-100:60'
+        shell(r'''riboraptor plot-metagene --counts {input} --saveto {output} --positions {range}''')
 
 rule report:
     input:
-      metagene = expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
-      fragment_length = expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
+      metagene = 'mapped/plots/metagene/{sample}.png',
+      metagene_individual = dynamic('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png'),
+      fragment_length = 'mapped/plots/read_length/{sample}.png',
+    wildcard_constraints:
+        fragment_length='\d+'
     output:
-        html='riboraptor_report.html'
+        html='mapped/reports/{sample}_riboraptor_report.html'
     run:
         text = dedent("""
         <html>
         <center>
+        <h1> Sample: {sample} </h1>
         <h1> Fragment Length Distribution </h1>
 
 
@@ -355,6 +391,18 @@ rule report:
             {img_tag}
             <figcaption> {fig_name} </figcaption>
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+
+        for m in input.metagene_individual:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+            fragment_l = m.split('_')[-1].replace('.png', '')
+            text += dedent('''
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name}-{fragment_l} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+
 
         text += dedent("""
         </center>

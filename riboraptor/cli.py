@@ -130,7 +130,8 @@ def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
 def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
                                  offset_3p, orientation, threads):
     metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
-                                                offset_5p, offset_3p, orientation, threads)
+                                                offset_5p, offset_3p,
+                                                orientation, threads)
     if saveto is None:
         for i, count in six.iteritems(metagene_profile):
             sys.stdout.write('{}\t{}'.format(i, count))

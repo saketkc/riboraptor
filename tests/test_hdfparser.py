@@ -12,10 +12,11 @@ def test_coverage_from_hdf():
     region1 = ('chr1', 629916, 629926, '-')
     region2 = ('chr1', 903967, 944088, '+')
     region3 = ('chr1', 903967, 944088, '-')
-    fragment_lengths = 'all'#[24, 25, 21]
+    fragment_lengths = 'all'  #[24, 25, 21]
     hdf_filepath = 'tests/data/SRX2536403_subsampled.unique.bam_coverage.hdf5'
     hdf = HDFParser(hdf_filepath)
-    coverage, coverage_normalized, coverage_sum, coverage_normalized_sum = hdf.get_coverage(region1, fragment_lengths, orientation='3prime')
+    coverage, coverage_normalized, coverage_sum, coverage_normalized_sum = hdf.get_coverage(
+        region1, fragment_lengths, orientation='3prime')
     assert coverage.loc[coverage.start == 629916, '24'].tolist() == [1]
     hdf.close()
 
@@ -60,6 +61,7 @@ def test_metagene_coverage():
                          ) == metagene_coverage_normalized['combined_total']
 
 """
+
 
 def test_getchromlengths():
     hdf_filepath = 'tests/data/SRX2536403_subsampled.unique.bam_coverage.hdf5'

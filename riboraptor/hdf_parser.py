@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import Counter
+from collections import defaultdict
 import os
 import subprocess
 
@@ -85,24 +86,32 @@ def hdf_to_bigwig(hdf, prefixdir):
         for orientation in hdf['fragments'][read_length].keys():
             orientation_group = read_len_group[orientation]
             mkdir_p(os.path.join(prefixdir, str(read_length)))
-            pos_bw = os.path.join(prefixdir, str(read_length), '{}_{}.bw'.format(orientation,
-                                                                                 'pos'))
-            neg_bw = os.path.join(prefixdir, str(read_length), '{}_{}.bw'.format(orientation,
-                                                                                 'neg'))
+            pos_bw = os.path.join(prefixdir, str(read_length),
+                                  '{}_{}.bw'.format(orientation, 'pos'))
+            neg_bw = os.path.join(prefixdir, str(read_length),
+                                  '{}_{}.bw'.format(orientation, 'neg'))
             # This flle will store only the relevant
             # strand information
-            collapsed_bw = os.path.join(prefixdir, str(read_length), '{}_{}.bw'.format(orientation,
-                                                                                       'collapsed'))
+            collapsed_bw = os.path.join(
+                prefixdir, str(read_length), '{}_{}.bw'.format(
+                    orientation, 'collapsed'))
+            combined_bw = os.path.join(
+                prefixdir, str(read_length), '{}_{}.bw'.format(
+                    orientation, 'combined'))
             pos_bw = pyBigWig.open(pos_bw, 'w')
             neg_bw = pyBigWig.open(neg_bw, 'w')
+            combined_bw = pyBigWig.open(combined_bw, 'w')
             collapsed_bw = pyBigWig.open(collapsed_bw, 'w')
             pos_bw.addHeader(chrom_lengths, maxZooms=0)
             neg_bw.addHeader(chrom_lengths, maxZooms=0)
+            combined_bw.addHeader(chrom_lengths, maxZooms=0)
             collapsed_bw.addHeader(chrom_lengths, maxZooms=0)
             chrom_strand = list()
             for c in orientation_group.keys():
                 chrom_strand.append((c.split('__')[0], c.split('__')[1]))
+
             chrom_strand = sorted(chrom_strand, key=lambda x: x[0])
+            combined_chrom = defaultdict(pd.Series)
             for chrom, mapped_strand in chrom_strand:
 
                 chrom = str(chrom)
@@ -119,6 +128,9 @@ def hdf_to_bigwig(hdf, prefixdir):
                 starts = np.array(chrom_obj['positions'])
                 ends = starts + 1
                 values = np.array(chrom_obj['counts'])
+                combined_chrom[chrom] = combined_chrom[chrom].add(
+                    pd.Series(values, index=starts), fill_value=0)
+
                 gene_strands = chrom_obj['gene_strand']
                 if mapped_strand == '+':
                     pos_bw.addEntries(
@@ -156,8 +168,16 @@ def hdf_to_bigwig(hdf, prefixdir):
                     # Do we still use this??
                     raise ValueError('Unstranded protocol not supported yet')
 
+            for chrom in sorted(list(combined_chrom.keys())):
+                values = combined_chrom[chrom].sort_index()
+                starts = np.array(values.index)
+                ends = starts + 1
+                values = np.array(values.values)
+                combined_bw.addEntries(
+                    [chrom] * len(values), starts, ends=ends, values=values)
             pos_bw.close()
             neg_bw.close()
+            combined_bw.close()
             collapsed_bw.close()
     hdf.close()
 

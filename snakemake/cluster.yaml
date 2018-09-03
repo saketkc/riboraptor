@@ -48,7 +48,15 @@ pickle_counts_utr5:
 
 create_hdf:
     cores: 1
-    mem: '40gb'
+    mem: '50gb'
+
+hdf_to_bw:
+    cores: 1
+    mem: '50gb'
+
+export_metagene_individual:
+    cores: 1
+    mem: '8gb'
 
 report:
     cores: 1
