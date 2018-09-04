@@ -28,7 +28,7 @@ from .helpers import mkdir_p
 from .helpers import merge_intervals
 from .helpers import path_leaf
 from .parallel import ParallelExecutor
-from .count import multiprocess_gene_coverage
+from .count import _multiprocess_gene_coverage
 import tempfile
 TMP_DIR_ROOT = '/tmp'
 
@@ -379,7 +379,7 @@ def create_metagene_from_multi_bigwig(bed,
         aprun = ParallelExecutor(n_jobs=n_jobs)
         total = len(bed_grouped.groups)
         all_coverages = aprun(total=total)(
-            delayed(multiprocess_gene_coverage)(d) for d in data)
+            delayed(_multiprocess_gene_coverage)(d) for d in data)
         for norm_cov in all_coverages:
             metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
             position_counter += Counter(norm_cov.index.tolist())
@@ -588,4 +588,10 @@ class HDFParser(object):
         read_lengths = list(
             map(lambda x: int(x), self.h5py_obj['read_lengths']))
         read_counts = list(self.h5py_obj['read_lengths_counts'])
+        return pd.Series(read_counts, index=read_lengths).sort_index()
+
+    def get_query_alignment_length_dist(self):
+        read_lengths = list(
+            map(lambda x: int(x), self.h5py_obj['query_alignment_lengths']))
+        read_counts = list(self.h5py_obj['query_alignment_lengths_counts'])
         return pd.Series(read_counts, index=read_lengths).sort_index()

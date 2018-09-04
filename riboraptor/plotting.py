@@ -137,6 +137,8 @@ def plot_read_length_dist(read_lengths,
         if '.pickle' in str(read_lengths):
             # Try opening as a pickle first
             read_lengths = load_pickle(read_lengths)
+        elif isinstance(read_lengths, pd.Series):
+            pass
         else:
             # Some random encoding error
             try:

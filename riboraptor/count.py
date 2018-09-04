@@ -110,8 +110,6 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     gene_offset_3p: Gene wise 3 prime offset
                     This might be different from `offset_3p` in cases where
                     `offset_3p` leads to position beyond chromsome length
-    original_interval_length: int
-                              Total length of the entire gene interval (not accounting for any offsets)
     """
     if offset_5p < 0 or offset_3p < 0:
         raise RuntimeError('Offsets must be non-negative')
@@ -147,15 +145,12 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     if strand == '-':
         coverages_combined.reverse()
     coverages_combined = np.array(coverages_combined).flatten()
-    original_interval_length = len(
-        coverages_combined) - gene_offset_5p - gene_offset_3p
     coverages_combined = pd.Series(
         coverages_combined,
         index=np.arange(-gene_offset_5p,
                         len(coverages_combined) - gene_offset_5p))
 
-    return (coverages_combined, gene_offset_5p, gene_offset_3p,
-            original_interval_length)
+    return (coverages_combined, gene_offset_5p, gene_offset_3p)
 
 
 def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
@@ -212,7 +207,7 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         outfile.write(to_write)
 
 
-def multiprocess_gene_coverage(data):
+def _multiprocess_gene_coverage(data):
     """Process gene_c overage given a bigwig and a genegroup.
 
     WigReader is not pickleable when passed as an argument so we use strings
@@ -230,7 +225,7 @@ def multiprocess_gene_coverage(data):
     """
     gene_group, bw, offset_5p, offset_3p, max_positions, orientation = data
     bw = WigReader(bw)
-    coverage, gene_offset_5p, gene_offset_3p, original_gene_length = gene_coverage(
+    coverage, gene_offset_5p, gene_offset_3p = gene_coverage(
         gene_group, bw, offset_5p, offset_3p)
     coverage = coverage.fillna(0)
 
@@ -341,7 +336,7 @@ def export_metagene_coverage(bed,
     aprun = ParallelExecutor(n_jobs=n_jobs)
     total = len(bed_grouped.groups)
     all_coverages = aprun(total=total)(
-        delayed(multiprocess_gene_coverage)(d) for d in data)
+        delayed(_multiprocess_gene_coverage)(d) for d in data)
     for norm_cov in all_coverages:
         metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
         position_counter += Counter(norm_cov.index.tolist())

@@ -43,7 +43,7 @@ from .hdf_parser import create_metagene_from_multi_bigwig
 from .hdf_parser import hdf_to_bigwig
 from .hdf_parser import tsv_to_bigwig
 from .hdf_parser import merge_bigwigs
-
+from .hdf_parser import HDFParser
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -333,7 +333,8 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
     'plot-read-length',
     context_settings=CONTEXT_SETTINGS,
     help='Plot read length distribution')
-@click.option('--read-lengths', help='Path to read length pickle file')
+@click.option('--read-lengths', help='Path to read length counts file')
+@click.option('--hdf', help='Path to hdf file')
 @click.option('--title', help='Plot Title')
 @click.option(
     '--millify_labels',
@@ -345,7 +346,7 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
     default=None,
     show_default=True)
 @click.option('--ascii', help='Do not plot ascii', is_flag=True)
-def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
+def plot_read_length_dist_cmd(read_lengths, hdf, title, millify_labels, saveto,
                               ascii):
     if read_lengths:
         plot_read_length_dist(
@@ -355,6 +356,26 @@ def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
             input_is_stream=False,
             saveto=saveto,
             ascii=ascii)
+    elif hdf:
+        path, ext = os.path.splitext(saveto)
+        h5 = HDFParser(hdf)
+        read_length_dist = h5.get_read_length_dist()
+        query_alignment_length_dist = h5.get_query_alignment_length_dist()
+        plot_read_length_dist(
+            read_length_dist,
+            title=title,
+            millify_labels=millify_labels,
+            input_is_stream=False,
+            saveto=saveto,
+            ascii=ascii)
+        plot_read_length_dist(
+            query_alignment_length_dist,
+            title=title,
+            millify_labels=millify_labels,
+            input_is_stream=False,
+            saveto='{}_query_aligned_lengths{}'.format(path, ext),
+            ascii=ascii)
+        h5.close()
     else:
         plot_read_length_dist(
             sys.stdin.readlines(),

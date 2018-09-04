@@ -17,7 +17,7 @@ import base64
 from riboraptor.helpers import mkdir_p
 
 ORIENTATIONS =['5prime', '3prime']
-STRANDS = ['pos', 'neg']# 'collapsed']
+STRANDS = ['pos', 'neg', 'combined']# 'collapsed']
 # collapsed strand = When we consider reads
 # mapping only to strand where the gene is defined
 
@@ -88,10 +88,10 @@ rule all:
         expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
         dynamic(expand('mapped/fragment_lengthwise_bigwigs/{sample}/{{fragment_length}}/{orientation}_{strand}.bw',
                 sample=SRX_SAMPLES, orientation=ORIENTATIONS, strand=STRANDS)),
-        dynamic(expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{{fragment_length}}/{orientation}_{strand}.tsv',
-                sample=SRX_SAMPLES,
-                orientation=ORIENTATIONS,
-                strand=STRANDS)),
+        #dynamic(expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{{fragment_length}}/{orientation}_{strand}.tsv',
+        #        sample=SRX_SAMPLES,
+        #        orientation=ORIENTATIONS,
+        #       strand=STRANDS)),
         dynamic(expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{{fragment_length}}/{orientation}_{strand}.png',
                 sample=SRX_SAMPLES, orientation=ORIENTATIONS, strand=STRANDS)),
         #expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
@@ -274,17 +274,19 @@ rule plot_read_length:
 rule export_metagene:
     input: 'mapped/bigWigs/{sample}.bw'
     output: 'mapped/metagene_coverages/{sample}.tsv'
+    params:
+        orientation = '5prime'
     shell:
         r'''
         riboraptor export-metagene-coverage --bw {input} \
-        --bed {CDS_BED} --saveto {output}
+        --bed {CDS_BED} --saveto {output} --orientation {params.orientation}
         '''
 
 
 rule plot_metagene:
     input: 'mapped/metagene_coverages/{sample}.tsv'
     output: 'mapped/plots/metagene/{sample}.png'
-    shell: 
+    shell:
         r'''
         riboraptor plot-metagene --counts {input} --saveto {output} --positions -60:100
         '''
@@ -309,7 +311,6 @@ rule create_hdf:
     output:
         hdf = 'mapped/hdf/{sample}.hdf5',
         tsv = 'mapped/hdf/{sample}.tsv',
-        mismatches = 'mapped/hdf/{sample}_mismatches.tsv',
     params:
         prefix = 'mapped/hdf/{sample}'
     shell:
@@ -318,7 +319,7 @@ rule create_hdf:
 
 rule hdf_to_bw:
     input: 'mapped/hdf/{sample}.hdf5'
-    output: dynamic('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw')
+    output: dynamic('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw'),
     params:
         prefix = 'mapped/fragment_lengthwise_bigwigs/{sample}'
     shell:

@@ -56,8 +56,7 @@ def test_gene_coverage():
     bed_grouped = bed_df.groupby('name')
     gene_group = bed_df[bed_df['name'] == gene_name]
 
-    coverage, offset_5p, offset_3p, original_length = gene_coverage(
-        gene_group, bw, 30, 30)
+    coverage, offset_5p, offset_3p = gene_coverage(gene_group, bw, 30, 30)
     assert (coverage.sum() == 1)
 
 
@@ -74,8 +73,7 @@ def test_gene_coverage_from_internal_bed():
     bed_grouped = bed_df.groupby('name')
     gene_group = bed_df[bed_df['name'] == gene_name]
 
-    coverage, offset_5p, offset_3p, original_length = gene_coverage(
-        gene_group, bw, 30, 30)
+    coverage, offset_5p, offset_3p = gene_coverage(gene_group, bw, 30, 30)
     assert (coverage.sum() == 1)
 
 
