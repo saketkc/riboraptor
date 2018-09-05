@@ -15,11 +15,14 @@ from snakemake.utils import report
 from textwrap import dedent
 import base64
 from riboraptor.helpers import mkdir_p
+from riboraptor.infer_protocol import infer_protocol
+import h5py
 
 ORIENTATIONS =['5prime', '3prime']
 STRANDS = ['pos', 'neg', 'combined']# 'collapsed']
 # collapsed strand = When we consider reads
 # mapping only to strand where the gene is defined
+FRAGMENT_LENGTHS = range(20, 51)
 
 TMP_DIR_ROOT = None
 INTRON_BED = None
@@ -86,14 +89,23 @@ def sra_to_fastq_input(wildcards):
 rule all:
     input:
         expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
-        dynamic(expand('mapped/fragment_lengthwise_bigwigs/{sample}/{{fragment_length}}/{orientation}_{strand}.bw',
-                sample=SRX_SAMPLES, orientation=ORIENTATIONS, strand=STRANDS)),
-        #dynamic(expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{{fragment_length}}/{orientation}_{strand}.tsv',
-        #        sample=SRX_SAMPLES,
-        #        orientation=ORIENTATIONS,
-        #       strand=STRANDS)),
-        dynamic(expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{{fragment_length}}/{orientation}_{strand}.png',
-                sample=SRX_SAMPLES, orientation=ORIENTATIONS, strand=STRANDS)),
+        expand('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw',
+                sample=SRX_SAMPLES,
+                fragment_length=FRAGMENT_LENGTHS,
+                orientation=ORIENTATIONS,
+                strand=STRANDS),
+        expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv',
+                sample=SRX_SAMPLES,
+                orientation=ORIENTATIONS,
+                fragment_length=FRAGMENT_LENGTHS,
+                strand=STRANDS),
+        expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png',
+                sample=SRX_SAMPLES,
+                fragment_length=FRAGMENT_LENGTHS,
+                orientation=ORIENTATIONS,
+                strand=STRANDS),
+        'mapped/featureCounts/fcounts.tsv',
+        'multiqc_report/multiqc_report.html',
         #expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
 
 
@@ -319,11 +331,18 @@ rule create_hdf:
 
 rule hdf_to_bw:
     input: 'mapped/hdf/{sample}.hdf5'
-    output: dynamic('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw'),
+    output:
+        prime5_pos = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/5prime_pos.bw',
+        prime3_pos = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/3prime_pos.bw',
+        prime5_neg = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/5prime_neg.bw',
+        prime3_neg = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/3prime_neg.bw',
+        prime5_combined = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/5prime_combined.bw',
+        prime3_combined = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/3prime_combined.bw',
     params:
-        prefix = 'mapped/fragment_lengthwise_bigwigs/{sample}'
+        prefix = 'mapped/fragment_lengthwise_bigwigs/{sample}',
+        readlength = '{fragment_length}'
     shell:
-        r'''riboraptor hdf-to-bw --hdf {input} --prefix {params.prefix}'''
+        r'''riboraptor hdf-to-bw --hdf {input} --prefix {params.prefix} --readlength {params.readlength} && touch {output}'''
 
 
 rule export_metagene_individual:
@@ -349,10 +368,13 @@ rule plot_metagene_individual_length:
 rule report:
     input:
       metagene = 'mapped/plots/metagene/{sample}.png',
-      metagene_individual = dynamic('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png'),
+      prime5_pos = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/5prime_pos.png',
+      prime3_pos = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/3prime_pos.png',
+      prime5_neg = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/5prime_neg.png',
+      prime3_neg = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/3prime_neg.png',
+      prime5_combined = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/5prime_combined.png',
+      prime3_combined = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/3prime_combined.png',
       fragment_length = 'mapped/plots/read_length/{sample}.png',
-    wildcard_constraints:
-        fragment_length='\d+'
     output:
         html='mapped/reports/{sample}_riboraptor_report.html'
     run:
@@ -378,11 +400,40 @@ rule report:
 
         text += dedent('''
 
-        <h1> Metagene Plots </h1>
+        <h1> Metagene Plots (5' positive strand)</h1>
 
                 ''')
+        for m in input.prime5_pos:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
 
-        for m in input.metagene:
+            text += dedent('''
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+        for m in input.prime3_pos:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
+            text += dedent('''
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+        for m in input.prime5_neg:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
+            text += dedent('''
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+        for m in input.prime3_neg:
             with open(m, 'rb') as f:
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
@@ -393,7 +444,29 @@ rule report:
             <figcaption> {fig_name} </figcaption>
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
 
-        for m in input.metagene_individual:
+        for m in input.prime5_combined:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
+            text += dedent('''
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+
+        for m in input.prime3_combined:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
+            text += dedent('''
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+
+        for m in input.m:
             with open(m, 'rb') as f:
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
@@ -413,3 +486,55 @@ rule report:
         with open(output.html, 'w') as f:
             f.write(text)
 
+rule perform_qc:
+    input:
+        R1='sratofastq/{sample}.fastq.gz',
+    params:
+        out_dir = 'qc'
+    output:
+       'qc/{sample}_fastqc.html',
+       'qc/{sample}_fastqc.zip',
+    resources:
+        mem_mb=10000
+    shell:
+        r'''fastqc -o {params.out_dir} -f fastq {input.R1}
+        '''
+
+rule featurecounts:
+    input:
+        bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
+        hdfs = expand('mapped/hdf/{sample}.hdf5', sample=SRX_SAMPLES)
+    params:
+        annotation=GTF
+    output: 'mapped/featureCounts/fcounts.tsv'
+    threads: 16
+    run:
+        protocols = []
+        for i in input.hdfs:
+            hdf = h5py.File(i, 'r')
+            protocol = hdf.attrs['protocol']
+            protocols.append(protocol)
+        assert len(set(protocols)) == 1
+        protocol = protocols[0]
+        if protocol == 'forward':
+            count_strat = '-s 1'
+        elif protocol == 'unstranded':
+            count_strat = '-s 2'
+        else:
+            count_strat = ''
+        shell(r'''featureCounts {count_strat} -a {params.annotation} -o {output} -t exon -g gene_id -Q 4 -T {threads} {input.bams}''')
+
+
+rule run_multiqc:
+    input:
+        expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
+        expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
+        'mapped/featureCounts/fcounts.tsv',
+    output:
+        'multiqc_report/multiqc_report.html'
+    resources:
+        mem_mb=10000
+    shell:
+        r'''
+            multiqc qc preprocessed mapped/bams mapped/featureCounts -f --outdir multiqc_report .
+        '''

@@ -12,6 +12,7 @@ import sys
 import glob
 import ntpath
 import pickle
+import subprocess
 
 from scipy import stats
 import numpy as np
@@ -899,3 +900,64 @@ def find_last_non_none(positions):
                Value at that index
     """
     return find_first_non_none(positions[::-1])
+
+
+def scale_bigwig(inbigwig, chrom_sizes, outbigwig, scale_factor=1):
+    """Scale a bigwig by certain factor.
+
+    Parameters
+    ----------
+    inbigwig: string
+              Path to input bigwig
+    chrom_sizes: string
+                 Path to chrom.sizes file
+    outbigwig: string
+               Path to output bigwig
+    scale_factor: float
+                  Scale by value
+    """
+    wigfile = os.path.abspath('{}.wig'.format(outbigwig))
+    chrom_sizes = os.path.abspath(chrom_sizes)
+    inbigwig = os.path.abspath(inbigwig)
+    outbigwig = os.path.abspath(outbigwig)
+
+    cmds = [
+        'wiggletools', 'write', wigfile, 'scale',
+        str(scale_factor), inbigwig
+    ]
+    try:
+        p = subprocess.Popen(
+            cmds,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
+        stdout, stderr = p.communicate()
+        rc = p.returncode
+        if rc != 0:
+            raise RuntimeError(
+                'Error running wiggletools.\nstdout : {} \n stderr : {}'.
+                format(stdout, stderr))
+    except FileNotFoundError:
+        raise FileNotFoundError("wiggletool not found on the path."
+                                "Use `conda install wiggletools`")
+
+    cmds = ['wigToBigWig', wigfile, chrom_sizes, outbigwig]
+    try:
+        p = subprocess.Popen(
+            cmds,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
+        stdout, stderr = p.communicate()
+        rc = p.returncode
+        if rc != 0:
+            raise RuntimeError(
+                'Error running wigToBigWig.\nstdout : {} \n stderr : {}'.
+                format(stdout, stderr))
+        os.remove(wigfile)
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            "wigToBigwig not found on the path. This is an external "
+            "tool from UCSC which can be downloaded from "
+            "http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use "
+            "`conda install ucsc-wigtobigwig`")

@@ -87,10 +87,3 @@ class WigReader(object):
             .WigReader
         """
         return self.wig.chroms()
-
-
-def normalize_bigwig_to_rpm(bigwig):
-    """Scale a bigwig to RPM """
-    bw = pyBigWig.open(bigwig, 'r')
-    total_reads = 1
-    scale = 1 / (total_reads / 1e6)

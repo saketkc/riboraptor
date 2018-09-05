@@ -44,6 +44,8 @@ from .hdf_parser import hdf_to_bigwig
 from .hdf_parser import tsv_to_bigwig
 from .hdf_parser import merge_bigwigs
 from .hdf_parser import HDFParser
+from .tracks import create_track
+
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -593,8 +595,14 @@ def tsv_to_bw_cmd(tsv, chromsizes, prefix):
     help='Create bigwig from hdf')
 @click.option('--hdf', type=str, help='Path to hdf file', required=True)
 @click.option('--prefix', type=str, help='Prefix ', required=True)
-def hdf_to_bw_cmd(hdf, prefix):
-    hdf_to_bigwig(hdf, prefix)
+@click.option(
+    '--readlength',
+    type=int,
+    help='Create bw only of this fragment length',
+    required=False,
+    default='all')
+def hdf_to_bw_cmd(hdf, prefix, readlength):
+    hdf_to_bigwig(hdf, prefix, readlength)
 
 
 ###################### get-bam-coverage ######################################
@@ -610,7 +618,7 @@ def bam_coverage_cmd(bam, genebed, outprefix):
     get_bam_coverage(bam, genebed, outprefix)
 
 
-################### Merge multiple bigwigs #####################
+################### Merge multiple bigwigs ####################################
 @cli.command(
     'merge-bw',
     context_settings=CONTEXT_SETTINGS,
@@ -624,3 +632,28 @@ def bam_coverage_cmd(bam, genebed, outprefix):
 def merge_bw_cmd(pattern, chromsizes, saveto):
     bigwigs = glob.glob(os.path.abspath(pattern), recursive=True)
     merge_bigwigs(bigwigs, chromsizes, saveto)
+
+
+####################### Scale bigwig ##########################################
+@cli.command(
+    'scale-bw', context_settings=CONTEXT_SETTINGS, help='Scale bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+@click.option(
+    '--chromsizes', type=str, help='Path to chrom.sizes', required=True)
+@click.option('--scalefactor', type=float, help='Scale factor', required=True)
+@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
+def scale_bigwig_cmd(inbw, chromsizes, scalefactor, outbw):
+    scale_bigwig(inbw, chromsizes, outbw, scalefactor)
+
+
+####################### Create tracks  ##########################################
+@cli.command(
+    'create-tracks', context_settings=CONTEXT_SETTINGS, help='Create tracks')
+@click.option('--hubname', type=str, help='hub name', required=True)
+@click.option('--shortlabel', type=str, help='hub name', required=True)
+@click.option('--longlabel', type=str, help='hub name', required=True)
+@click.option('--genome', type=str, help='hub name', required=True)
+@click.option(
+    '--pattern', type=str, help='Pattern to search for', required=True)
+def create_track_cmd(hubname, shortlabel, longlabel, genome, pattern):
+    create_track(hubname, shortlabel, longlabel, genome, pattern)

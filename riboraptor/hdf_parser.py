@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 from collections import Counter
 from collections import defaultdict
+from collections import OrderedDict
 import os
 import subprocess
 
@@ -29,6 +30,7 @@ from .helpers import merge_intervals
 from .helpers import path_leaf
 from .parallel import ParallelExecutor
 from .count import _multiprocess_gene_coverage
+from .helpers import scale_bigwig
 import tempfile
 TMP_DIR_ROOT = '/tmp'
 
@@ -60,7 +62,7 @@ def _create_bigwig_from_bed(bed, chrom_lengths, outfile):
     bw.close()
 
 
-def hdf_to_bigwig(hdf, prefixdir):
+def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
     """Create fragment and strand specific bigwigs from hdf
 
     Parameters
@@ -69,6 +71,8 @@ def hdf_to_bigwig(hdf, prefixdir):
          Path to hdf file
     prefix: string
             Prefix to store output files
+    read_lengths_to_use: list
+                         Create bigwig only from these fragment lengths
     TODO: one fix for this would be to create separate nonoverlapping bigwigs
     and then merge them with bigWigCat (one more dependency)
     """
@@ -79,9 +83,19 @@ def hdf_to_bigwig(hdf, prefixdir):
     # This is already sorted in the file
     # So no need to sort again (as required by bigwig)
     chrom_lengths = list(zip(chrom_names, chrom_sizes))
-    read_lengths = hdf['read_lengths']
+    all_read_lengths = hdf['read_lengths']
+    if isinstance(read_lengths_to_use, int):
+        # Make it a list
+        read_lengths_to_use = [str(read_lengths_to_use)]
+    if read_lengths_to_use == 'all':
+        read_lengths = all_read_lengths
+    else:
+        read_lengths = read_lengths_to_use
     mkdir_p(prefixdir)
     for read_length in read_lengths:
+        if read_length not in all_read_lengths:
+            print('{} not in hdf'.format(read_length))
+            continue
         read_len_group = hdf['fragments'][read_length]
         for orientation in hdf['fragments'][read_length].keys():
             orientation_group = read_len_group[orientation]
@@ -478,6 +492,7 @@ class HDFParser(object):
         chrom_lengths = dict(
             [(chrom.replace('_neg', '').replace('_pos', ''), int(size))
              for chrom, size in zip(chrom_names, chrom_sizes)])
+        chrom_lengths = OrderedDict(sorted(chrom_lengths.items()))
         self.chromosome_lengths = chrom_lengths
 
     def close(self):
@@ -595,3 +610,31 @@ class HDFParser(object):
             map(lambda x: int(x), self.h5py_obj['query_alignment_lengths']))
         read_counts = list(self.h5py_obj['query_alignment_lengths_counts'])
         return pd.Series(read_counts, index=read_lengths).sort_index()
+
+
+def normalize_bw_hdf(bw, hdf, read_length, outbw):
+    """Normalize a fragment specific bigwig to RPM for that fragment length
+
+    Parameters
+    ----------
+    bw: string
+        Path to bigwig file
+    hdf: string
+         Path to hdf file (used for fetching total counts for that read type)
+    read_length: int
+                 Fragment length
+    outbw: string
+           Path to output bigwig
+
+    """
+    hdf = HDFParser(hdf)
+    read_length_dist = hdf.get_read_length_dist()
+    chrom_sizes = hdf.chromosome_lengths
+    with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
+        chrom_sizes_file = os.path.join(temp_dir, 'chrom.sizes')
+        with open(chrom_sizes_file, 'w') as fh:
+            for chrom, size in six.iteritems(chrom_sizes):
+                fh.write('{}\t{}\n'.format(chrom, size))
+    total = read_length_dist[read_length]
+    scale_factor = 1 / (total / 1e6)
+    scale_bigwig(bw, chrom_sizes_file, outbw, scale_factor)

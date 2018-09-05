@@ -52,7 +52,7 @@ create_hdf:
 
 hdf_to_bw:
     cores: 1
-    mem: '50gb'
+    mem: '4gb'
 
 export_metagene_individual:
     cores: 1

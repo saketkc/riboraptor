@@ -1,11 +1,26 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import pytest
+import numpy as np
 
 from riboraptor.interval import Interval
 from riboraptor.helpers import merge_intervals
 from riboraptor.helpers import read_refseq_bed
+from riboraptor.helpers import scale_bigwig
+from riboraptor.hdf_parser import normalize_bw_hdf
 from riboraptor.wig import WigReader
+
+
+def test_scale_bigwig():
+    bw = 'tests/data/SRX2536403_subsampled.unique.bigWig'
+    scaled_bw = 'tests/data/SRX2536403_subsampled.unique.scaled.bigWig'
+    chrom_sizes = 'riboraptor/annotation/hg38/hg38.chrom.sizes'
+    scale_bigwig(bw, chrom_sizes, scaled_bw, 0.1)
+    bw1 = WigReader(bw)
+    bw2 = WigReader(scaled_bw)
+    region = [Interval('chrY', 10197344, 10197345)]
+    np.testing.assert_array_almost_equal(
+        bw1.query(region) * 0.1, bw2.query(region))
 
 
 def test_merge_intervals():

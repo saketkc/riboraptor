@@ -8,8 +8,8 @@ def create_track(hub_name,
                  genome,
                  glob_pattern,
                  email='skchoudh@usc.edu',
-                 host='nucleus.usc.edu',
-                 remote_dir='/media/dna/riboraptor_trackhub'):
+                 host='localhost',
+                 remote_dir='/staging/as/skchoudh/riboraptor_trackhub'):
     hub, genomes_file, genome, trackdb = trackhub.default_hub(
         hub_name=hub_name,
         short_label=short_label,
@@ -17,7 +17,11 @@ def create_track(hub_name,
         genome=genome,
         email=email)
     for bigwig in glob.glob(glob_pattern):
-        name = trackhub.helpers.sanitize(os.path.basename(bigwig))
+        sample_name = os.path.dirname(bigwig).split(os.path.sep)[-2]
+        fragment_length = os.path.dirname(bigwig).split(os.path.sep)[-1]
+        name = '{}_{}_{}'.format(
+            sample_name, fragment_length,
+            trackhub.helpers.sanitize(os.path.basename(bigwig)))
         negate_values = 'off'
         if 'neg' in name:
             negate_values = 'on'
