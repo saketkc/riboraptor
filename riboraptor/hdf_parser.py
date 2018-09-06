@@ -37,6 +37,11 @@ TMP_DIR_ROOT = '/tmp'
 #from multiprocessing import Pool
 
 
+def _scale_value_to_rpm(value, total):
+    """Scale value to reads per million"""
+    return value * 1 / (total / 1e6)
+
+
 def _create_bigwig_from_bed(bed, chrom_lengths, outfile):
     """Create bigwig from a bed
 
@@ -62,7 +67,10 @@ def _create_bigwig_from_bed(bed, chrom_lengths, outfile):
     bw.close()
 
 
-def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
+def hdf_to_bigwig(hdf,
+                  prefixdir,
+                  read_lengths_to_use='all',
+                  output_normalized=True):
     """Create fragment and strand specific bigwigs from hdf
 
     Parameters
@@ -77,13 +85,15 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
     and then merge them with bigWigCat (one more dependency)
     """
     hdf = h5py.File(hdf, 'r')
+    all_read_lengths = hdf['read_lengths']
+    read_counts = list(hdf['read_lengths_counts'])
+    read_counts = pd.Series(read_counts, index=all_read_lengths).sort_index()
     chrom_names = list(map(lambda x: str(x), hdf['chrom_names']))
-    protocol = hdf.attrs
+    protocol = hdf.attrs['protocol']
     chrom_sizes = hdf['chrom_sizes']
     # This is already sorted in the file
     # So no need to sort again (as required by bigwig)
     chrom_lengths = list(zip(chrom_names, chrom_sizes))
-    all_read_lengths = hdf['read_lengths']
     if isinstance(read_lengths_to_use, int):
         # Make it a list
         read_lengths_to_use = [str(read_lengths_to_use)]
@@ -93,6 +103,7 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
         read_lengths = read_lengths_to_use
     mkdir_p(prefixdir)
     for read_length in read_lengths:
+        read_total = read_counts[int(read_length)]
         if read_length not in all_read_lengths:
             print('{} not in hdf'.format(read_length))
             continue
@@ -100,26 +111,33 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
         for orientation in hdf['fragments'][read_length].keys():
             orientation_group = read_len_group[orientation]
             mkdir_p(os.path.join(prefixdir, str(read_length)))
-            pos_bw = os.path.join(prefixdir, str(read_length),
-                                  '{}_{}.bw'.format(orientation, 'pos'))
-            neg_bw = os.path.join(prefixdir, str(read_length),
-                                  '{}_{}.bw'.format(orientation, 'neg'))
+            bws = {}
+            bws['pos_bw'] = os.path.join(prefixdir, str(read_length),
+                                         '{}_{}.bw'.format(orientation, 'pos'))
+            bws['neg_bw'] = os.path.join(prefixdir, str(read_length),
+                                         '{}_{}.bw'.format(orientation, 'neg'))
             # This flle will store only the relevant
             # strand information
-            collapsed_bw = os.path.join(
+            bws['collapsed_bw'] = os.path.join(
                 prefixdir, str(read_length), '{}_{}.bw'.format(
                     orientation, 'collapsed'))
-            combined_bw = os.path.join(
+            bws['combined_bw'] = os.path.join(
                 prefixdir, str(read_length), '{}_{}.bw'.format(
                     orientation, 'combined'))
-            pos_bw = pyBigWig.open(pos_bw, 'w')
-            neg_bw = pyBigWig.open(neg_bw, 'w')
-            combined_bw = pyBigWig.open(combined_bw, 'w')
-            collapsed_bw = pyBigWig.open(collapsed_bw, 'w')
-            pos_bw.addHeader(chrom_lengths, maxZooms=0)
-            neg_bw.addHeader(chrom_lengths, maxZooms=0)
-            combined_bw.addHeader(chrom_lengths, maxZooms=0)
-            collapsed_bw.addHeader(chrom_lengths, maxZooms=0)
+            if output_normalized:
+                bws['pos_norm_bw'] = os.path.join(
+                    prefixdir, str(read_length), '{}_{}.bw'.format(
+                        orientation, 'pos_normalized'))
+                bws['neg_norm_bw'] = os.path.join(
+                    prefixdir, str(read_length), '{}_{}.bw'.format(
+                        orientation, 'neg_normalized'))
+                bws['combined_norm_bw'] = os.path.join(
+                    prefixdir, str(read_length), '{}_{}.bw'.format(
+                        orientation, 'combined_normalized'))
+
+            for key, bw in six.iteritems(bws):
+                bws[key] = pyBigWig.open(key, 'w')
+                bws[key].addHeader(chrom_lengths, maxZooms=0)
             chrom_strand = list()
             for c in orientation_group.keys():
                 chrom_strand.append((c.split('__')[0], c.split('__')[1]))
@@ -147,17 +165,30 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
 
                 gene_strands = chrom_obj['gene_strand']
                 if mapped_strand == '+':
-                    pos_bw.addEntries(
+                    bws['pos_bw'].addEntries(
                         [chrom] * len(starts),
                         starts,
                         ends=ends,
                         values=values)
+                    if output_normalized:
+                        bws['pos_norm_bw'].addEntries(
+                            [chrom] * len(starts),
+                            starts,
+                            ends=ends,
+                            values=_scale_value_to_rpm(values, read_total))
+
                 if mapped_strand == '+':
-                    neg_bw.addEntries(
+                    bws['neg_bw'].addEntries(
                         [chrom] * len(starts),
                         starts,
                         ends=ends,
                         values=values)
+                    if output_normalized:
+                        bws['neg_norm_bw'].addEntries(
+                            [chrom] * len(starts),
+                            starts,
+                            ends=ends,
+                            values=_scale_value_to_rpm(values, read_total))
                 gene_strand = chrom_obj['gene_strand']
                 if protocol == 'forward':
                     # Should_keep mapped_strand + and gene_strand =
@@ -165,7 +196,7 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
                     for start, end, gene_strand, value in zip(
                             starts, ends, gene_strands, values):
                         if mapped_strand == gene_strand:
-                            collapsed_bw.addEntries(
+                            bws['collapsed_bw'].addEntries(
                                 [chrom], [start], ends=[end], values=[value])
 
                 elif protocol == 'reverse':
@@ -174,7 +205,7 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
                     for start, end, gene_strand, value in zip(
                             starts, ends, gene_strands, values):
                         if mapped_strand == complementary_strand(gene_strand):
-                            collapsed_bw.addEntries(
+                            bws['collapsed_bw'].addEntries(
                                 [chrom], [start], ends=[end], values=[value])
 
                 elif protocol == 'unstranded':
@@ -187,12 +218,16 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use='all'):
                 starts = np.array(values.index)
                 ends = starts + 1
                 values = np.array(values.values)
-                combined_bw.addEntries(
+                bws['combined_bw'].addEntries(
                     [chrom] * len(values), starts, ends=ends, values=values)
-            pos_bw.close()
-            neg_bw.close()
-            combined_bw.close()
-            collapsed_bw.close()
+                if output_normalized:
+                    bws['combined_norm_bw'].addEntries(
+                        [chrom] * len(starts),
+                        starts,
+                        ends=ends,
+                        values=_scale_value_to_rpm(values, read_total))
+            for key, bw in six.iteritems(bws):
+                bw.close()
     hdf.close()
 
 
@@ -635,6 +670,7 @@ def normalize_bw_hdf(bw, hdf, read_length, outbw):
         with open(chrom_sizes_file, 'w') as fh:
             for chrom, size in six.iteritems(chrom_sizes):
                 fh.write('{}\t{}\n'.format(chrom, size))
-    total = read_length_dist[read_length]
-    scale_factor = 1 / (total / 1e6)
-    scale_bigwig(bw, chrom_sizes_file, outbw, scale_factor)
+        total = read_length_dist[read_length]
+        scale_factor = 1 / (total / 1e6)
+        print('total_reads: {} | scale_factor: {}'.format(total, scale_factor))
+        scale_bigwig(bw, chrom_sizes_file, outbw, scale_factor)

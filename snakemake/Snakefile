@@ -77,6 +77,9 @@ ALL_SRR = [item for sublist in SRX_ID_DICT_VALUES for item in sublist]
 def merge_bams_input(wildcards):
     return ['mapped/srr_bams/{}.bam'.format(srr) for srr in SRX_ID_DICT[wildcards.sample]]
 
+def merge_fastq_input(wildcards):
+    return ['sratofastq/{}.fastq.gz'.format(srr) for srr in SRX_ID_DICT[wildcards.sample]]
+
 def sra_to_fastq_input(wildcards):
     srr_id = wildcards.sample
     for key in list(SRX_ID_DICT.keys()):
@@ -88,22 +91,24 @@ def sra_to_fastq_input(wildcards):
 
 rule all:
     input:
-        expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
-        expand('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw',
-                sample=SRX_SAMPLES,
-                fragment_length=FRAGMENT_LENGTHS,
-                orientation=ORIENTATIONS,
-                strand=STRANDS),
-        expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv',
-                sample=SRX_SAMPLES,
-                orientation=ORIENTATIONS,
-                fragment_length=FRAGMENT_LENGTHS,
-                strand=STRANDS),
-        expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png',
-                sample=SRX_SAMPLES,
-                fragment_length=FRAGMENT_LENGTHS,
-                orientation=ORIENTATIONS,
-                strand=STRANDS),
+        #expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
+        #expand('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw',
+        #        sample=SRX_SAMPLES,
+        #        fragment_length=FRAGMENT_LENGTHS,
+        #        orientation=ORIENTATIONS,
+        #        strand=STRANDS),
+        #expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv',
+        #        sample=SRX_SAMPLES,
+        #        orientation=ORIENTATIONS,
+        #        fragment_length=FRAGMENT_LENGTHS,
+        #        strand=STRANDS),
+        #expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png',
+        #        sample=SRX_SAMPLES,
+        #        fragment_length=FRAGMENT_LENGTHS,
+        #        orientation=ORIENTATIONS,
+        #        strand=STRANDS),
+        expand('merged_fastq/{sample}.fastq.gz', sample=SRX_SAMPLES),
+        expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
         'mapped/featureCounts/fcounts.tsv',
         'multiqc_report/multiqc_report.html',
         #expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
@@ -116,6 +121,40 @@ rule sra_to_fastq:
         prefix='sratofastq/{sample}.fastq'
     shell:
         r'''fastq-dump --split-3 -O sratofastq {input} && gzip {params.prefix}
+        '''
+
+rule merge_fastq:
+    input: merge_fastq_input
+    output: 'merged_fastq/{sample}.fastq.gz'
+    shell:
+        r'''cat {input} > {output}
+        '''
+
+rule perform_qc:
+    input:
+        'merged_fastq/{sample}.fastq.gz'
+    params:
+        out_dir = 'qc'
+    output:
+       'qc/{sample}_fastqc.html',
+       'qc/{sample}_fastqc.zip',
+    resources:
+        mem_mb=10000
+    shell:
+        r'''fastqc -o {params.out_dir} -f fastq {input}
+        '''
+
+rule perfom_trimming_merged:
+    input:
+        R1='merged_fastq/{sample}.fastq.gz',
+    params:
+        out_dir='merged_preprocessed/',
+        phred_cutoff=5
+    output:
+        'merged_preprocessed/{sample}_trimmed.fq.gz'
+    shell:
+        r'''
+        trim_galore -o {params.out_dir} -q {params.phred_cutoff} {input.R1}
         '''
 
 
@@ -162,6 +201,9 @@ rule map_star:
                        --outTmpDir {temp_dir}/{params.name}_tmp\
                        --outFilterType BySJout\
                        --outFilterMatchNmin 16\
+                       --seedSearchStartLmax 15\
+                       --winAnchorMultimapNmax 200\
+                       --alignEndsType EndToEnd\
                        && samtools sort -@ {threads} {params.prefix}Aligned.out.bam -o {output.bam} -T {temp_dir}/{params.name}_sort\
                        && mv {params.prefix}Aligned.toTranscriptome.out.bam {output.txbam}\
                        && samtools index {output.bam}\
@@ -486,20 +528,6 @@ rule report:
         with open(output.html, 'w') as f:
             f.write(text)
 
-rule perform_qc:
-    input:
-        R1='sratofastq/{sample}.fastq.gz',
-    params:
-        out_dir = 'qc'
-    output:
-       'qc/{sample}_fastqc.html',
-       'qc/{sample}_fastqc.zip',
-    resources:
-        mem_mb=10000
-    shell:
-        r'''fastqc -o {params.out_dir} -f fastq {input.R1}
-        '''
-
 rule featurecounts:
     input:
         bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
@@ -527,14 +555,15 @@ rule featurecounts:
 
 rule run_multiqc:
     input:
-        expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
-        expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
-        'mapped/featureCounts/fcounts.tsv',
+        fastqc = expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
+        trimmed = expand('merged_preprocessed/{sample}_trimmed.fq.gz', sample=SRX_SAMPLES),
+        bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
+        counts = 'mapped/featureCounts/fcounts.tsv',
     output:
         'multiqc_report/multiqc_report.html'
     resources:
         mem_mb=10000
     shell:
         r'''
-            multiqc qc preprocessed mapped/bams mapped/featureCounts -f --outdir multiqc_report .
+            multiqc qc merged_preprocessed mapped/bams mapped/featureCounts -f --outdir multiqc_report .
         '''

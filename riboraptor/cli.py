@@ -31,6 +31,7 @@ from .count import extract_uniq_mapping_reads
 from .count import get_bam_coverage
 from .count import get_bam_coverage_on_bed
 
+from .helpers import scale_bigwig
 from .infer_protocol import infer_protocol
 
 from .sequence import export_gene_sequences
@@ -44,7 +45,9 @@ from .hdf_parser import hdf_to_bigwig
 from .hdf_parser import tsv_to_bigwig
 from .hdf_parser import merge_bigwigs
 from .hdf_parser import HDFParser
+from .hdf_parser import normalize_bw_hdf
 from .tracks import create_track
+from .helpers import bwsum
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -634,6 +637,28 @@ def merge_bw_cmd(pattern, chromsizes, saveto):
     merge_bigwigs(bigwigs, chromsizes, saveto)
 
 
+####################### Sum bigwig ##########################################
+@cli.command('bwsum', context_settings=CONTEXT_SETTINGS, help='Scale bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+def sum_bigwig_cmd(inbw):
+    bw_sum, scale_factor = bwsum(inbw)
+    print('bw_sum: {} | scale_factor: {}'.format(bw_sum, scale_factor))
+
+
+####################### Scale bigwig ##########################################
+@cli.command(
+    'normalize-bw-hdf',
+    context_settings=CONTEXT_SETTINGS,
+    help='Scale fragment length specific bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+@click.option('--hdf', type=str, help='Path to HDF', required=True)
+@click.option(
+    '--readlength', type=int, help='Fragment length to use', required=True)
+@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
+def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
+    normalize_bw_hdf(inbw, hdf, readlength, outbw)
+
+
 ####################### Scale bigwig ##########################################
 @cli.command(
     'scale-bw', context_settings=CONTEXT_SETTINGS, help='Scale bigwig')
@@ -644,6 +669,20 @@ def merge_bw_cmd(pattern, chromsizes, saveto):
 @click.option('--outbw', type=str, help='Path to output bigwig', required=True)
 def scale_bigwig_cmd(inbw, chromsizes, scalefactor, outbw):
     scale_bigwig(inbw, chromsizes, outbw, scalefactor)
+
+
+####################### Scale bigwig ##########################################
+@cli.command(
+    'normalize-bw-hdf',
+    context_settings=CONTEXT_SETTINGS,
+    help='Scale fragment length specific bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+@click.option('--hdf', type=str, help='Path to HDF', required=True)
+@click.option(
+    '--readlength', type=int, help='Fragment length to use', required=True)
+@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
+def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
+    normalize_bw_hdf(inbw, hdf, readlength, outbw)
 
 
 ####################### Create tracks  ##########################################

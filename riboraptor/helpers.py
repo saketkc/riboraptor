@@ -3,13 +3,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from collections import OrderedDict
 from collections import defaultdict
-import csv
 import errno
 import itertools
 import math
 import os
 import sys
-import glob
 import ntpath
 import pickle
 import subprocess
@@ -20,6 +18,7 @@ import pandas as pd
 import six
 import pybedtools
 import pysam
+import pyBigWig
 from bx.intervals.intersection import IntervalTree
 
 import warnings
@@ -473,9 +472,8 @@ def get_strandedness(filepath):
     with open(filepath) as f:
         data = f.read()
     splitted = [x.strip() for x in data.split('\n') if len(x.strip()) >= 1]
-    strandedness = None
     assert splitted[0] == 'This is SingleEnd Data'
-    few_percentage = None
+    fwd_percentage = None
     rev_percentage = None
     for line in splitted[1:]:
         if 'Fraction of reads failed to determine:' in line:
@@ -902,6 +900,29 @@ def find_last_non_none(positions):
     return find_first_non_none(positions[::-1])
 
 
+# NOTE: We can in principle do a longer metagene anaylsis
+# using this helper funciont
+def yield_intervals(chrom_size, chunk_size=20000):
+    for start in np.arange(0, chrom_size, chunk_size):
+        end = start + chunk_size
+        if end > chrom_size:
+            yield (start, chrom_size)
+        else:
+            yield (start, end)
+
+
+def bwsum(bw, chunk_size=5000, scale_to=1e6):
+    bw_sum = 0
+    if isinstance(bw, six.string_types):
+        bw = pyBigWig.open(bw)
+    chrom_sizes = bw.chroms()
+    for chrom, chrom_size in six.iteritems(chrom_sizes):
+        for start, end in yield_intervals(chrom_size, chunk_size):
+            bw_sum += np.nansum(bw.values(chrom, start, end))
+    scale_factor = 1 / (bw_sum / scale_to)
+    return bw_sum, scale_factor
+
+
 def scale_bigwig(inbigwig, chrom_sizes, outbigwig, scale_factor=1):
     """Scale a bigwig by certain factor.
 
@@ -920,6 +941,9 @@ def scale_bigwig(inbigwig, chrom_sizes, outbigwig, scale_factor=1):
     chrom_sizes = os.path.abspath(chrom_sizes)
     inbigwig = os.path.abspath(inbigwig)
     outbigwig = os.path.abspath(outbigwig)
+    if os.path.isfile(wigfile):
+        # wiggletools errors if the file already exists
+        os.remove(wigfile)
 
     cmds = [
         'wiggletools', 'write', wigfile, 'scale',
