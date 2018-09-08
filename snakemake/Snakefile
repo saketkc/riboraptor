@@ -15,6 +15,7 @@ from snakemake.utils import report
 from textwrap import dedent
 import base64
 from riboraptor.helpers import mkdir_p
+from riboraptor.helpers import path_leaf
 from riboraptor.infer_protocol import infer_protocol
 import h5py
 
@@ -44,6 +45,23 @@ def total_genome_size():
     total = df['sizes'].sum()
     return total
 
+def generate_base64_images(list_of_images):
+    text = ''
+    for m in list_of_images:
+        m = str(m)
+        if not os.path.isfile(m) or not os.stat(str(m)).st_size:
+            continue
+        fig_name = path_leaf(m).replace('.png', '')
+        with open(m, 'rb') as f:
+            encoded = base64.b64encode(f.read())
+        img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
+        text += dedent('''
+        <figure>
+        {img_tag}
+        <figcaption> {fig_name} </figcaption>
+        </figure>''').format(img_tag=img_tag, fig_name=fig_name)
+    return text
 
 def get_align_intro_params():
     df = pd.read_table(INTRON_BED, names=['chrom', 'start', 'end', 'name', 'score', 'strand'])
@@ -101,7 +119,8 @@ rule all:
         expand('merged_fastq/{sample}.fastq.gz', sample=SRX_SAMPLES),
         expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
         'mapped/featureCounts/fcounts.tsv',
-        'multiqc_report/multiqc_report.html',
+        #'multiqc_report/multiqc_report.html',
+        dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
         'multiqc_report/aggregated_report.html',
         expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
 
@@ -447,97 +466,46 @@ rule report:
         with open(str(input.metagene), 'rb') as f:
             encoded = base64.b64encode(f.read())
         img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        fig_name = path_leaf(str(input.metagene)).replace('.png', '')
         text += dedent('''
         <figure>
         {img_tag}
         <figcaption> {fig_name}</figcaption>
-        </figure>''').format(img_tag=img_tag, fig_name=str(input.metagene).split('/')[-1].replace('.png', ''))
+        </figure>''').format(img_tag=img_tag, fig_name=fig_name)
         
-        for m in input.prime5_pos:
-            m = str(m)
-            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
-                continue
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        text += generate_base64_images(input.prime5_pos)
+        text += dedent('''
 
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
-        for m in input.prime3_pos:
-            m = str(m)
-            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
-                continue
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        <h1> Metagene Plots (3' positive strand)</h1>
 
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
-        for m in input.prime5_neg:
-            m = str(m)
-            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
-                continue
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+                ''')
+        text += generate_base64_images(input.prime3_pos)
+        text += dedent('''
 
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
-        for m in input.prime3_neg:
-            m = str(m)
-            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
-                continue
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        <h1> Metagene Plots (5' negative strand)</h1>
 
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+                ''')
+        text += generate_base64_images(input.prime5_neg)
+        text += dedent('''
 
-        for m in input.prime5_combined:
-            m = str(m)
-            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
-                continue
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        <h1> Metagene Plots (3' negative strand)</h1>
 
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+                ''')
+        text += generate_base64_images(input.prime3_neg)
+        text += dedent('''
 
-        for m in input.prime3_combined:
-            m = str(m)
-            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
-                continue
-            with open(m, 'rb') as f:
-                if not os.stat(m).st_size:
-                    continue
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        <h1> Metagene Plots (5' both strands combined)</h1>
 
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+                ''')
 
+        text += generate_base64_images(input.prime5_combined)
+        text += dedent('''
 
+        <h1> Metagene Plots (3' both strands combined)</h1>
 
+                ''')
+
+        text += generate_base64_images(input.prime3_combined)
         text += dedent("""
         </center>
         </html>
@@ -578,18 +546,8 @@ rule run_multiqc:
         bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
         counts = 'mapped/featureCounts/fcounts.tsv',
     output:
-        'multiqc_report/multiqc_report.html',
-        'multiqc_report/multiqc_plots/png/mqc_cutadapt_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_featureCounts_assignment_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_star_alignment_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_counts_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_sequence_quality_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_quality_scores_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_gc_content_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_n_content_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_duplication_levels_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_overrepresented_sequencesi_plot.png',
-
+        #'multiqc_report/multiqc_report.html',
+        dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
 
     resources:
         mem_mb=10000
@@ -600,17 +558,7 @@ rule run_multiqc:
 
 rule generate_multiqc_report:
     input:
-        'multiqc_report/multiqc_plots/png/mqc_cutadapt_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_featureCounts_assignment_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_star_alignment_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_counts_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_sequence_quality_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_quality_scores_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_gc_content_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_n_content_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_duplication_levels_plot.png',
-        'multiqc_report/multiqc_plots/png/mqc_fastqc_overrepresented_sequencesi_plot.png',
-
+        dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
     output:
         html='multiqc_report/aggregated_report.html'
     run:
@@ -621,18 +569,7 @@ rule generate_multiqc_report:
 
 
         """)
-
-        for m in input:
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
-
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
-
+        text = generate_base64_images(input)
         text += dedent("""
         </center>
         </html>
