@@ -1,7 +1,6 @@
 import glob
 import os
 from textwrap import indent, dedent
-import textwrap
 import sys
 import trackhub
 
@@ -87,6 +86,8 @@ def get_multiwigtrack_text(track_name, parent):
     viewLimits 0:20
     shortLabel {0}
     longLabel {0}
+    visibility full
+    type bigWig
     \n""".format(track_name, parent)
     return dedent(header)
 
@@ -103,7 +104,7 @@ def get_supertrack_text(track_name):
     return dedent(header)
 
 
-def get_bigwigtrack_text(track_name, parent, big_data_url):
+def get_bigwigtrack_text(track_name, parent, big_data_url, negate_values):
     text = """\
     track {0}
     parent {1}
@@ -117,12 +118,13 @@ def get_bigwigtrack_text(track_name, parent, big_data_url):
     gridDefault on
     color 24,90,197
     visibility full
+    negateValues {3}
     bigDataUrl {2}
-    \n""".format(track_name, parent, big_data_url)
+    \n""".format(track_name, parent, big_data_url, negate_values)
     return dedent(text)
 
 
-def create_trackdb(bwdir, srp):
+def create_trackdb(bwdir, srp, orientation='5prime'):
     """bwdir is the root directory
     where all fragment lengths sit
 
@@ -140,42 +142,40 @@ def create_trackdb(bwdir, srp):
 
     """
 
-    bw_types = ['5prime_pos', '5prime_neg', '3prime_pos', '3prime_neg']
+    orientation_types = ['5prime', '3prime']
+    strand_types = ['pos', 'neg']
+
     # Step 0. Create super track
 
     srp_header = get_supertrack_text(srp)
     master_text = '###########################################\n'+srp_header
     # Step 1. Create composite track for SRX
-    for srx in os.listdir(bwdir):
-
+    for srx in sorted(os.listdir(bwdir)):
         master_text += '\n\n###############SRXHeader begin####################\n\n'
-        srx_header = indent(get_compositetrack_text(srx, srp), INDENT_SPACES)
-        master_text += srx_header
+        srx_orientation_key = srx+ '_' + orientation + '_multiWig'
+        multiwig_header = indent(get_multiwigtrack_text(srx_orientation_key,  srp), INDENT_SPACES)
+        master_text += multiwig_header + '\n\n'
         # Step 2. Inside each composite track for a SRX, create another
         # composite track for different orientations/strand inside which
         # we need another multiwig track comprising all fragments for this
         # particular orientation/strand
-        for orientation_strand in bw_types:
-            orientation_header = indent(get_compositetrack_text(
-                srx + '_' + orientation_strand, srx), 2*INDENT_SPACES)
-            multiwig_header = indent(get_multiwigtrack_text(
-                srx+ '_' + orientation_strand + '_multiWig', srx + '_' + orientation_strand), 3*INDENT_SPACES)
+        for read_length in sorted(os.listdir(os.path.join(bwdir, srx))):
             bigwig_text = ''
-            for read_length in sorted(os.listdir(os.path.join(bwdir, srx))):
+            for orientation_strand in [orientation+'_pos', orientation+'_neg']:
                 bwpath = os.path.join(bwdir, srx, read_length,
-                                      orientation_strand + '.bw')
-                if not os.path.isfile(bwpath):
-                    sys.stderr.write(bwpath+'\n')
-                    continue
-                if os.stat(bwpath) == 0:
-                    continue
+                                        orientation_strand + '.bw')
                 track_name = '{}_{}_{}'.format(srx, read_length,
-                                               orientation_strand)
+                                                orientation_strand)
                 # Step 2a: Create multiwig track
-                bwpath = bwpath.replace('/staging/as/skchoudh/re-ribo-analysis/', 'http://smithlab.usc.edu/lab/public/skchoudh/riboraptor_trackhub/hg38/').replace('mapped/', '')
-                bigwig_text += indent(get_bigwigtrack_text(
-                    track_name, srx + '_' + orientation_strand + '_multiWig', bwpath), 4*INDENT_SPACES)
-            master_text += '\n\n' + orientation_header + '\n\n' + multiwig_header + '\n\n' + bigwig_text
+                if 'neg' in bwpath:
+                    negate_values = 'on'
+                else:
+                    negate_values = 'off'
+                if os.path.isfile(bwpath) and os.stat(bwpath).st_size:
+                    bwpath = bwpath.replace('/staging/as/skchoudh/re-ribo-analysis/', 'http://smithlab.usc.edu/lab/public/skchoudh/riboraptor_trackhub/hg38/').replace('mapped/', '')
+                    bigwig_text += indent(get_bigwigtrack_text(
+                        track_name, srx_orientation_key, bwpath, negate_values), 2*INDENT_SPACES)
+            master_text += '\n\n'  + bigwig_text
         master_text += '\n\n###############SRXHeader end####################'
     return master_text
 

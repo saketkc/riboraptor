@@ -948,6 +948,7 @@ def get_bam_coverage(bam, bed, outprefix=None):
             'chrom', 'start', 'end', 'read_length', 'orientation',
             'count_pos_strand', 'count_neg_strand', 'gene_strand'
         ])
+        df['protocol'] = protocol
 
         df.to_csv(
             '{}.tsv'.format(outprefix), sep='\t', index=False, header=True)

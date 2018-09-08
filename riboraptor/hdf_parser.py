@@ -110,33 +110,29 @@ def hdf_to_bigwig(hdf,
         read_len_group = hdf['fragments'][read_length]
         for orientation in hdf['fragments'][read_length].keys():
             orientation_group = read_len_group[orientation]
-            mkdir_p(os.path.join(prefixdir, str(read_length)))
+            dest_dir = os.path.abspath(os.path.join(prefixdir, str(read_length)))
+            mkdir_p(dest_dir)
             bws = {}
-            bws['pos_bw'] = os.path.join(prefixdir, str(read_length),
+            bws['pos_bw'] = os.path.join(dest_dir,
                                          '{}_{}.bw'.format(orientation, 'pos'))
-            bws['neg_bw'] = os.path.join(prefixdir, str(read_length),
+            bws['neg_bw'] = os.path.join(dest_dir,
                                          '{}_{}.bw'.format(orientation, 'neg'))
             # This flle will store only the relevant
             # strand information
-            bws['collapsed_bw'] = os.path.join(
-                prefixdir, str(read_length), '{}_{}.bw'.format(
-                    orientation, 'collapsed'))
-            bws['combined_bw'] = os.path.join(
-                prefixdir, str(read_length), '{}_{}.bw'.format(
-                    orientation, 'combined'))
+            bws['collapsed_bw'] = os.path.join(dest_dir,
+                                               '{}_{}.bw'.format(orientation, 'collapsed'))
+            bws['combined_bw'] = os.path.join(dest_dir,
+                                              '{}_{}.bw'.format(orientation, 'combined'))
             if output_normalized:
-                bws['pos_norm_bw'] = os.path.join(
-                    prefixdir, str(read_length), '{}_{}.bw'.format(
-                        orientation, 'pos_normalized'))
-                bws['neg_norm_bw'] = os.path.join(
-                    prefixdir, str(read_length), '{}_{}.bw'.format(
-                        orientation, 'neg_normalized'))
-                bws['combined_norm_bw'] = os.path.join(
-                    prefixdir, str(read_length), '{}_{}.bw'.format(
-                        orientation, 'combined_normalized'))
+                bws['pos_norm_bw'] = os.path.join(dest_dir,
+                                                  '{}_{}.bw'.format(orientation, 'pos_normalized'))
+                bws['neg_norm_bw'] = os.path.join(dest_dir,
+                                                  '{}_{}.bw'.format(orientation, 'neg_normalized'))
+                bws['combined_norm_bw'] = os.path.join(dest_dir,
+                                                       '{}_{}.bw'.format(orientation, 'combined_normalized'))
 
             for key, bw in six.iteritems(bws):
-                bws[key] = pyBigWig.open(key, 'w')
+                bws[key] = pyBigWig.open(bw, 'w')
                 bws[key].addHeader(chrom_lengths, maxZooms=0)
             chrom_strand = list()
             for c in orientation_group.keys():
@@ -177,7 +173,7 @@ def hdf_to_bigwig(hdf,
                             ends=ends,
                             values=_scale_value_to_rpm(values, read_total))
 
-                if mapped_strand == '+':
+                if mapped_strand == '-':
                     bws['neg_bw'].addEntries(
                         [chrom] * len(starts),
                         starts,
