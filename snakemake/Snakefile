@@ -22,7 +22,7 @@ ORIENTATIONS =['5prime', '3prime']
 STRANDS = ['pos', 'neg', 'combined']# 'collapsed']
 # collapsed strand = When we consider reads
 # mapping only to strand where the gene is defined
-FRAGMENT_LENGTHS = range(20, 51)
+FRAGMENT_LENGTHS = range(20, 39)
 
 TMP_DIR_ROOT = None
 INTRON_BED = None
@@ -91,27 +91,19 @@ def sra_to_fastq_input(wildcards):
 
 rule all:
     input:
-        #expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
-        #expand('mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw',
-        #        sample=SRX_SAMPLES,
-        #        fragment_length=FRAGMENT_LENGTHS,
-        #        orientation=ORIENTATIONS,
-        #        strand=STRANDS),
-        #expand('mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv',
-        #        sample=SRX_SAMPLES,
-        #        orientation=ORIENTATIONS,
-        #        fragment_length=FRAGMENT_LENGTHS,
-        #        strand=STRANDS),
-        #expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png',
-        #        sample=SRX_SAMPLES,
-        #        fragment_length=FRAGMENT_LENGTHS,
-        #        orientation=ORIENTATIONS,
-        #        strand=STRANDS),
+        expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
+        expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
+        expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png',
+                sample=SRX_SAMPLES,
+                fragment_length=FRAGMENT_LENGTHS,
+                orientation=ORIENTATIONS,
+                strand=STRANDS),
         expand('merged_fastq/{sample}.fastq.gz', sample=SRX_SAMPLES),
         expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
         'mapped/featureCounts/fcounts.tsv',
         'multiqc_report/multiqc_report.html',
-        #expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
+        'multiqc_report/aggregated_report.html',
+        expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
 
 
 rule sra_to_fastq:
@@ -203,7 +195,6 @@ rule map_star:
                        --outFilterMatchNmin 16\
                        --seedSearchStartLmax 15\
                        --winAnchorMultimapNmax 200\
-                       --alignEndsType EndToEnd\
                        && samtools sort -@ {threads} {params.prefix}Aligned.out.bam -o {output.bam} -T {temp_dir}/{params.name}_sort\
                        && mv {params.prefix}Aligned.toTranscriptome.out.bam {output.txbam}\
                        && samtools index {output.bam}\
@@ -392,10 +383,15 @@ rule export_metagene_individual:
     output: 'mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
     params:
         orientation = '{orientation}'
-    shell:
-        r'''
-        riboraptor export-metagene-coverage --bw {input} --bed {CDS_BED} --orientation {params.orientation} --saveto {output} --offset_5p 60 --offset_3p 60
-        '''
+    run:
+        if os.stat(str(input)).st_size:
+            shell(r'''
+            riboraptor export-metagene-coverage --bw {input} --bed {CDS_BED} --orientation {params.orientation} --saveto {output} --offset_5p 60 --offset_3p 60
+            ''')
+        else:
+            # Just touch the file
+            shell(r'''touch {output}''')
+
 
 rule plot_metagene_individual_length:
     input: 'mapped/fragment_lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
@@ -405,18 +401,22 @@ rule plot_metagene_individual_length:
             range = '-60:100'
         else:
             range = '-100:60'
-        shell(r'''riboraptor plot-metagene --counts {input} --saveto {output} --positions {range}''')
+        if os.stat(str(input)).st_size:
+            shell(r'''riboraptor plot-metagene --counts {input} --saveto {output} --positions {range}''')
+        else:
+            # Just touch the file
+            shell(r'''touch {output}''')
 
 rule report:
     input:
       metagene = 'mapped/plots/metagene/{sample}.png',
-      prime5_pos = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/5prime_pos.png',
-      prime3_pos = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/3prime_pos.png',
-      prime5_neg = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/5prime_neg.png',
-      prime3_neg = 'mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/3prime_neg.png',
-      prime5_combined = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/5prime_combined.png',
-      prime3_combined = 'mapped/fragment_lengthwise_bigwigs/{sample}/{fragment_length}/3prime_combined.png',
       fragment_length = 'mapped/plots/read_length/{sample}.png',
+      prime5_pos = expand('mapped/plots/fragment_lengthwise_metagene/{{sample}}/{fragment_length}/5prime_pos.png', fragment_length=FRAGMENT_LENGTHS),
+      prime3_pos = expand('mapped/plots/fragment_lengthwise_metagene/{{sample}}/{fragment_length}/3prime_pos.png', fragment_length=FRAGMENT_LENGTHS),
+      prime5_neg = expand('mapped/plots/fragment_lengthwise_metagene/{{sample}}/{fragment_length}/5prime_neg.png', fragment_length=FRAGMENT_LENGTHS),
+      prime3_neg = expand('mapped/plots/fragment_lengthwise_metagene/{{sample}}/{fragment_length}/3prime_neg.png', fragment_length=FRAGMENT_LENGTHS),
+      prime5_combined = expand('mapped/plots/fragment_lengthwise_metagene/{{sample}}/{fragment_length}/5prime_combined.png', fragment_length=FRAGMENT_LENGTHS),
+      prime3_combined = expand('mapped/plots/fragment_lengthwise_metagene/{{sample}}/{fragment_length}/3prime_combined.png', fragment_length=FRAGMENT_LENGTHS),
     output:
         html='mapped/reports/{sample}_riboraptor_report.html'
     run:
@@ -429,23 +429,34 @@ rule report:
 
         """)
 
-        for m in input.fragment_length:
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        with open(str(input.fragment_length), 'rb') as f:
+            encoded = base64.b64encode(f.read())
+        img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
 
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+        text += dedent('''
+        <figure>
+        {img_tag}
+        <figcaption> {fig_name} </figcaption>
+        </figure>''').format(img_tag=img_tag, fig_name=str(input.fragment_length).split('/')[-1].replace('.png', ''))
 
         text += dedent('''
 
         <h1> Metagene Plots (5' positive strand)</h1>
 
                 ''')
+        with open(str(input.metagene), 'rb') as f:
+            encoded = base64.b64encode(f.read())
+        img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        text += dedent('''
+        <figure>
+        {img_tag}
+        <figcaption> {fig_name}</figcaption>
+        </figure>''').format(img_tag=img_tag, fig_name=str(input.metagene).split('/')[-1].replace('.png', ''))
+        
         for m in input.prime5_pos:
+            m = str(m)
+            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
+                continue
             with open(m, 'rb') as f:
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
@@ -456,6 +467,9 @@ rule report:
             <figcaption> {fig_name} </figcaption>
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
         for m in input.prime3_pos:
+            m = str(m)
+            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
+                continue
             with open(m, 'rb') as f:
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
@@ -466,6 +480,9 @@ rule report:
             <figcaption> {fig_name} </figcaption>
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
         for m in input.prime5_neg:
+            m = str(m)
+            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
+                continue
             with open(m, 'rb') as f:
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
@@ -476,6 +493,9 @@ rule report:
             <figcaption> {fig_name} </figcaption>
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
         for m in input.prime3_neg:
+            m = str(m)
+            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
+                continue
             with open(m, 'rb') as f:
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
@@ -487,6 +507,9 @@ rule report:
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
 
         for m in input.prime5_combined:
+            m = str(m)
+            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
+                continue
             with open(m, 'rb') as f:
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
@@ -498,7 +521,12 @@ rule report:
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
 
         for m in input.prime3_combined:
+            m = str(m)
+            if not os.path.isfile(m) or not os.stat(str(m)).st_size:
+                continue
             with open(m, 'rb') as f:
+                if not os.stat(m).st_size:
+                    continue
                 encoded = base64.b64encode(f.read())
             img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
 
@@ -508,16 +536,6 @@ rule report:
             <figcaption> {fig_name} </figcaption>
             </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
 
-        for m in input.m:
-            with open(m, 'rb') as f:
-                encoded = base64.b64encode(f.read())
-            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
-            fragment_l = m.split('_')[-1].replace('.png', '')
-            text += dedent('''
-            <figure>
-            {img_tag}
-            <figcaption> {fig_name}-{fragment_l} </figcaption>
-            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
 
 
         text += dedent("""
@@ -560,10 +578,64 @@ rule run_multiqc:
         bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
         counts = 'mapped/featureCounts/fcounts.tsv',
     output:
-        'multiqc_report/multiqc_report.html'
+        'multiqc_report/multiqc_report.html',
+        'multiqc_report/multiqc_plots/png/mqc_cutadapt_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_featureCounts_assignment_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_star_alignment_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_counts_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_sequence_quality_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_quality_scores_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_gc_content_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_n_content_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_duplication_levels_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_overrepresented_sequencesi_plot.png',
+
+
     resources:
         mem_mb=10000
     shell:
         r'''
-            multiqc qc merged_preprocessed mapped/bams mapped/featureCounts -f --outdir multiqc_report .
+            multiqc qc merged_preprocessed mapped/bams mapped/featureCounts --export -f --outdir multiqc_report .
         '''
+
+rule generate_multiqc_report:
+    input:
+        'multiqc_report/multiqc_plots/png/mqc_cutadapt_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_featureCounts_assignment_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_star_alignment_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_counts_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_sequence_quality_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_quality_scores_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_sequence_gc_content_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_per_base_n_content_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_sequence_duplication_levels_plot.png',
+        'multiqc_report/multiqc_plots/png/mqc_fastqc_overrepresented_sequencesi_plot.png',
+
+    output:
+        html='multiqc_report/aggregated_report.html'
+    run:
+        text = dedent("""
+        <html>
+        <center>
+        <h1> QC plots </h1>
+
+
+        """)
+
+        for m in input:
+            with open(m, 'rb') as f:
+                encoded = base64.b64encode(f.read())
+            img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+
+            text += dedent('''
+            <figure>
+            {img_tag}
+            <figcaption> {fig_name} </figcaption>
+            </figure>''').format(img_tag=img_tag, fig_name=m.split('/')[-1].replace('.png', ''))
+
+        text += dedent("""
+        </center>
+        </html>
+        """)
+        with open(output.html, 'w') as f:
+            f.write(text)
