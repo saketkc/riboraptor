@@ -120,6 +120,7 @@ rule all:
         expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
         'mapped/featureCounts/fcounts.tsv',
         #'multiqc_report/multiqc_report.html',
+        #dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
         'multiqc_report/aggregated_report.html',
         expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
@@ -546,9 +547,7 @@ rule run_multiqc:
         bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
         counts = 'mapped/featureCounts/fcounts.tsv',
     output:
-        #'multiqc_report/multiqc_report.html',
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
-
     resources:
         mem_mb=10000
     shell:
@@ -556,12 +555,17 @@ rule run_multiqc:
             multiqc qc merged_preprocessed mapped/bams mapped/featureCounts --export -f --outdir multiqc_report .
         '''
 
+def get_multiqc_report_input(wildcards):
+    return glob.glob('multiqc_report/multiqc_plots/png/*.png')
+
 rule generate_multiqc_report:
     input:
-        dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
+        get_multiqc_report_input
     output:
         html='multiqc_report/aggregated_report.html'
     run:
+        for m in input:
+            print(m)
         text = dedent("""
         <html>
         <center>
