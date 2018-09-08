@@ -1,0 +1,408 @@
+shell.executable("/bin/bash")
+shell.prefix("source ~/.bashrc; ")
+
+from collections import defaultdict
+import os
+from os.path import join
+import glob
+from riboraptor.helpers import mkdir_p
+
+ORIENTATIONS =['5prime', '3prime']
+STRANDS = ['pos', 'neg', 'combined']# 'collapsed']
+# collapsed strand = When we consider reads
+# mapping only to strand where the gene is defined
+FRAGMENT_LENGTHS = range(20, 39)
+
+include:
+    config['config_path']
+
+workdir: OUT_DIR
+
+mkdir_p(join(OUT_DIR, 'slurm-logs'))
+ALL_SRA_FILES = glob.glob('{}/**/*.sra'.format(RAWDATA_DIR), recursive=True)
+SRX_ID_DICT = defaultdict(list)
+for sample in ALL_SRA_FILES:
+    srx, srr = sample.replace('{}'.format(RAWDATA_DIR),'').lstrip('/').rstrip('/').split('/')
+    SRX_ID_DICT[srx].append(srr.replace('.sra', ''))
+SRX_ID_DICT_VALUES = list(SRX_ID_DICT.values())
+SRX_SAMPLES = list(SRX_ID_DICT.keys())
+ALL_SRR = [item for sublist in SRX_ID_DICT_VALUES for item in sublist]
+
+
+def merge_bams_input(wildcards):
+    return ['srr_bams/{}.bam'.format(srr) for srr in SRX_ID_DICT[wildcards.sample]]
+
+
+def merge_fastq_input(wildcards):
+    return ['sratofastq/{}.fastq.gz'.format(srr) for srr in SRX_ID_DICT[wildcards.sample]]
+
+
+def sra_to_fastq_input(wildcards):
+    srr_id = wildcards.sample
+    for key in list(SRX_ID_DICT.keys()):
+        value = SRX_ID_DICT[key]
+        if srr_id in list(value):
+            srx_id = key
+            return str(join(RAWDATA_DIR, srx_id, srr_id+'.sra'))
+    print("WRONG encodeterend: {}".format(srr_id))
+
+def get_multiqc_report_input(wildcards):
+    return glob.glob('multiqc_report/multiqc_plots/png/*.png')
+
+
+rule all:
+    input:
+        expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
+        expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
+        expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png',
+                sample=SRX_SAMPLES,
+                fragment_length=FRAGMENT_LENGTHS,
+                orientation=ORIENTATIONS,
+                strand=STRANDS),
+        expand('merged_fastq/{sample}.fastq.gz', sample=SRX_SAMPLES),
+        expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
+        'mapped/featureCounts/fcounts.tsv',
+        dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
+        'multiqc_report/aggregated_report.html',
+        expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
+
+
+rule sra_to_fastq:
+    input: sra_to_fastq_input
+    output: 'sratofastq/{sample}.fastq.gz'
+    params:
+        prefix='sratofastq/{sample}.fastq'
+    shell:
+        r'''
+        fastq-dump --split-3 -O sratofastq {input}\
+        && gzip {params.prefix}
+        '''
+
+rule merge_fastq:
+    input: merge_fastq_input
+    output: 'merged_fastq/{sample}.fastq.gz'
+    wrapper:
+        'file://./merge_fastq_wrapper.py'
+
+
+rule perform_qc:
+    input:
+        'merged_fastq/{sample}.fastq.gz'
+    output:
+       'qc/{sample}_fastqc.html',
+       'qc/{sample}_fastqc.zip',
+    params:
+        out_dir = 'qc'
+    resources:
+        mem_mb=10000
+    shell:
+        r'''
+        fastqc -o {params.out_dir} \
+        -f fastq {input}
+        '''
+
+rule perfom_trimming_merged:
+    input:
+        R1 = 'fastq_merged/{sample}.fastq.gz',
+    output:
+        'merged_preprocessed/{sample}_trimmed.fq.gz'
+    params:
+        out_dir = 'preprocessed_merged',
+        phred_cutoff = 5
+    shell:
+        r'''
+        trim_galore -o {params.out_dir} \
+        -q {params.phred_cutoff} {input.R1}
+        '''
+
+rule perfom_trimming:
+    input:
+        R1 = 'sratofastq/{sample}.fastq.gz',
+    output:
+        'preprocessed/{sample}_trimmed.fq.gz'
+    params:
+        out_dir = 'preprocessed/',
+        phred_cutoff = 5
+    shell:
+        r'''
+        trim_galore -o {params.out_dir} \
+        -q {params.phred_cutoff} {input.R1}
+        '''
+
+
+rule map_star:
+    input:
+        R1 = 'preprocessed/{sample}_trimmed.fq.gz',
+        index = STAR_INDEX
+    output:
+        bami = 'bams_srr/{sample}.bam',
+        txbam = 'bams_srr_tx/{sample}.bam',
+        counts = 'STARcounts/{sample}.counts',
+        starlogs = 'starlogs/{sample}Log.final.out'
+    params:
+        tmp_dir = '/tmp'
+    threads: 16
+    wrapper:
+        'file://./star_wrapper.py'
+
+
+rule merge_bams:
+    input: merge_bams_input
+    output: 'bams/{sample}.bam'
+    params:
+        tmp_dir = '/tmp'
+    threads: 16
+    wrapper:
+        'file://./merge_bams.py'
+
+
+rule extract_uniq_mapping:
+    input: 'bams/{sample}.bam'
+    output: 'bams_unique/{sample}.bam'
+    params:
+        tmp_dir = '/tmp'
+    threads: 16
+    wrapper:
+        'file://./uniq_mapping_wrapper.py'
+
+
+rule create_uniq_bedgraph_from_bam:
+    input: 'bams_unique/{sample}.bam'
+    output: 'bedGraphs/{sample}.bg'
+    shell:
+        r'''
+        riboraptor bam-to-bedgraph --bam {input} \
+        --end_type 5prime \
+        --strand + \
+        --saveto {output} \
+        && bedSort {output} {output}
+        '''
+
+
+rule create_uniq_bigwig_from_uniq_bedgraph_raw:
+    input: 'bedGraphs/{sample}.bg',
+    output: 'bigWigs/{sample}.bw',
+    shell:
+        r'''bedGraphToBigWig {input} {CHROM_SIZES} {output}'''
+
+
+rule export_utr5_coverage:
+    input: 'bigWigs/{sample}.bw'
+    params:
+        offset_5p = 10
+    output: 'gene_coverages/UTR5/{sample}_gene_coverages.tsv'
+    shell: r'''riboraptor export-gene-coverages \
+           --bw {input} \
+           --bed {UTR5_BED} \
+           --saveto {output} \
+           --offset_5p {params.offset_5p}'''
+
+
+rule export_cds_coverage:
+    input: 'bigWigs/{sample}.bw'
+    params:
+        offset_5p = 10
+    output: 'gene_coverages/CDS/{sample}_gene_coverages.tsv'
+    shell: r'''riboraptor export-gene-coverages \
+           --bw {input} \
+           --bed {CDS_BED} \
+           --saveto {output} \
+           --offset_5p {params.offset_5p}'''
+
+
+rule export_utr3_coverage:
+    input: 'bigWigs/{sample}.bw'
+    params:
+        offset_5p = 10
+    output: 'gene_coverages/UTR3/{sample}_gene_coverages.tsv'
+    shell: r'''riboraptor export-gene-coverages \
+           --bw {input} \
+           --bed {UTR3_BED} \
+           --saveto {output} \
+           --offset_5p {params.offset_5p}'''
+
+
+rule export_read_length:
+    input: 'bams_unique/{sample}.bam'
+    output: 'read_lengths/{sample}.tsv'
+    shell:
+        r'''
+        riboraptor export-read-length \
+        --bam {input} \
+        --saveto {output}
+        '''
+
+
+rule plot_read_length:
+    input: 'read_lengths/{sample}.tsv'
+    output: 'plots/read_length/{sample}.png'
+    shell:
+        r'''
+        riboraptor plot-read-length \
+        --millify_labels \
+        --read-lengths {input} --saveto {output}
+        '''
+
+
+rule export_metagene:
+    input: 'bigWigs/{sample}.bw'
+    output: 'metagene_coverages/{sample}.tsv'
+    params:
+        orientation = '5prime'
+    shell:
+        r'''
+        riboraptor export-metagene-coverage \
+        --bw {input} \
+        --bed {CDS_BED} --saveto {output} \
+        --orientation {params.orientation}
+        '''
+
+
+rule plot_metagene:
+    input: 'metagene_coverages/{sample}.tsv'
+    output: 'plots/metagene/{sample}.png'
+    shell:
+        r'''
+        riboraptor plot-metagene \
+        --counts {input} \
+        --saveto {output} \
+        --positions -60:100
+        '''
+
+
+rule metagene_coverage_cds2:
+    input: 'bams_unique/{sample}.bam'
+    output: 'genewise_counts_CDS/{sample}.tsv'
+    shell:
+        r'''
+        riboraptor count-reads-bed \
+        --bam {input} \
+        --bed {CDS_BED} \
+        --saveto {output}
+        '''
+
+
+rule infer_protocol:
+    input: 'bams_unique/{sample}.bam'
+    output: 'inferred_protocol/{sample}.txt'
+    shell:
+        r'''
+        riboraptor infer-protocol \
+        --bam {input} \
+        --refseq {GENE_BED} > {output}
+        '''
+
+
+rule create_hdf:
+    input: 'mapped/bams_unique/{sample}.bam'
+    output:
+        hdf = 'mapped/hdf/{sample}.hdf5',
+        tsv = 'mapped/hdf/{sample}.tsv',
+    params:
+        prefix = 'mapped/hdf/{sample}'
+    shell:
+        r'''riboraptor bam-coverage \
+        --bam {input} \
+        --genebed {GENE_BED} \
+        --outprefix {params.prefix}
+        '''
+
+
+rule hdf_to_bw:
+    input: 'mapped/hdf/{sample}.hdf5'
+    output:
+        prime5_pos = 'lengthwise_bigwigs/{sample}/{fragment_length}/5prime_pos.bw',
+        prime3_pos = 'lengthwise_bigwigs/{sample}/{fragment_length}/3prime_pos.bw',
+        prime5_neg = 'lengthwise_bigwigs/{sample}/{fragment_length}/5prime_neg.bw',
+        prime3_neg = 'lengthwise_bigwigs/{sample}/{fragment_length}/3prime_neg.bw',
+        prime5_combined = 'lengthwise_bigwigs/{sample}/{fragment_length}/5prime_combined.bw',
+        prime3_combined = 'lengthwise_bigwigs/{sample}/{fragment_length}/3prime_combined.bw',
+    params:
+        prefix = 'lengthwise_bigwigs/{sample}',
+    shell:
+        r'''riboraptor hdf-to-bw \
+        --hdf {input} \
+        --prefix {params.prefix} \
+        --readlength {wildcards.fragment_length} \
+        && touch {output}'''
+
+
+rule export_metagene_individual:
+    input: 'lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw'
+    output: 'lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
+    params:
+        orientation = '{orientation}'
+    run:
+        if os.stat(str(input)).st_size:
+            shell(r'''
+            riboraptor export-metagene-coverage \
+            --bw {input} \
+            --bed {CDS_BED} \
+            --orientation {params.orientation} \
+            --saveto {output} \
+            --offset_5p 60 \
+            --offset_3p 60
+            ''')
+        else:
+            # Just touch the file
+            shell(r'''touch {output}''')
+
+
+rule plot_metagene_individual_length:
+    input: 'lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
+    output: 'lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png'
+    wrapper:
+        'file://./metagene_wrapper.py'
+
+
+rule qc_report:
+    input:
+      metagene = 'plots/metagene/{sample}.png',
+      fragment_length = 'plots/read_length/{sample}.png',
+      prime5_pos = expand('lengthwise_metagene/{{sample}}/{fragment_length}/5prime_pos.png', fragment_length=FRAGMENT_LENGTHS),
+      prime3_pos = expand('lengthwise_metagene/{{sample}}/{fragment_length}/3prime_pos.png', fragment_length=FRAGMENT_LENGTHS),
+      prime5_neg = expand('lengthwise_metagene/{{sample}}/{fragment_length}/5prime_neg.png', fragment_length=FRAGMENT_LENGTHS),
+      prime3_neg = expand('lengthwise_metagene/{{sample}}/{fragment_length}/3prime_neg.png', fragment_length=FRAGMENT_LENGTHS),
+      prime5_combined = expand('lengthwise_metagene/{{sample}}/{fragment_length}/5prime_combined.png', fragment_length=FRAGMENT_LENGTHS),
+      prime3_combined = expand('lengthwise_metagene/{{sample}}/{fragment_length}/3prime_combined.png', fragment_length=FRAGMENT_LENGTHS),
+    output:
+        html='mapped/reports/{sample}_riboraptor_report.html'
+    wrapper:
+        'file://./qc_report_wrapper.py'
+
+
+rule featurecounts:
+    input:
+        bams = expand('bams/{sample}.bam', sample=SRX_SAMPLES),
+        hdfs = expand('hdf/{sample}.hdf5', sample=SRX_SAMPLES)
+    output: 'featureCounts/fcounts.tsv'
+    params:
+        annotation  = GTF
+    threads: 16
+    wrapper:
+        'file://./featurecounts_wrapper.py'
+
+
+rule run_multiqc:
+    input:
+        fastqc = expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
+        trimmed = expand('merged_preprocessed/{sample}_trimmed.fq.gz', sample=SRX_SAMPLES),
+        bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
+        counts = 'mapped/featureCounts/fcounts.tsv',
+    output:
+        dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
+    resources:
+        mem_mb=10000
+    shell:
+        r'''
+        multiqc qc merged_preprocessed mapped/bams mapped/featureCounts --export -f --outdir multiqc_report .
+        '''
+
+
+rule generate_multiqc_report:
+    input:
+        get_multiqc_report_input
+    output:
+        html='multiqc_report/aggregated_report.html'
+    wrapper:
+        'file://./multiqc_report_wrapper.py'
