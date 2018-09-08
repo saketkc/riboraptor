@@ -917,10 +917,10 @@ def get_bam_coverage(bam, bed, outprefix=None):
 
             pbar.update()
     if outprefix:
-        df = pd.DataFrame.from_dict(
-            {(i, j): coverage[i][j]
-             for i in coverage.keys() for j in coverage[i].keys()},
-            orient='index')
+        df = pd.DataFrame.from_dict({(i, j): coverage[i][j]
+                                     for i in coverage.keys()
+                                     for j in coverage[i].keys()},
+                                    orient='index')
         df = df.reset_index()
 
         df.columns = [
@@ -990,8 +990,8 @@ def get_bam_coverage(bam, bed, outprefix=None):
         # Check if the counts are same irrespective of orientation
         df_readlen_orient_unmelt = df_readlen_orient.pivot(
             index='read_length', columns='orientation', values='value')
-        assert (df_readlen_orient_unmelt['5prime'] == df_readlen_orient_unmelt[
-            '3prime']).all()
+        assert (df_readlen_orient_unmelt['5prime'] ==
+                df_readlen_orient_unmelt['3prime']).all()
         dt = h5py.special_dtype(vlen=str)
         read_lengths_list = df_readlen_orient_unmelt.index.tolist()
         read_lengths_counts = df_readlen_orient_unmelt.loc[read_lengths_list,

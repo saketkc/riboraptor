@@ -193,12 +193,11 @@ def plot_read_length_dist(read_lengths,
     if ascii:
         import gnuplotlib as gp
         sys.stdout.write(os.linesep)
-        gp.plot(
-            (read_lengths.index, read_lengths.values, {
-                'with': 'boxes'
-            }),
-            terminal='dumb 160, 40',
-            unset='grid')
+        gp.plot((read_lengths.index, read_lengths.values, {
+            'with': 'boxes'
+        }),
+                terminal='dumb 160, 40',
+                unset='grid')
         sys.stdout.write(os.linesep)
     return ax, fig
 

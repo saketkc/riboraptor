@@ -3,6 +3,8 @@ from textwrap import dedent
 from riboraptor.helpers import path_leaf
 import base64
 sample = snakemake.wildcards.sample
+
+
 def generate_base64_images(list_of_images):
     text = ''
     for m in list_of_images:
@@ -12,12 +14,14 @@ def generate_base64_images(list_of_images):
         fig_name = path_leaf(m).replace('.png', '')
         with open(m, 'rb') as f:
             encoded = base64.b64encode(f.read())
-        img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(str((encoded), 'utf-8'))
+        img_tag = '<img alt="" src="data:image/png;base64,{0}" height="400px">'.format(
+            str((encoded), 'utf-8'))
         text += dedent('''
         <figure>
         {img_tag}
         <figcaption> {fig_name} </figcaption>
-        </figure>''').format(img_tag=img_tag, fig_name=fig_name)
+        </figure>''').format(
+            img_tag=img_tag, fig_name=fig_name)
     return text
 
 

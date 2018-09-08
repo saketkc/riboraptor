@@ -8,4 +8,3 @@ else:
     shell(r'''
           ln -s {snakemake.input} {snakemake.output}
           ''')
-

@@ -110,26 +110,28 @@ def hdf_to_bigwig(hdf,
         read_len_group = hdf['fragments'][read_length]
         for orientation in hdf['fragments'][read_length].keys():
             orientation_group = read_len_group[orientation]
-            dest_dir = os.path.abspath(os.path.join(prefixdir, str(read_length)))
+            dest_dir = os.path.abspath(
+                os.path.join(prefixdir, str(read_length)))
             mkdir_p(dest_dir)
             bws = {}
-            bws['pos_bw'] = os.path.join(dest_dir,
-                                         '{}_{}.bw'.format(orientation, 'pos'))
-            bws['neg_bw'] = os.path.join(dest_dir,
-                                         '{}_{}.bw'.format(orientation, 'neg'))
+            bws['pos_bw'] = os.path.join(dest_dir, '{}_{}.bw'.format(
+                orientation, 'pos'))
+            bws['neg_bw'] = os.path.join(dest_dir, '{}_{}.bw'.format(
+                orientation, 'neg'))
             # This flle will store only the relevant
             # strand information
-            bws['collapsed_bw'] = os.path.join(dest_dir,
-                                               '{}_{}.bw'.format(orientation, 'collapsed'))
-            bws['combined_bw'] = os.path.join(dest_dir,
-                                              '{}_{}.bw'.format(orientation, 'combined'))
+            bws['collapsed_bw'] = os.path.join(
+                dest_dir, '{}_{}.bw'.format(orientation, 'collapsed'))
+            bws['combined_bw'] = os.path.join(
+                dest_dir, '{}_{}.bw'.format(orientation, 'combined'))
             if output_normalized:
-                bws['pos_norm_bw'] = os.path.join(dest_dir,
-                                                  '{}_{}.bw'.format(orientation, 'pos_normalized'))
-                bws['neg_norm_bw'] = os.path.join(dest_dir,
-                                                  '{}_{}.bw'.format(orientation, 'neg_normalized'))
-                bws['combined_norm_bw'] = os.path.join(dest_dir,
-                                                       '{}_{}.bw'.format(orientation, 'combined_normalized'))
+                bws['pos_norm_bw'] = os.path.join(
+                    dest_dir, '{}_{}.bw'.format(orientation, 'pos_normalized'))
+                bws['neg_norm_bw'] = os.path.join(
+                    dest_dir, '{}_{}.bw'.format(orientation, 'neg_normalized'))
+                bws['combined_norm_bw'] = os.path.join(
+                    dest_dir, '{}_{}.bw'.format(orientation,
+                                                'combined_normalized'))
 
             for key, bw in six.iteritems(bws):
                 bws[key] = pyBigWig.open(bw, 'w')
@@ -192,8 +194,9 @@ def hdf_to_bigwig(hdf,
                     for start, end, gene_strand, value in zip(
                             starts, ends, gene_strands, values):
                         if mapped_strand == gene_strand:
-                            bws['collapsed_bw'].addEntries(
-                                [chrom], [start], ends=[end], values=[value])
+                            bws['collapsed_bw'].addEntries([chrom], [start],
+                                                           ends=[end],
+                                                           values=[value])
 
                 elif protocol == 'reverse':
                     # Should keep reads mapped to + and gene_strand -
@@ -201,8 +204,9 @@ def hdf_to_bigwig(hdf,
                     for start, end, gene_strand, value in zip(
                             starts, ends, gene_strands, values):
                         if mapped_strand == complementary_strand(gene_strand):
-                            bws['collapsed_bw'].addEntries(
-                                [chrom], [start], ends=[end], values=[value])
+                            bws['collapsed_bw'].addEntries([chrom], [start],
+                                                           ends=[end],
+                                                           values=[value])
 
                 elif protocol == 'unstranded':
                     # Count everything

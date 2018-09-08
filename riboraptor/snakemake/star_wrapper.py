@@ -5,15 +5,18 @@ import tempfile
 from riboraptor.helpers import path_leaf
 from snakemake.shell import shell
 
+
 def total_genome_size(chrom_sizes_file):
     """Return sum total of chromosome sizes"""
     df = pd.read_table(chrom_sizes_file, names=['chrom', 'sizes'])
     total = df['sizes'].sum()
     return total
 
+
 def get_align_intro_params(intron_bed_file):
-    df = pd.read_table(intron_bed_file,
-                       names=['chrom', 'start', 'end', 'name', 'score', 'strand'])
+    df = pd.read_table(
+        intron_bed_file,
+        names=['chrom', 'start', 'end', 'name', 'score', 'strand'])
     lengths = df['end'] - df['start']
 
     ## Based on small genomes. See https://groups.google.com/forum/#!topic/rna-star/hQeHTBbkc0c
@@ -21,14 +24,15 @@ def get_align_intro_params(intron_bed_file):
     alignintronNmax = lengths.max()
     return alignintronNmin, alignintronNmax
 
+
 OUT_PREFIX = os.path.splitext(snakemake.output[0])[0]
 TMP_DIR_SAMPLE = path_leaf(OUT_PREFIX)
 START_LOGS_DIR = os.dirname(snakemake.output.starlogs)
 
-ALIGN_INTRON_Nmin, ALIGN_INTRON_Nmax = get_align_intro_params(snakemake.params.intron_bed)
+ALIGN_INTRON_Nmin, ALIGN_INTRON_Nmax = get_align_intro_params(
+    snakemake.params.intron_bed)
 TOTAL_GENOME_SIZE = total_genome_size(snakemake.params.chrom_sizes)
-SA_INDEX_Nbases = int(np.floor(min(14, np.log2(TOTAL_GENOME_SIZE)/2.0-1)))
-
+SA_INDEX_Nbases = int(np.floor(min(14, np.log2(TOTAL_GENOME_SIZE) / 2.0 - 1)))
 
 with tempfile.TemporaryDirectory(dir=snakemake.params.tmp_dir) as temp_dir:
     shell(r'''

@@ -16,4 +16,6 @@ elif protocol == 'unstranded':
 else:
     count_strat = ''
 bams = sorted(snakemake.input.bams)
-shell(r'''featureCounts {count_strat} -a {snakemake.params.annotation} -o {snakemake.output} -t exon -g gene_id -Q 4 -T {snakemake.threads} {bams}''')
+shell(
+    r'''featureCounts {count_strat} -a {snakemake.params.annotation} -o {snakemake.output} -t exon -g gene_id -Q 4 -T {snakemake.threads} {bams}'''
+)

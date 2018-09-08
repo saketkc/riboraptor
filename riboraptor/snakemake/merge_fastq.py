@@ -14,4 +14,3 @@ elif len(snakemake.input) == 1:
     cmd = snakemake.input[0]
     shell('''mv {cmd} {snakemake.output} \
           && mv {cmd}.bai {snakemake.output}.bai''')
-
