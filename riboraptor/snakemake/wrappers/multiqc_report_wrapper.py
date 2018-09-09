@@ -24,7 +24,6 @@ def generate_base64_images(list_of_images):
     return text
 
 
-sample = snakemake.wildcards.sample
 text = dedent('''<html>
               <center>
               <h1> QC plots </h1>

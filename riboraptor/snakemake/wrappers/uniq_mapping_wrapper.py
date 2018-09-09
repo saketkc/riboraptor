@@ -1,9 +1,11 @@
 import tempfile
 from snakemake.shell import shell
-with tempfile.TemporaryDirectory(dir=TMP_DIR_ROOT) as temp_dir:
-    shell(r'''samtools view -b -q 255 {input} -o {output}.temp \
-          && samtools sort -@ {threads} {output}.temp -o {output} \
-          -T {temp_dir}/{wildcards.sample}_sort \
-          && rm -rf {output}.temp \
-          && samtools index {output}
+with tempfile.TemporaryDirectory(dir=snakemake.params.tmp_dir) as temp_dir:
+    shell(r'''samtools view -b -q 255 \
+          {snakemake.input} -o {snakemake.output}.temp \
+          && samtools sort -@ {snakemake.threads} \
+          {snakemake.output}.temp -o {snakemake.output} \
+          -T {temp_dir}/{snakemake.wildcards.sample}_sort \
+          && rm -rf {snakemake.output}.temp \
+          && samtools index {snakemake.output}
           ''')

@@ -364,7 +364,7 @@ rule plot_metagene_individual_length:
     input: 'metagene_coverage_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
     output: 'plots/metagene_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.png'
     wrapper:
-        get_wrapper('metagene_wrapper')
+        get_wrapper('plot_metagene_wrapper')
 
 
 rule featurecounts:

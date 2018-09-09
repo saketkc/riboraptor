@@ -103,10 +103,10 @@ def hdf_to_bigwig(hdf,
         read_lengths = read_lengths_to_use
     mkdir_p(prefixdir)
     for read_length in read_lengths:
-        read_total = read_counts[int(read_length)]
         if read_length not in all_read_lengths:
             print('{} not in hdf'.format(read_length))
             continue
+        read_total = read_counts[int(read_length)]
         read_len_group = hdf['fragments'][read_length]
         for orientation in hdf['fragments'][read_length].keys():
             orientation_group = read_len_group[orientation]
