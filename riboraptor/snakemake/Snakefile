@@ -46,7 +46,8 @@ def sra_to_fastq_input(wildcards):
 
 
 def get_wrapper(wrapper_name):
-    return 'file://' + os.path.join(os.path.dirname(os.path.abspath(os.path.realpath(workflow.snakefile))),
+    path = os.path.dirname(os.path.abspath(os.path.realpath(workflow.snakefile)))
+    return 'file://' + os.path.join(path,
                                     'wrappers',
                                     wrapper_name + '.py')
 
@@ -108,7 +109,7 @@ rule perfom_trimming_merged:
         'merged_preprocessed/{sample}_trimmed.fq.gz'
     params:
         out_dir = 'merged_preprocessed',
-        phred_cutoff = 5
+        phred_cutoff = 5,
         adaptor_type = '--illumina'
     shell:
         r'''
@@ -124,12 +125,16 @@ rule perfom_trimming:
         'preprocessed/{sample}_trimmed.fq.gz'
     params:
         out_dir = 'preprocessed',
-        phred_cutoff = 5
+        phred_cutoff = 5,
+        min_length = 18, # Discard sequences shorter than this length
+        max_length = 38, # Discard sequences longer than this length
         # --max_length for SmallRNA: Should let to 37?
         # --illumina: For adapter trimming?
     shell:
         r'''
         trim_galore -o {params.out_dir} \
+        --length {params.length} \
+        --max_length {params.max_length} \
         -q {params.phred_cutoff} {input.R1}
         '''
 
@@ -139,15 +144,17 @@ rule map_star:
         R1 = 'preprocessed/{sample}_trimmed.fq.gz',
         index = STAR_INDEX
     output:
-        bami = 'bams_srr/{sample}.bam',
+        bam = 'bams_srr/{sample}.bam',
         txbam = 'bams_srr_tx/{sample}.bam',
         counts = 'STARcounts/{sample}.counts',
         starlogs = 'starlogs/{sample}Log.final.out'
     params:
+        chrom_sizes = CHROM_SIZES,
+        intron_bed = INTRON_BED,
         tmp_dir = '/tmp'
     threads: 16
     wrapper:
-        get_wrapper('start_wrapper')
+        get_wrapper('star_wrapper')
 
 
 rule merge_bams:
@@ -400,7 +407,7 @@ rule generate_multiqc_report:
     output:
         html='multiqc_report/aggregated_report.html'
     wrapper:
-        get_wrapper('multiqc_report_wrapper.py')
+        get_wrapper('multiqc_report_wrapper')
 
 
 rule qc_report:

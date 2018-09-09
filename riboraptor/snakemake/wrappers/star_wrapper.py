@@ -27,7 +27,7 @@ def get_align_intro_params(intron_bed_file):
 
 OUT_PREFIX = os.path.splitext(snakemake.output[0])[0]
 TMP_DIR_SAMPLE = path_leaf(OUT_PREFIX)
-START_LOGS_DIR = os.dirname(snakemake.output.starlogs)
+STAR_LOGS_DIR = os.path.dirname(snakemake.output.starlogs)
 
 ALIGN_INTRON_Nmin, ALIGN_INTRON_Nmax = get_align_intro_params(
     snakemake.params.intron_bed)
@@ -36,12 +36,12 @@ SA_INDEX_Nbases = int(np.floor(min(14, np.log2(TOTAL_GENOME_SIZE) / 2.0 - 1)))
 
 with tempfile.TemporaryDirectory(dir=snakemake.params.tmp_dir) as temp_dir:
     shell(r'''
-            STAR --runThreadN {snakemake.threads}'\
+            STAR --runThreadN {snakemake.threads}\
                 --genomeDir {snakemake.input.index}\
                 --outFilterMismatchNmax 2\
                 --alignIntronMin {ALIGN_INTRON_Nmin}\
                 --alignIntronMax {ALIGN_INTRON_Nmax}\
-                --outFileNamePrefix {out_prefix}\
+                --outFileNamePrefix {OUT_PREFIX}\
                 --readFilesIn {snakemake.input.R1}\
                 --readFilesCommand zcat\
                 --quantMode TranscriptomeSAM GeneCounts\
@@ -51,10 +51,10 @@ with tempfile.TemporaryDirectory(dir=snakemake.params.tmp_dir) as temp_dir:
                 --outFilterMatchNmin 16\
                 --seedSearchStartLmax 15\
                 --winAnchorMultimapNmax 200\
-                && samtools sort -@ {snakemake.threads} {snakemake.params.prefix}Aligned.out.bam -o {snakemake.output.bam} -T {temp_dir}/{TMP_DIR_SAMPLE}_sort\
-                && mv {snakemake.params.prefix}Aligned.toTranscriptome.out.bam {snakemake.output.txbam}\
+                && samtools sort -@ {snakemake.threads} {OUT_PREFIX}Aligned.out.bam -o {snakemake.output.bam} -T {temp_dir}/{TMP_DIR_SAMPLE}_sort\
+                && mv {OUT_PREFIX}Aligned.toTranscriptome.out.bam {snakemake.output.txbam}\
                 && samtools index {snakemake.output.bam}\
-                && mv {snakemake.params.prefix}ReadsPerGene.out.tab {snakemake.output.counts}\
-                && mv {params.prefix}Log.final.out {params.prefix}Log.out {params.prefix}SJ.out.tab\
-                {params.prefix}Log.progress.out {STAR_LOGS_DIR}
+                && mv {OUT_PREFIX}ReadsPerGene.out.tab {snakemake.output.counts}\
+                && mv {OUT_PREFIX}Log.final.out {OUT_PREFIX}Log.out {OUT_PREFIX}SJ.out.tab\
+                {OUT_PREFIX}Log.progress.out {STAR_LOGS_DIR}
             ''')
