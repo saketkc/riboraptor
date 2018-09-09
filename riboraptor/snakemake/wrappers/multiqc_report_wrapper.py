@@ -29,7 +29,7 @@ text = dedent('''<html>
               <center>
               <h1> QC plots </h1>
               ''')
-text = generate_base64_images(input)
+text = generate_base64_images(snakemake.input.dynamic_input)
 text += dedent('''
                </center>
                </html>

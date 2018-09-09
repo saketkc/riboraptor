@@ -7,44 +7,49 @@ from os.path import join
 import glob
 from riboraptor.helpers import mkdir_p
 
-ORIENTATIONS =['5prime', '3prime']
-STRANDS = ['pos', 'neg', 'combined']# 'collapsed']
-# collapsed strand = When we consider reads
-# mapping only to strand where the gene is defined
-FRAGMENT_LENGTHS = range(20, 39)
 
 include:
     config['config_path']
 
 workdir: OUT_DIR
 
+
 mkdir_p(join(OUT_DIR, 'slurm-logs'))
 ALL_SRA_FILES = glob.glob('{}/**/*.sra'.format(RAWDATA_DIR), recursive=True)
-SRX_ID_DICT = defaultdict(list)
+SRX_ID = defaultdict(list)
+
 for sample in ALL_SRA_FILES:
     srx, srr = sample.replace('{}'.format(RAWDATA_DIR),'').lstrip('/').rstrip('/').split('/')
-    SRX_ID_DICT[srx].append(srr.replace('.sra', ''))
-SRX_ID_DICT_VALUES = list(SRX_ID_DICT.values())
-SRX_SAMPLES = list(SRX_ID_DICT.keys())
-ALL_SRR = [item for sublist in SRX_ID_DICT_VALUES for item in sublist]
+    SRX_ID[srx].append(srr.replace('.sra', ''))
+
+SRR_ID = list(SRX_ID.values())
+SRX_SAMPLES = list(SRX_ID.keys())
+
+ALL_SRR = [item for sublist in SRR_ID for item in sublist]
 
 
 def merge_bams_input(wildcards):
-    return ['srr_bams/{}.bam'.format(srr) for srr in SRX_ID_DICT[wildcards.sample]]
+    return ['bams_srr/{}.bam'.format(srr) for srr in SRX_ID[wildcards.sample]]
 
 
 def merge_fastq_input(wildcards):
-    return ['sratofastq/{}.fastq.gz'.format(srr) for srr in SRX_ID_DICT[wildcards.sample]]
+    return ['sratofastq/{}.fastq.gz'.format(srr) for srr in SRX_ID[wildcards.sample]]
 
 
 def sra_to_fastq_input(wildcards):
     srr_id = wildcards.sample
-    for key in list(SRX_ID_DICT.keys()):
-        value = SRX_ID_DICT[key]
+    for srx_id in list(SRX_ID.keys()):
+        value = SRX_ID[srx_id]
         if srr_id in list(value):
-            srx_id = key
             return str(join(RAWDATA_DIR, srx_id, srr_id+'.sra'))
     print("WRONG encodeterend: {}".format(srr_id))
+
+
+def get_wrapper(wrapper_name):
+    return 'file://' + os.path.join(os.path.dirname(os.path.abspath(os.path.realpath(workflow.snakefile))),
+                                    'wrappers',
+                                    wrapper_name + '.py')
+
 
 def get_multiqc_report_input(wildcards):
     return glob.glob('multiqc_report/multiqc_plots/png/*.png')
@@ -52,19 +57,9 @@ def get_multiqc_report_input(wildcards):
 
 rule all:
     input:
-        expand('mapped/plots/metagene/{sample}.png', sample=SRX_SAMPLES),
-        expand('mapped/plots/read_length/{sample}.png', sample=SRX_SAMPLES),
-        expand('mapped/plots/fragment_lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png',
-                sample=SRX_SAMPLES,
-                fragment_length=FRAGMENT_LENGTHS,
-                orientation=ORIENTATIONS,
-                strand=STRANDS),
-        expand('merged_fastq/{sample}.fastq.gz', sample=SRX_SAMPLES),
-        expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
-        'mapped/featureCounts/fcounts.tsv',
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
         'multiqc_report/aggregated_report.html',
-        expand('mapped/reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
+        expand('reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
 
 
 rule sra_to_fastq:
@@ -74,20 +69,24 @@ rule sra_to_fastq:
         prefix='sratofastq/{sample}.fastq'
     shell:
         r'''
-        fastq-dump --split-3 -O sratofastq {input}\
+        fastq-dump --split-3 \
+        -O sratofastq {input} \
         && gzip {params.prefix}
         '''
 
+
 rule merge_fastq:
-    input: merge_fastq_input
-    output: 'merged_fastq/{sample}.fastq.gz'
+    input:
+        all_fastq = expand('sratofastq/{srr}.fastq.gz', srr=ALL_SRR),
+        dynamic_input = merge_fastq_input
+    output: 'fastq_merged/{sample}.fastq.gz'
     wrapper:
-        'file://./merge_fastq_wrapper.py'
+        get_wrapper('merge_fastq_wrapper')
 
 
 rule perform_qc:
     input:
-        'merged_fastq/{sample}.fastq.gz'
+        'fastq_merged/{sample}.fastq.gz'
     output:
        'qc/{sample}_fastqc.html',
        'qc/{sample}_fastqc.zip',
@@ -101,19 +100,22 @@ rule perform_qc:
         -f fastq {input}
         '''
 
+
 rule perfom_trimming_merged:
     input:
         R1 = 'fastq_merged/{sample}.fastq.gz',
     output:
         'merged_preprocessed/{sample}_trimmed.fq.gz'
     params:
-        out_dir = 'preprocessed_merged',
+        out_dir = 'merged_preprocessed',
         phred_cutoff = 5
+        adaptor_type = '--illumina'
     shell:
         r'''
-        trim_galore -o {params.out_dir} \
+        trim_galore {params.adaptor_type} -o {params.out_dir} \
         -q {params.phred_cutoff} {input.R1}
         '''
+
 
 rule perfom_trimming:
     input:
@@ -121,8 +123,10 @@ rule perfom_trimming:
     output:
         'preprocessed/{sample}_trimmed.fq.gz'
     params:
-        out_dir = 'preprocessed/',
+        out_dir = 'preprocessed',
         phred_cutoff = 5
+        # --max_length for SmallRNA: Should let to 37?
+        # --illumina: For adapter trimming?
     shell:
         r'''
         trim_galore -o {params.out_dir} \
@@ -143,7 +147,7 @@ rule map_star:
         tmp_dir = '/tmp'
     threads: 16
     wrapper:
-        'file://./star_wrapper.py'
+        get_wrapper('start_wrapper')
 
 
 rule merge_bams:
@@ -153,7 +157,7 @@ rule merge_bams:
         tmp_dir = '/tmp'
     threads: 16
     wrapper:
-        'file://./merge_bams.py'
+        get_wrapper('merge_bams_wrapper')
 
 
 rule extract_uniq_mapping:
@@ -163,7 +167,7 @@ rule extract_uniq_mapping:
         tmp_dir = '/tmp'
     threads: 16
     wrapper:
-        'file://./uniq_mapping_wrapper.py'
+        get_wrapper('uniq_mapping_wrapper')
 
 
 rule create_uniq_bedgraph_from_bam:
@@ -171,7 +175,8 @@ rule create_uniq_bedgraph_from_bam:
     output: 'bedGraphs/{sample}.bg'
     shell:
         r'''
-        riboraptor bam-to-bedgraph --bam {input} \
+        riboraptor bam-to-bedgraph \
+        --bam {input} \
         --end_type 5prime \
         --strand + \
         --saveto {output} \
@@ -294,12 +299,12 @@ rule infer_protocol:
 
 
 rule create_hdf:
-    input: 'mapped/bams_unique/{sample}.bam'
+    input: 'bams_unique/{sample}.bam'
     output:
-        hdf = 'mapped/hdf/{sample}.hdf5',
-        tsv = 'mapped/hdf/{sample}.tsv',
+        hdf = 'hdf/{sample}.hdf5',
+        tsv = 'hdf/{sample}.tsv',
     params:
-        prefix = 'mapped/hdf/{sample}'
+        prefix = 'hdf/{sample}'
     shell:
         r'''riboraptor bam-coverage \
         --bam {input} \
@@ -309,16 +314,16 @@ rule create_hdf:
 
 
 rule hdf_to_bw:
-    input: 'mapped/hdf/{sample}.hdf5'
+    input: 'hdf/{sample}.hdf5'
     output:
-        prime5_pos = 'lengthwise_bigwigs/{sample}/{fragment_length}/5prime_pos.bw',
-        prime3_pos = 'lengthwise_bigwigs/{sample}/{fragment_length}/3prime_pos.bw',
-        prime5_neg = 'lengthwise_bigwigs/{sample}/{fragment_length}/5prime_neg.bw',
-        prime3_neg = 'lengthwise_bigwigs/{sample}/{fragment_length}/3prime_neg.bw',
-        prime5_combined = 'lengthwise_bigwigs/{sample}/{fragment_length}/5prime_combined.bw',
-        prime3_combined = 'lengthwise_bigwigs/{sample}/{fragment_length}/3prime_combined.bw',
+        prime5_pos = 'bigWig_lengthwise/{sample}/{fragment_length}/5prime_pos.bw',
+        prime3_pos = 'bigWig_lengthwise/{sample}/{fragment_length}/3prime_pos.bw',
+        prime5_neg = 'bigWig_lengthwise/{sample}/{fragment_length}/5prime_neg.bw',
+        prime3_neg = 'bigWig_lengthwise/{sample}/{fragment_length}/3prime_neg.bw',
+        prime5_combined = 'bigWig_lengthwise/{sample}/{fragment_length}/5prime_combined.bw',
+        prime3_combined = 'bigWig_lengthwise/{sample}/{fragment_length}/3prime_combined.bw',
     params:
-        prefix = 'lengthwise_bigwigs/{sample}',
+        prefix = 'bigWig_lengthwise/{sample}',
     shell:
         r'''riboraptor hdf-to-bw \
         --hdf {input} \
@@ -328,8 +333,8 @@ rule hdf_to_bw:
 
 
 rule export_metagene_individual:
-    input: 'lengthwise_bigwigs/{sample}/{fragment_length}/{orientation}_{strand}.bw'
-    output: 'lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
+    input: 'bigWig_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.bw'
+    output: 'metagene_coverage_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
     params:
         orientation = '{orientation}'
     run:
@@ -349,60 +354,72 @@ rule export_metagene_individual:
 
 
 rule plot_metagene_individual_length:
-    input: 'lengthwise_metagene_coverages/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
-    output: 'lengthwise_metagene/{sample}/{fragment_length}/{orientation}_{strand}.png'
+    input: 'metagene_coverage_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
+    output: 'plots/metagene_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.png'
     wrapper:
-        'file://./metagene_wrapper.py'
-
-
-rule qc_report:
-    input:
-      metagene = 'plots/metagene/{sample}.png',
-      fragment_length = 'plots/read_length/{sample}.png',
-      prime5_pos = expand('lengthwise_metagene/{{sample}}/{fragment_length}/5prime_pos.png', fragment_length=FRAGMENT_LENGTHS),
-      prime3_pos = expand('lengthwise_metagene/{{sample}}/{fragment_length}/3prime_pos.png', fragment_length=FRAGMENT_LENGTHS),
-      prime5_neg = expand('lengthwise_metagene/{{sample}}/{fragment_length}/5prime_neg.png', fragment_length=FRAGMENT_LENGTHS),
-      prime3_neg = expand('lengthwise_metagene/{{sample}}/{fragment_length}/3prime_neg.png', fragment_length=FRAGMENT_LENGTHS),
-      prime5_combined = expand('lengthwise_metagene/{{sample}}/{fragment_length}/5prime_combined.png', fragment_length=FRAGMENT_LENGTHS),
-      prime3_combined = expand('lengthwise_metagene/{{sample}}/{fragment_length}/3prime_combined.png', fragment_length=FRAGMENT_LENGTHS),
-    output:
-        html='mapped/reports/{sample}_riboraptor_report.html'
-    wrapper:
-        'file://./qc_report_wrapper.py'
+        get_wrapper('metagene_wrapper')
 
 
 rule featurecounts:
     input:
-        bams = expand('bams/{sample}.bam', sample=SRX_SAMPLES),
-        hdfs = expand('hdf/{sample}.hdf5', sample=SRX_SAMPLES)
+        bams = expand('bams/{sample}.bam',
+                      sample=SRX_SAMPLES),
+        hdfs = expand('hdf/{sample}.hdf5',
+                      sample=SRX_SAMPLES)
     output: 'featureCounts/fcounts.tsv'
     params:
         annotation  = GTF
     threads: 16
     wrapper:
-        'file://./featurecounts_wrapper.py'
+        get_wrapper('featurecounts_wrapper')
 
 
 rule run_multiqc:
     input:
-        fastqc = expand('qc/{sample}_fastqc.html', sample=SRX_SAMPLES),
-        trimmed = expand('merged_preprocessed/{sample}_trimmed.fq.gz', sample=SRX_SAMPLES),
-        bams = expand('mapped/bams/{sample}.bam', sample=SRX_SAMPLES),
-        counts = 'mapped/featureCounts/fcounts.tsv',
+        fastqc = expand('qc/{sample}_fastqc.html',
+                        sample=SRX_SAMPLES),
+        trimmed = expand('merged_preprocessed/{sample}_trimmed.fq.gz',
+                         sample=SRX_SAMPLES),
+        bams = expand('bams/{sample}.bam',
+                      sample=SRX_SAMPLES),
+        counts = 'featureCounts/fcounts.tsv',
     output:
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
     resources:
         mem_mb=10000
     shell:
         r'''
-        multiqc qc merged_preprocessed mapped/bams mapped/featureCounts --export -f --outdir multiqc_report .
+        multiqc --export -f --outdir multiqc_report .
         '''
 
 
 rule generate_multiqc_report:
     input:
-        get_multiqc_report_input
+        dynamic_input = get_multiqc_report_input,
+        counts = 'featureCounts/fcounts.tsv',
     output:
         html='multiqc_report/aggregated_report.html'
     wrapper:
-        'file://./multiqc_report_wrapper.py'
+        get_wrapper('multiqc_report_wrapper.py')
+
+
+rule qc_report:
+    input:
+      metagene = 'plots/metagene/{sample}.png',
+      fragment_length = 'plots/read_length/{sample}.png',
+      prime5_pos = expand('plots/metagene_lengthwise/{{sample}}/{fragment_length}/5prime_pos.png',
+                          fragment_length=FRAGMENT_LENGTHS),
+      prime3_pos = expand('plots/metagene_lengthwise/{{sample}}/{fragment_length}/3prime_pos.png',
+                          fragment_length=FRAGMENT_LENGTHS),
+      prime5_neg = expand('plots/metagene_lengthwise/{{sample}}/{fragment_length}/5prime_neg.png',
+                          fragment_length=FRAGMENT_LENGTHS),
+      prime3_neg = expand('plots/metagene_lengthwise/{{sample}}/{fragment_length}/3prime_neg.png',
+                          fragment_length=FRAGMENT_LENGTHS),
+      prime5_combined = expand('plots/metagene_lengthwise/{{sample}}/{fragment_length}/5prime_combined.png',
+                               fragment_length=FRAGMENT_LENGTHS),
+      prime3_combined = expand('plots/metagene_lengthwise/{{sample}}/{fragment_length}/3prime_combined.png',
+                               fragment_length=FRAGMENT_LENGTHS),
+    output:
+        html='reports/{sample}_riboraptor_report.html'
+    wrapper:
+        get_wrapper('qc_report_wrapper')
