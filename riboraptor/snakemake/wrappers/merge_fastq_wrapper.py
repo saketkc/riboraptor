@@ -6,8 +6,6 @@ if len(snakemake.input.dynamic_input) > 1:
           cat {snakemake.input.dynamic_input} > {snakemake.output}
           ''')
 else:
-    source = os.path.abspath(snakemake.input.dynamic_input)
-    destination = os.path.dirname(os.path.abspath(snakemake.output))
-    shell(r'''
-          ln -s {source} {destination}
-          ''')
+    source = os.path.abspath(str(snakemake.input.dynamic_input[0]))
+    destination = os.path.abspath(str(snakemake.output))
+    shell(r'''ln -s {source} {destination}''')

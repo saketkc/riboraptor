@@ -1,3 +1,4 @@
+import os
 import tempfile
 from snakemake.shell import shell
 
@@ -11,6 +12,7 @@ if len(snakemake.input) > 1:
               && samtools index {snakemake.output} \
               && yes | rm -rf {snakemake.output}.unsorted''')
 elif len(snakemake.input) == 1:
-    cmd = snakemake.input[0]
-    shell('''mv {cmd} {snakemake.output} \
-          && mv {cmd}.bai {snakemake.output}.bai''')
+    source = os.path.abspath(str(snakemake.input[0]))
+    destination = os.path.abspath(str(snakemake.output))
+    shell('''ln -s {source} {destination} \
+          && ln -s {source}.bai {destination}.bai''')

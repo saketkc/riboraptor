@@ -68,9 +68,9 @@ rule all:
                strand=STRANDS)
 
 
-
 rule sra_to_fastq:
     input: sra_to_fastq_input
+    benchmark: 'benchmarks/sra_to_fastq/{sample}.txt'
     output: 'sratofastq/{sample}.fastq.gz'
     params:
         prefix='sratofastq/{sample}.fastq'
@@ -86,6 +86,7 @@ rule merge_fastq:
     input:
         all_fastq = expand('sratofastq/{srr}.fastq.gz', srr=ALL_SRR),
         dynamic_input = merge_fastq_input
+    benchmark: 'benchmarks/merge_fastq/{sample}.txt'
     output: 'fastq_merged/{sample}.fastq.gz'
     wrapper:
         get_wrapper('merge_fastq_wrapper')
@@ -94,6 +95,7 @@ rule merge_fastq:
 rule perform_qc:
     input:
         'fastq_merged/{sample}.fastq.gz'
+    benchmark: 'benchmarks/perform_qc/{sample}.txt'
     output:
        'qc/{sample}_fastqc.html',
        'qc/{sample}_fastqc.zip',
@@ -111,6 +113,7 @@ rule perform_qc:
 rule perfom_trimming_merged:
     input:
         R1 = 'fastq_merged/{sample}.fastq.gz',
+    benchmark: 'benchmarks/perform_trimming_merged/{sample}.txt'
     output:
         'merged_preprocessed/{sample}_trimmed.fq.gz'
     params:
@@ -126,7 +129,8 @@ rule perfom_trimming_merged:
 
 rule perform_trimming:
     input:
-        R1 = 'sratofastq/{sample}.fastq.gz',
+        R1 = 'sratofastq/{sample}.fastq.gz'
+    benchmark: 'benchmarks/perform_trimming/{sample}.txt'
     output:
         'preprocessed/{sample}_trimmed.fq.gz'
     params:
@@ -150,6 +154,7 @@ rule map_star:
     input:
         R1 = 'preprocessed/{sample}_trimmed.fq.gz',
         index = STAR_INDEX
+    benchmark: 'benchmarks/map_star/{sample}.txt'
     output:
         bam = 'bams_srr/{sample}.bam',
         txbam = 'bams_srr_tx/{sample}.bam',
@@ -166,6 +171,7 @@ rule map_star:
 
 rule merge_bams:
     input: merge_bams_input
+    benchmark: 'benchmarks/merge_bams/{sample}.txt'
     output: 'bams/{sample}.bam'
     params:
         tmp_dir = '/tmp'
@@ -176,6 +182,7 @@ rule merge_bams:
 
 rule extract_uniq_mapping:
     input: 'bams/{sample}.bam'
+    benchmark: 'benchmarks/extract_uniq_mapping/{sample}.txt'
     output: 'bams_unique/{sample}.bam'
     params:
         tmp_dir = '/tmp'
@@ -184,8 +191,9 @@ rule extract_uniq_mapping:
         get_wrapper('uniq_mapping_wrapper')
 
 
-rule create_uniq_bedgraph_from_bam:
+rule bam_to_bedgraph:
     input: 'bams_unique/{sample}.bam'
+    benchmark: 'benchmarks/bam_to_bedgraph/{sample}.txt'
     output: 'bedGraphs/{sample}.bg'
     shell:
         r'''
@@ -198,8 +206,9 @@ rule create_uniq_bedgraph_from_bam:
         '''
 
 
-rule create_uniq_bigwig_from_uniq_bedgraph_raw:
-    input: 'bedGraphs/{sample}.bg',
+rule bigwig_from_uniq_bedgraph_raw:
+    input: 'bedGraphs/{sample}.bg'
+    benchmark: 'benchmarks/bigwig_from_uniq_bedgraph_raw/{sample}.txt'
     output: 'bigWigs/{sample}.bw',
     shell:
         r'''bedGraphToBigWig {input} {CHROM_SIZES} {output}'''
@@ -207,9 +216,10 @@ rule create_uniq_bigwig_from_uniq_bedgraph_raw:
 
 rule export_utr5_coverage:
     input: 'bigWigs/{sample}.bw'
+    benchmark: 'benchmarks/export_utr5_coverage/{sample}.txt'
+    output: 'gene_coverages/UTR5/{sample}_gene_coverages.tsv'
     params:
         offset_5p = 10
-    output: 'gene_coverages/UTR5/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bw {input} \
            --bed {UTR5_BED} \
@@ -219,9 +229,10 @@ rule export_utr5_coverage:
 
 rule export_cds_coverage:
     input: 'bigWigs/{sample}.bw'
+    benchmark: 'benchmarks/export_cds_coverage/{sample}.txt'
+    output: 'gene_coverages/CDS/{sample}_gene_coverages.tsv'
     params:
         offset_5p = 10
-    output: 'gene_coverages/CDS/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bw {input} \
            --bed {CDS_BED} \
@@ -231,9 +242,10 @@ rule export_cds_coverage:
 
 rule export_utr3_coverage:
     input: 'bigWigs/{sample}.bw'
+    benchmark: 'benchmarks/export_utr3_coverage/{sample}.txt'
+    output: 'gene_coverages/UTR3/{sample}_gene_coverages.tsv'
     params:
         offset_5p = 10
-    output: 'gene_coverages/UTR3/{sample}_gene_coverages.tsv'
     shell: r'''riboraptor export-gene-coverages \
            --bw {input} \
            --bed {UTR3_BED} \
@@ -243,6 +255,7 @@ rule export_utr3_coverage:
 
 rule export_read_length:
     input: 'bams_unique/{sample}.bam'
+    benchmark: 'benchmarks/export_read_length/{sample}.txt'
     output: 'read_lengths/{sample}.tsv'
     shell:
         r'''
@@ -254,6 +267,7 @@ rule export_read_length:
 
 rule plot_read_length:
     input: 'read_lengths/{sample}.tsv'
+    benchmark: 'benchmarks/plot_read_length/{sample}.txt'
     output: 'plots/read_length/{sample}.png'
     shell:
         r'''
@@ -265,6 +279,7 @@ rule plot_read_length:
 
 rule export_metagene:
     input: 'bigWigs/{sample}.bw'
+    benchmark: 'benchmarks/export_metagene/{sample}.txt'
     output: 'metagene_coverages/{sample}.tsv'
     params:
         orientation = '5prime'
@@ -279,6 +294,7 @@ rule export_metagene:
 
 rule plot_metagene:
     input: 'metagene_coverages/{sample}.tsv'
+    benchmark: 'benchmarks/plot_metagene/{sample}.txt'
     output: 'plots/metagene/{sample}.png'
     shell:
         r'''
@@ -289,8 +305,9 @@ rule plot_metagene:
         '''
 
 
-rule metagene_coverage_cds2:
+rule metagene_coverage_cds:
     input: 'bams_unique/{sample}.bam'
+    benchmark: 'benchmarks/metagene_coverage_cds/{sample}.txt'
     output: 'genewise_counts_CDS/{sample}.tsv'
     shell:
         r'''
@@ -303,6 +320,7 @@ rule metagene_coverage_cds2:
 
 rule infer_protocol:
     input: 'bams_unique/{sample}.bam'
+    benchmark: 'benchmarks/infer_protocol/{sample}.txt'
     output: 'inferred_protocol/{sample}.txt'
     shell:
         r'''
@@ -314,6 +332,7 @@ rule infer_protocol:
 
 rule create_hdf:
     input: 'bams_unique/{sample}.bam'
+    benchmark: 'benchmarks/create_hdf/{sample}.txt'
     output:
         hdf = 'hdf/{sample}.hdf5',
         tsv = 'hdf/{sample}.tsv',
@@ -329,6 +348,7 @@ rule create_hdf:
 
 rule hdf_to_bw:
     input: 'hdf/{sample}.hdf5'
+    benchmark: 'benchmarks/hdf_to_bw/{sample}.txt'
     output:
         prime5_pos = 'bigWig_lengthwise/{sample}/{fragment_length}/5prime_pos.bw',
         prime3_pos = 'bigWig_lengthwise/{sample}/{fragment_length}/3prime_pos.bw',
@@ -348,6 +368,7 @@ rule hdf_to_bw:
 
 rule export_metagene_individual:
     input: 'bigWig_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.bw'
+    benchmark: 'benchmarks/hdf_to_bw/{sample}_{fragment_length}_{orientation}_{strand}.txt'
     output: 'metagene_coverage_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
     params:
         orientation = '{orientation}'
@@ -370,6 +391,7 @@ rule normalize_bigwig:
     input:
         bw = 'bigWig_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.bw',
         hdf = 'hdf/{sample}.hdf5'
+    benchmark: 'benchmarks/normalize_bigwig/{sample}_{fragment_length}_{orientation}_{strand}.txt'
     output: 'bigWig_lengthwise_normalized/{sample}/{fragment_length}/{orientation}_{strand}.bw'
     wrapper:
         get_wrapper('normalize_bigwig_wrapper')
@@ -377,6 +399,7 @@ rule normalize_bigwig:
 
 rule plot_metagene_individual_length:
     input: 'metagene_coverage_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.tsv'
+    benchmark: 'benchmarks/plot_metagene_individual_length/{sample}_{fragment_length}_{orientation}_{strand}.txt'
     output: 'plots/metagene_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.png'
     wrapper:
         get_wrapper('plot_metagene_wrapper')
@@ -388,6 +411,7 @@ rule featurecounts:
                       sample=SRX_SAMPLES),
         hdfs = expand('hdf/{sample}.hdf5',
                       sample=SRX_SAMPLES)
+    benchmark: 'benchmarks/featurecounts/featurecounts.txt'
     output: 'featureCounts/fcounts.tsv'
     params:
         annotation  = GTF
@@ -396,7 +420,7 @@ rule featurecounts:
         get_wrapper('featurecounts_wrapper')
 
 
-rule run_multiqc:
+rule multiqc:
     input:
         fastqc = expand('qc/{sample}_fastqc.html',
                         sample=SRX_SAMPLES),
@@ -405,6 +429,7 @@ rule run_multiqc:
         bams = expand('bams/{sample}.bam',
                       sample=SRX_SAMPLES),
         counts = 'featureCounts/fcounts.tsv',
+    benchmark: 'benchmarks/multiqc/multiqc.txt'
     output:
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
     resources:
@@ -415,10 +440,11 @@ rule run_multiqc:
         '''
 
 
-rule generate_multiqc_report:
+rule aggregate_multiqc_plots:
     input:
         dynamic_input = get_multiqc_report_input,
         counts = 'featureCounts/fcounts.tsv',
+    benchmark: 'benchmarks/aggregate_multiqc_plots/multiqc.txt'
     output:
         html='multiqc_report/aggregated_report.html'
     wrapper:
@@ -441,6 +467,7 @@ rule qc_report:
                                fragment_length=FRAGMENT_LENGTHS),
       prime3_combined = expand('plots/metagene_lengthwise/{{sample}}/{fragment_length}/3prime_combined.png',
                                fragment_length=FRAGMENT_LENGTHS),
+    benchmark: 'benchmarks/qc_report/{sample}.txt'
     output:
         html='reports/{sample}_riboraptor_report.html'
     wrapper:

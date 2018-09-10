@@ -46,7 +46,6 @@ from .hdf_parser import tsv_to_bigwig
 from .hdf_parser import merge_bigwigs
 from .hdf_parser import HDFParser
 from .hdf_parser import normalize_bw_hdf
-from .tracks import create_track
 from .helpers import bwsum
 
 click.disable_unicode_literals_warning = True
@@ -683,16 +682,3 @@ def scale_bigwig_cmd(inbw, chromsizes, scalefactor, outbw):
 @click.option('--outbw', type=str, help='Path to output bigwig', required=True)
 def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
     normalize_bw_hdf(inbw, hdf, readlength, outbw)
-
-
-####################### Create tracks  ##########################################
-@cli.command(
-    'create-tracks', context_settings=CONTEXT_SETTINGS, help='Create tracks')
-@click.option('--hubname', type=str, help='hub name', required=True)
-@click.option('--shortlabel', type=str, help='hub name', required=True)
-@click.option('--longlabel', type=str, help='hub name', required=True)
-@click.option('--genome', type=str, help='hub name', required=True)
-@click.option(
-    '--pattern', type=str, help='Pattern to search for', required=True)
-def create_track_cmd(hubname, shortlabel, longlabel, genome, pattern):
-    create_track(hubname, shortlabel, longlabel, genome, pattern)
