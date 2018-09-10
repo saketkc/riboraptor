@@ -25,7 +25,7 @@ install:
 - source activate test-environment
 - conda install numpy scipy matplotlib pandas seaborn statsmodels pyfaidx pysam
     six pytest click click-help-colors pybigwig biopython htseq ucsc-bedgraphtobigwig
-    ucsc-bedsort pybedtools bx-python tqdm h5py joblib ucsc-bigwigmerge wiggletools
+    ucsc-bedsort pybedtools bx-python tqdm h5py joblib ucsc-bigwigmerge wiggletools ucsc-wigtobigwig
 - pip install -U sphinx mock pytest-cov codecov
 - pip install -U numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
 - pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip

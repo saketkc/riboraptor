@@ -11,4 +11,3 @@ if os.stat(str(snakemake.input.bw)).st_size:
 else:
     # Just touch the file
     shell(r'''touch {snakemake.output}''')
-

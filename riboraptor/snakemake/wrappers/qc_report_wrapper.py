@@ -22,7 +22,8 @@ def generate_base64_images(list_of_images):
         {img_tag}
         <figcaption> {fig_name} </figcaption>
         </figure>''').format(
-            img_tag=img_tag, fig_name=fig_name + ' | Read Length: {}'.format(fragment_length))
+            img_tag=img_tag,
+            fig_name=fig_name + ' | Read Length: {}'.format(fragment_length))
     return text
 
 

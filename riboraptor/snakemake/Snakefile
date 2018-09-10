@@ -124,7 +124,7 @@ rule perfom_trimming_merged:
         '''
 
 
-rule perfom_trimming:
+rule perform_trimming:
     input:
         R1 = 'sratofastq/{sample}.fastq.gz',
     output:
@@ -139,8 +139,9 @@ rule perfom_trimming:
     shell:
         r'''
         trim_galore -o {params.out_dir} \
-        --length {params.length} \
+        --length {params.min_length} \
         --max_length {params.max_length} \
+        --illumina \
         -q {params.phred_cutoff} {input.R1}
         '''
 

@@ -1,45 +1,8 @@
-import glob
 import os
 from textwrap import indent, dedent
 import sys
-import trackhub
 
 INDENT_SPACES = '\t'
-
-
-def create_track(hub_name,
-                 short_label,
-                 long_label,
-                 genome,
-                 glob_pattern,
-                 email='skchoudh@usc.edu',
-                 host='localhost',
-                 remote_dir='/staging/as/skchoudh/riboraptor_trackhub'):
-    hub, genomes_file, genome, trackdb = trackhub.default_hub(
-        hub_name=hub_name,
-        short_label=short_label,
-        long_label=long_label,
-        genome=genome,
-        email=email)
-    for bigwig in glob.glob(glob_pattern):
-        sample_name = os.path.dirname(bigwig).split(os.path.sep)[-2]
-        fragment_length = os.path.dirname(bigwig).split(os.path.sep)[-1]
-        name = '{}_{}_{}'.format(
-            sample_name, fragment_length,
-            trackhub.helpers.sanitize(os.path.basename(bigwig)))
-        negate_values = 'off'
-        if 'neg' in name:
-            negate_values = 'on'
-        track = trackhub.Track(
-            name=name,  # track names can't have any spaces or special chars.
-            source=bigwig,  # filename to build this track from
-            visibility='full',  # shows the full signal
-            color='128,0,5',  # brick red
-            autoScale='on',  # allow the track to autoscale
-            tracktype='bigWig',  # required when making a track
-            negateValues=negate_values)
-        trackdb.add_tracks(track)
-    trackhub.upload.upload_hub(hub=hub, host=host, remote_dir=remote_dir)
 
 
 def get_compositetrack_text(track_name, parent):
@@ -143,11 +106,7 @@ def create_trackdb(bwdir, srp, orientation='5prime'):
 
     """
 
-    orientation_types = ['5prime', '3prime']
-    strand_types = ['pos', 'neg']
-
     # Step 0. Create super track
-
     srp_header = get_supertrack_text(srp)
     master_text = '###########################################\n' + srp_header
     # Step 1. Create composite track for SRX
@@ -176,10 +135,6 @@ def create_trackdb(bwdir, srp, orientation='5prime'):
                 else:
                     negate_values = 'off'
                 if os.path.isfile(bwpath) and os.stat(bwpath).st_size:
-                    bwpath = bwpath.replace(
-                        '/staging/as/skchoudh/re-ribo-analysis/',
-                        'http://smithlab.usc.edu/lab/public/skchoudh/riboraptor_trackhub/hg38/'
-                    ).replace('mapped/', '')
                     bigwig_text += indent(
                         get_bigwigtrack_text(track_name, srx_orientation_key,
                                              bwpath, negate_values),
