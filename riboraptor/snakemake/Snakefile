@@ -61,6 +61,12 @@ rule all:
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
         'multiqc_report/aggregated_report.html',
         expand('reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
+        expand('bigWig_lengthwise_normalized/{sample}/{fragment_length}/{orientation}_{strand}.bw',
+               sample=SRX_SAMPLES,
+               fragment_length=FRAGMENT_LENGTHS,
+               orientation=ORIENTATIONS,
+               strand=STRANDS)
+
 
 
 rule sra_to_fastq:
@@ -358,6 +364,14 @@ rule export_metagene_individual:
         else:
             # Just touch the file
             shell(r'''touch {output}''')
+
+rule normalize_bigwig:
+    input:
+        bw = 'bigWig_lengthwise/{sample}/{fragment_length}/{orientation}_{strand}.bw',
+        hdf = 'hdf/{sample}.hdf5'
+    output: 'bigWig_lengthwise_normalized/{sample}/{fragment_length}/{orientation}_{strand}.bw'
+    wrapper:
+        get_wrapper('normalize_bigwig_wrapper')
 
 
 rule plot_metagene_individual_length:
