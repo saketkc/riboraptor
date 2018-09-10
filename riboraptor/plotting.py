@@ -137,6 +137,8 @@ def plot_read_length_dist(read_lengths,
         if '.pickle' in str(read_lengths):
             # Try opening as a pickle first
             read_lengths = load_pickle(read_lengths)
+        elif isinstance(read_lengths, pd.Series):
+            pass
         else:
             # Some random encoding error
             try:
@@ -191,12 +193,11 @@ def plot_read_length_dist(read_lengths,
     if ascii:
         import gnuplotlib as gp
         sys.stdout.write(os.linesep)
-        gp.plot(
-            (read_lengths.index, read_lengths.values, {
-                'with': 'boxes'
-            }),
-            terminal='dumb 160, 40',
-            unset='grid')
+        gp.plot((read_lengths.index, read_lengths.values, {
+            'with': 'boxes'
+        }),
+                terminal='dumb 160, 40',
+                unset='grid')
         sys.stdout.write(os.linesep)
     return ax, fig
 

@@ -3,30 +3,56 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from collections import OrderedDict
 from collections import defaultdict
-import csv
 import errno
 import itertools
 import math
 import os
 import sys
-import glob
 import ntpath
 import pickle
+import subprocess
 
 from scipy import stats
 import numpy as np
 import pandas as pd
 import six
 import pybedtools
+import pysam
+import pyBigWig
 from bx.intervals.intersection import IntervalTree
 
 import warnings
 from .interval import Interval
 
+# Unmapped, Unmapped+Reverse strand, Not primary alignment,
+# Not primary alignment + reverse strand, supplementary alignment
+
+# Source: https://broadinstitute.github.io/picard/explain-flags.html
+__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
+
 CBB_PALETTE = [
     "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
     "#D55E00", "#CC79A7"
 ]
+
+
+def order_dataframe(df, columns):
+    """Order a dataframe
+
+    Order a dataframe by moving the `columns` in the front
+
+    Parameters
+    ----------
+    df: Dataframe
+        Dataframe
+    columns: list
+             List of columns that need to be put in front
+    """
+    if isinstance(columns, six.string_types):
+        columns = [columns]  #let the command take a string or list
+    remaining_columns = [w for w in df.columns if w not in columns]
+    df = df[columns + remaining_columns]
+    return df
 
 
 def _fix_bed_coltype(bed):
@@ -446,9 +472,8 @@ def get_strandedness(filepath):
     with open(filepath) as f:
         data = f.read()
     splitted = [x.strip() for x in data.split('\n') if len(x.strip()) >= 1]
-    strandedness = None
     assert splitted[0] == 'This is SingleEnd Data'
-    few_percentage = None
+    fwd_percentage = None
     rev_percentage = None
     for line in splitted[1:]:
         if 'Fraction of reads failed to determine:' in line:
@@ -727,6 +752,7 @@ def read_refseq_bed(filepath):
             refseq[chrom].insert(tx_start, tx_end, strand)
     return refseq
 
+
 def read_bed_as_intervaltree(filepath):
     """Read bed as interval tree
 
@@ -750,8 +776,212 @@ def read_bed_as_intervaltree(filepath):
 
     bedint_tree = defaultdict(IntervalTree)
     for chrom, df in bed_grouped:
-        df_list = df[['start', 'end', 'strand']].tolist()
+        df_list = zip(df['start'], df['end'], df['strand'])
         for start, end, strand in df_list:
             bedint_tree[chrom].insert(start, end, strand)
     return bedint_tree
 
+
+def read_chrom_sizes(filepath):
+    """Read chr.sizes file sorted by chromosome name
+
+    Parameters
+    ----------
+    filepath: string
+              Location to chr.sizes
+
+    Returns
+    -------
+    chrom_lengths: list of tuple
+                   A list of tuples with chromsome name and their size
+    """
+
+    chrom_lengths = []
+    with open(filepath, 'r') as fh:
+        for line in fh:
+            chrom, size = line.strip().split('\t')
+            chrom_lengths.append((chrom, int(size)))
+        chrom_lengths = list(sorted(chrom_lengths, key=lambda x: x[0]))
+
+
+def create_bam_index(bam):
+    """Create bam index.
+
+    Parameters
+    ----------
+    bam : str
+          Path to bam file
+    """
+    if isinstance(bam, pysam.AlignmentFile):
+        bam = bam.filename
+    if not os.path.exists('{}.bai'.format(bam)):
+        pysam.index(bam)
+
+
+def is_read_uniq_mapping(read):
+    """Check if read is uniquely mappable.
+
+    Parameters
+    ----------
+    read : pysam.Alignment.fetch object
+
+
+    Most reliable: ['NH'] tag
+    """
+    # Filter out secondary alignments
+    if read.is_secondary:
+        return False
+    tags = dict(read.get_tags())
+    try:
+        nh_count = tags['NH']
+    except KeyError:
+        # Reliable in case of STAR
+        if read.mapping_quality == 255:
+            return True
+        if read.mapping_quality < 1:
+            return False
+        # NH tag not set so rely on flags
+        if read.flag in __SAM_NOT_UNIQ_FLAGS__:
+            return False
+        else:
+            raise RuntimeError('Malformed BAM?')
+    if nh_count == 1:
+        return True
+    return False
+
+
+def find_first_non_none(positions):
+    """Given a list of positions, find the index and value of first non-none element.
+
+    This method is specifically designed for pysam, which has a weird way of returning
+    the reference positions. If they are mismatched/softmasked it returns None
+    when fetched using get_reference_positions.
+
+    query_alignment_start and query_alignment_end give you indexes of position in the read
+    which technically align, but are not softmasked i.e. it is set to None even if the position does not align
+
+    Parameters
+    ----------
+    positions: list of int
+               Positions as returned by pysam.fetch.get_reference_positions
+
+    Return
+    ------
+    index: int
+           Index of first non-None value
+    position: int
+               Value at that index
+    """
+    for idx, position in enumerate(positions):
+        if position is not None:
+            return idx, position
+
+
+def find_last_non_none(positions):
+    """Given a list of positions, find the index and value of last non-none element.
+
+
+    This function is similar to the `find_first_non_none` function, but does it for the reversed
+    list. It is specifically useful for reverse strand cases
+
+
+    Parameters
+    ----------
+    positions: list of int
+               Positions as returned by pysam.fetch.get_reference_positions
+
+    Return
+    ------
+    index: int
+           Index of first non-None value
+    position: int
+               Value at that index
+    """
+    return find_first_non_none(positions[::-1])
+
+
+# NOTE: We can in principle do a longer metagene anaylsis
+# using this helper funciont
+def yield_intervals(chrom_size, chunk_size=20000):
+    for start in np.arange(0, chrom_size, chunk_size):
+        end = start + chunk_size
+        if end > chrom_size:
+            yield (start, chrom_size)
+        else:
+            yield (start, end)
+
+
+def bwsum(bw, chunk_size=5000, scale_to=1e6):
+    bw_sum = 0
+    if isinstance(bw, six.string_types):
+        bw = pyBigWig.open(bw)
+    chrom_sizes = bw.chroms()
+    for chrom, chrom_size in six.iteritems(chrom_sizes):
+        for start, end in yield_intervals(chrom_size, chunk_size):
+            bw_sum += np.nansum(bw.values(chrom, start, end))
+    scale_factor = 1 / (bw_sum / scale_to)
+    return bw_sum, scale_factor
+
+
+def scale_bigwig(inbigwig, chrom_sizes, outbigwig, scale_factor=1):
+    """Scale a bigwig by certain factor.
+
+    Parameters
+    ----------
+    inbigwig: string
+              Path to input bigwig
+    chrom_sizes: string
+                 Path to chrom.sizes file
+    outbigwig: string
+               Path to output bigwig
+    scale_factor: float
+                  Scale by value
+    """
+    wigfile = os.path.abspath('{}.wig'.format(outbigwig))
+    chrom_sizes = os.path.abspath(chrom_sizes)
+    inbigwig = os.path.abspath(inbigwig)
+    outbigwig = os.path.abspath(outbigwig)
+    if os.path.isfile(wigfile):
+        # wiggletools errors if the file already exists
+        os.remove(wigfile)
+
+    cmds = [
+        'wiggletools', 'write', wigfile, 'scale',
+        str(scale_factor), inbigwig
+    ]
+    try:
+        p = subprocess.Popen(
+            cmds,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
+        stdout, stderr = p.communicate()
+        rc = p.returncode
+        if rc != 0:
+            raise RuntimeError(
+                'Error running wiggletools.\nstdout : {} \n stderr : {}'.
+                format(stdout, stderr))
+    except FileNotFoundError:
+        raise FileNotFoundError("wiggletool not found on the path."
+                                "Use `conda install wiggletools`")
+
+    cmds = ['wigToBigWig', wigfile, chrom_sizes, outbigwig]
+    try:
+        p = subprocess.Popen(
+            cmds,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
+        stdout, stderr = p.communicate()
+        rc = p.returncode
+        if rc != 0:
+            raise RuntimeError(
+                'Error running wigToBigWig.\nstdout : {} \n stderr : {}'.
+                format(stdout, stderr))
+        os.remove(wigfile)
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            "wigToBigwig not found on the path. This is an external "
+            "tool from UCSC which can be downloaded from "
+            "http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use "
+            "`conda install ucsc-wigtobigwig`")

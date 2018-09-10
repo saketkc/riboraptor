@@ -12,7 +12,6 @@ from collections import Counter
 from collections import OrderedDict
 from functools import reduce
 import os
-import re
 import subprocess
 import sys
 
@@ -21,6 +20,7 @@ import pandas as pd
 import pybedtools
 import pysam
 import six
+import h5py
 from tqdm import tqdm
 
 from .genome import _get_sizes
@@ -33,56 +33,57 @@ from .helpers import complementary_strand
 
 from .wig import WigReader
 from .interval import Interval
+from .parallel import ParallelExecutor
+from joblib import delayed
+from .infer_protocol import infer_protocol
+from .helpers import read_bed_as_intervaltree
+from .helpers import is_read_uniq_mapping, create_bam_index
+from . import __version__
 
-# Unmapped, Unmapped+Reverse strand, Not primary alignment,
-# Not primary alignment + reverse strand, supplementary alignment
 
-# Source: https://broadinstitute.github.io/picard/explain-flags.html
-__SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
+class OrderedCounter(Counter, OrderedDict):
+    'Counter that remembers the order elements are first encountered'
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, OrderedDict(self))
+
+    def __reduce__(self):
+        return self.__class__, (OrderedDict(self), )
 
 
-def _create_bam_index(bam):
-    """Create bam index.
+def _get_gene_strand(refseq, chrom, mapped_start, mapped_end):
+    """Lookup a particular location on chromosome to determine
+    its strand
+
 
     Parameters
     ----------
-    bam : str
-          Path to bam file
+    refseq: string or intervaltree
+            refseq genes.bed file loaded as
+
     """
-    if not os.path.exists('{}.bai'.format(bam)):
-        pysam.index(bam)
-
-
-def _is_read_uniq_mapping(read):
-    """Check if read is uniquely mappable.
-
-    Parameters
-    ----------
-    read : pysam.Alignment.fetch object
-
-
-    Most reliable: ['NH'] tag
-    """
-    # Filter out secondary alignments
-    if read.is_secondary:
-        return False
-    tags = dict(read.get_tags())
-    try:
-        nh_count = tags['NH']
-    except KeyError:
-        # Reliable in case of STAR
-        if read.mapping_quality == 255:
-            return True
-        if read.mapping_quality < 1:
-            return False
-        # NH tag not set so rely on flags
-        if read.flag in __SAM_NOT_UNIQ_FLAGS__:
-            return False
-        else:
-            raise RuntimeError('Malformed BAM?')
-    if nh_count == 1:
-        return True
-    return False
+    if isinstance(refseq, six.string_types):
+        refseq = read_bed_as_intervaltree(refseq)
+    gene_strand = list(set(refseq[chrom].find(mapped_start, mapped_end)))
+    if len(gene_strand) > 1:
+        return 'ambiguous'
+    if len(gene_strand) == 0:
+        # Try searching upstream 30 and downstream 30 nt
+        gene_strand = list(
+            set(refseq[chrom].find(mapped_start - 30, mapped_end - 30)))
+        if len(gene_strand) == 0:
+            # Downstream
+            gene_strand = list(
+                set(refseq[chrom].find(mapped_start + 30, mapped_end + 30)))
+            if len(gene_strand) == 0:
+                return 'not_found'
+            if len(gene_strand) > 1:
+                return 'ambiguous'
+            return gene_strand[0]
+        if len(gene_strand) > 1:
+            return 'ambiguous'
+        return gene_strand[0]
+    return gene_strand[0]
 
 
 def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
@@ -136,6 +137,11 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
     coverages_combined = []
     for cov in coverages:
         coverages_combined += list(cov)
+
+    # if it is located on negative strand
+    # reverse the values since we no longer
+    # want to track the individual position
+    # but just an indexed version
     if strand == '-':
         coverages_combined.reverse()
     coverages_combined = np.array(coverages_combined).flatten()
@@ -143,6 +149,7 @@ def gene_coverage(gene_group, bw, offset_5p=0, offset_3p=0):
         coverages_combined,
         index=np.arange(-gene_offset_5p,
                         len(coverages_combined) - gene_offset_5p))
+
     return (coverages_combined, gene_offset_5p, gene_offset_3p)
 
 
@@ -192,7 +199,6 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         coverage = coverage.fillna(0)
         coverage = coverage.astype(int)
         coverage = coverage.tolist()
-
         to_write += '{}\t{}\t{}\t{}\n'.format(gene_name, int(gene_offset_5p),
                                               int(gene_offset_3p), coverage)
 
@@ -201,12 +207,74 @@ def export_gene_coverages(bed, bw, saveto, offset_5p=0, offset_3p=0):
         outfile.write(to_write)
 
 
+def _multiprocess_gene_coverage(data):
+    """Process gene_c overage given a bigwig and a genegroup.
+
+    WigReader is not pickleable when passed as an argument so we use strings
+    as input for the bigwig
+
+    Parameters
+    ----------
+    data: tuple
+          gene_gorup, bigwig, offset_5p, offset_3p, max_positions, orientation
+
+    Returns
+    -------
+    norm_cov: Series
+              normalized coverage
+    """
+    gene_group, bw, offset_5p, offset_3p, max_positions, orientation = data
+    bw = WigReader(bw)
+    coverage, gene_offset_5p, gene_offset_3p = gene_coverage(
+        gene_group, bw, offset_5p, offset_3p)
+    coverage = coverage.fillna(0)
+
+    if orientation == '5prime':
+        if max_positions is not None and len(coverage.index) > 0:
+            # min_index will correspond to the gene_offset_5p in general
+            min_index = min(coverage.index.tolist())
+            max_index = max(coverage.index.tolist())
+            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(
+                min_index, -gene_offset_5p)
+            coverage = coverage[np.arange(min_index,
+                                          min(max_index, max_positions))]
+    elif orientation == '3prime':
+        # We now want to be tracking things from the end position
+        # we can do this since gene_coverage() takes care of the strand
+        # so a 3prime is always the tail of the array
+        # note that if gene_offset_5p >0, in this case, it is almost never used
+        # since we restrict ourselves to max_positions, which itself is almost
+        # always < 1000
+        if max_positions is not None and len(coverage.index) > 0:
+            max_index = max(coverage.index.tolist())
+            min_index = min(coverage.index.tolist())
+            assert min_index == -gene_offset_5p, 'min_index and gene_offset_5p are not same| min_index: {} | gene_offset_5p: {}'.format(
+                min_index, -gene_offset_5p)
+            # max_index is the maximum we can go to the right
+            # our stop codon will be located gene_offset_3p upstream of this index
+            # Let's reindex our series so that we set
+            coverage = coverage.reindex(np.arange(-max_index, -min_index, 1))
+            coverage = coverage[np.arange(-max_positions, gene_offset_3p)]
+    else:
+        raise ValueError('{} orientation not supported'.format(orientation))
+
+    assert coverage is not None, 'coverage is none | max_index={} | min_index={}| gene_offset_3p={} | gene_offset_5p={}'.format(
+        max_index, min_index, gene_offset_3p, gene_offset_5p)
+    coverage_mean = coverage.mean()
+    norm_cov = coverage / coverage_mean
+    norm_cov = norm_cov.fillna(0)
+    bw.close()
+    return norm_cov
+
+
 def export_metagene_coverage(bed,
                              bw,
                              max_positions=None,
                              saveto=None,
                              offset_5p=0,
-                             offset_3p=0):
+                             offset_3p=0,
+                             orientation='5prime',
+                             n_jobs=16):
     """Export metagene coverage.
 
     Parameters
@@ -225,6 +293,13 @@ def export_metagene_coverage(bed,
                Number of bases to count upstream (5')
     offset_3p: int (positive)
                Number of bases to count downstream (3')
+    orientation: string
+                 ['5prime', '3prime'] indicating the end of read
+                 being tracked
+    n_jobs: int
+            Number of paralle threads to open
+            Better to do on a multi-cpu machine, but also works decently on
+            a single core machine
 
     Returns
     -------
@@ -256,29 +331,26 @@ def export_metagene_coverage(bed,
 
     position_counter = Counter()
     metagene_coverage = pd.Series()
-
-    for gene_name, gene_group in tqdm(bed_grouped):
-        coverage, _, _ = gene_coverage(gene_group, bw, offset_5p, offset_3p)
-        coverage = coverage.fillna(0)
-
-        if max_positions is not None and len(coverage.index) > 0:
-            min_index = min(coverage.index.tolist())
-            max_index = max(coverage.index.tolist())
-            coverage = coverage[np.arange(min_index,
-                                          min(max_index, max_positions))]
-        coverage_mean = coverage.mean()
-        if coverage_mean > 0:
-            norm_cov = coverage / coverage_mean
-            metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
-            position_counter += Counter(coverage.index.tolist())
-
+    data = [(gene_group, bw.wig_location, offset_5p, offset_3p, max_positions,
+             orientation) for gene_name, gene_group in bed_grouped]
+    aprun = ParallelExecutor(n_jobs=n_jobs)
+    total = len(bed_grouped.groups)
+    all_coverages = aprun(total=total)(
+        delayed(_multiprocess_gene_coverage)(d) for d in data)
+    for norm_cov in all_coverages:
+        metagene_coverage = metagene_coverage.add(norm_cov, fill_value=0)
+        position_counter += Counter(norm_cov.index.tolist())
     if len(position_counter) != len(metagene_coverage):
-        raise RuntimeError('Gene normalizaed counter mismatch')
+        raise RuntimeError('Gene normalized counter mismatch')
         sys.exit(1)
 
     position_counter = pd.Series(position_counter)
     metagene_coverage = metagene_coverage.div(position_counter)
-
+    if len(metagene_coverage.index) == 0:
+        # If nothing is found in the bigwig, return zeros
+        metagene_coverage = pd.Series(
+            [0] * (max_positions + offset_5p),
+            index=np.arange(-offset_5p, max_positions))
     if saveto:
         mkdir_p(os.path.dirname(saveto))
         to_write = pd.DataFrame({
@@ -446,11 +518,10 @@ def export_read_length(bam, saveto=None):
              Counter of read length and counts
 
     """
-    _create_bam_index(bam)
+    create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     read_counts = Counter([
-        read.query_length for read in bam.fetch()
-        if _is_read_uniq_mapping(read)
+        read.query_length for read in bam.fetch() if is_read_uniq_mapping(read)
     ])
     if saveto:
         mkdir_p(os.path.dirname(saveto))
@@ -652,7 +723,7 @@ def mapping_reads_summary(bam, saveto=None):
              Counter with keys as number of times read maps
              and values as number of reads of that type
     """
-    _create_bam_index(bam)
+    create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     counts = Counter()
     for read in bam.fetch():
@@ -687,11 +758,11 @@ def count_uniq_mapping_reads(bam):
     n_mapped: int
               Count of uniquely mapped reads
     """
-    _create_bam_index(bam)
+    create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     n_mapped = 0
     for read in bam.fetch():
-        if _is_read_uniq_mapping(read):
+        if is_read_uniq_mapping(read):
             n_mapped += 1
     bam.close()
     return n_mapped
@@ -707,98 +778,316 @@ def extract_uniq_mapping_reads(inbam, outbam):
     outbam: string
             Path to write unique reads bam to
     """
-    _create_bam_index(inbam)
+    create_bam_index(inbam)
     allreadsbam = pysam.AlignmentFile(inbam, 'rb')
     uniquereadsbam = pysam.AlignmentFile(outbam, 'wb', template=allreadsbam)
     total_count = allreadsbam.count()
     with tqdm(total=total_count) as pbar:
         for read in allreadsbam.fetch():
-            if _is_read_uniq_mapping(read):
+            if is_read_uniq_mapping(read):
                 uniquereadsbam.write(read)
             pbar.update()
     allreadsbam.close()
     uniquereadsbam.close()
 
 
-def get_bam_coverage(bam,
-                     orientation='5prime',
-                     saveto=None):
-    """ Get coverage from bam given orientation
+def get_bam_coverage(bam, bed, outprefix=None):
+    """Get coverage from bam
 
     Parameters
     ----------
     bam: string
          Path to bam file
-
-    orientation: string
-                 5prime/3prime/both
+    bed: string
+         Path to genes.bed or cds.bed file required for inferring protocol of bam
 
     Returns
     -------
     coverage: dict(dict)
               dict with keys as chrom:position with query lengths as keys
     """
+    protocol, forward_mapped_reads, reverse_mapped_reads, total_reads = infer_protocol(
+        bam, bed)
     if isinstance(bam, six.string_types):
+        create_bam_index(bam)
         bam = pysam.AlignmentFile(bam, 'rb')
 
-    coverage = defaultdict(lambda: defaultdict(Counter))
+    coverage = defaultdict(lambda: defaultdict(OrderedCounter))
     total_counts = bam.count()
+    query_alignment_lengths = Counter()
     with tqdm(total=total_counts) as pbar:
         for read in bam.fetch():
-            if not _is_read_uniq_mapping(read):
+            if not is_read_uniq_mapping(read):
                 pbar.update()
                 continue
             if read.is_reverse:
                 strand = '-'
             else:
                 strand = '+'
+            # Why full_length?
+            # If full_length is set, None values will be included for any soft-clipped or unaligned positions within the read.i
+            # The returned list will thus be of the same length as the read.
+
+            # Update: It appears that the read can also be alligned in the following manner
+            # [None, None, None, 0, 1, 2,3,4] implying that the first few bases do not
+            # align at all and then the real alignment starts at base 0
+            # This is not deirable,  hence we go back to our original definition
+            # of using 0 and -1 to retrieve positions
+
+            # reference_pos = read.get_reference_positions(full_length=True)
+
             reference_pos = read.get_reference_positions()
+            # Store 5' position
+            position_5prime = None
+            # Store 3' position
+            position_3prime = None
+
+            # We track 0-based start
+            # the start coordinates are always 0-based
+            # irrepective of the strand
+
+            ######################################################
+            """
+            Forward strand:
+
+            -------------------------
+            0                       24
+                  -------------------
+                  5'                3'
+            5' position = 6 (0-based)
+            3' position = 24 (0-based)
+            Read length = 24-6+1 = 19
+
+            Reverse strand
+            -------------------------
+            0                       24
+                  -------------------
+                  3'                5'
+
+            5' position = 24 (0-based)
+            3' position = 6 (0-based)
+
+            """
+            # query_alignment_start = read.query_alignment_start
+            # query_alignment_end = read.query_alignment_end
+
+            query_alignment_length = read.query_alignment_length
+            query_alignment_lengths[query_alignment_length] += 1
+            mismatches_or_softclipping = False
+            query_length = read.query_length
+            if query_alignment_length < query_length:
+                # the aligned length of this
+                # read is shorter than the original
+                # read length
+                # could happen because of soft-clipping or mismatches
+                # STAR and most other RNA-seq mappers do not recommend using a masked
+                # genome and we don't too, so these will almost always
+                # be mismatches
+                mismatches_or_softclipping = True
             if strand == '+':
-                if orientation == '5prime':
-                    # Track 5' end
-                    position = reference_pos[1]
-                elif orientation == '3prime':
-                    # Track 3' end
-                    position = reference_pos[0]
+                position_5prime = reference_pos[0]
+                position_3prime = reference_pos[-1]
 
             else:
                 # Negative strand so no need to adjust
                 # switch things
-                if orientation == '5prime':
-                    # Track 5' end on negative strand
-                    position = reference_pos[0]
-                elif orientation == '3prime':
-                    # Track 3' end on negative strand
-                    position = reference_pos[1]
-            query_length = read.query_length
-            coverage['{}:{}'.format(read.reference_name,
-                                    position)][query_length][strand] += 2
+                position_5prime = reference_pos[-1]
+                position_3prime = reference_pos[0]
+
+            assert position_5prime >= 0, 'Wrong 5prime position: {}'.format(
+                position_5prime)
+            assert position_3prime >= 0, 'Wrong 3prime position: {}'.format(
+                position_3prime)
+
+            coverage['{}:{}:5prime'.format(
+                read.reference_name, position_5prime)][query_length]['+'] += 0
+            coverage['{}:{}:5prime'.format(
+                read.reference_name, position_5prime)][query_length]['-'] += 0
+            coverage['{}:{}:3prime'.format(
+                read.reference_name, position_3prime)][query_length]['+'] += 0
+            coverage['{}:{}:3prime'.format(
+                read.reference_name, position_3prime)][query_length]['-'] += 0
+
+            coverage['{}:{}:5prime'.format(
+                read.reference_name,
+                position_5prime)][query_length][strand] += 1
+            coverage['{}:{}:3prime'.format(
+                read.reference_name,
+                position_3prime)][query_length][strand] += 1
+
             pbar.update()
-    if saveto:
-        df = pd.DataFrame.from_dict(
-            {(i, j): coverage[i][j]
-             for i in coverage.keys() for j in coverage[i].keys()},
-            orient='index')
+    if outprefix:
+        df = pd.DataFrame.from_dict({(i, j): coverage[i][j]
+                                     for i in coverage.keys()
+                                     for j in coverage[i].keys()},
+                                    orient='index')
         df = df.reset_index()
-        """
-        Stored as:
-            chrom\tstart_position(1-based)\tnumber of hits on + strand\tnumber of hits on - strand
-        """
+
         df.columns = [
-            'chr_pos', 'read_length', 'count_pos_strand', 'count_neg_strand'
+            'chr_pos_orient',
+            'read_length',
+            'count_pos_strand',
+            'count_neg_strand',
         ]
-        df[['chrom', 'start']] = df['chr_pos'].str.split(':', n=2, expand=True)
+        # n=-1 tto expand all splits
+        df[['chrom', 'start', 'orientation']] = df['chr_pos_orient'].str.split(
+            ':', n=-1, expand=True)
         df['start'] = df['start'].astype(int)
-        df['count_pos_strand'] = df['count_pos_strand'].fillna(1).astype(int)
-        df['count_neg_strand'] = df['count_neg_strand'].fillna(1).astype(int)
-        df['end'] = df['start'] + 2
+        df['count_pos_strand'] = df['count_pos_strand'].fillna(0).astype(int)
+        df['count_neg_strand'] = df['count_neg_strand'].fillna(0).astype(int)
+        df['end'] = df['start'] + 1
         df = df[[
-            'chrom', 'start', 'end', 'read_length', 'count_pos_strand',
-            'count_neg_strand'
+            'chrom', 'start', 'end', 'read_length', 'orientation',
+            'count_pos_strand', 'count_neg_strand'
         ]]
-        df = df.sort_values(
-            by=['chrom', 'start', 'read_length', 'count_pos_strand'])
-        df.to_csv(saveto, sep='\t', index=False, header=True)
+        bed_tree = read_bed_as_intervaltree(bed)
+        df['gene_strand'] = df.apply(
+            lambda row: _get_gene_strand(bed_tree, row['chrom'], row['start'], row['end']),
+            axis=1)
+        df = df.sort_values(by=[
+            'chrom', 'start', 'end', 'read_length', 'orientation',
+            'count_pos_strand', 'count_neg_strand', 'gene_strand'
+        ])
+        df['protocol'] = protocol
+
+        df.to_csv(
+            '{}.tsv'.format(outprefix), sep='\t', index=False, header=True)
+
+        reference_and_length = OrderedDict(
+            sorted(
+                zip(bam.header.references, bam.header.lengths),
+                key=lambda x: x[0]))
+
+        df = df.sort_values(by=[
+            'read_length', 'chrom', 'start', 'orientation', 'count_pos_strand'
+        ])
+        df = df.rename(columns={
+            'count_pos_strand': 'pos',
+            'count_neg_strand': 'neg'
+        })
+        df_molten = pd.melt(
+            df,
+            id_vars=[
+                'chrom', 'start', 'end', 'read_length', 'orientation',
+                'gene_strand'
+            ],
+            value_vars=['pos', 'neg'])
+        df_molten = df_molten.rename(columns={'variable': 'strand'})
+        df_molten = df_molten.sort_values(by=[
+            'chrom', 'start', 'end', 'read_length', 'orientation', 'strand',
+            'gene_strand'
+        ])
+        df_molten['chrom'] = df_molten.chrom.str.cat(
+            df_molten.strand, sep='__')
+        # Convert read length dtype to make it more compatible to h5py (requires string keys)
+        df_molten['read_length'] = df_molten.read_length.astype(str)
+        df_molten = df_molten.drop(columns=['end', 'strand'])
+        df_readlen_grouped = df_molten.groupby(['read_length'])
+
+        df_readlen_orient = pd.DataFrame(
+            df_molten.groupby(['read_length',
+                               'orientation']).value.agg('sum')).reset_index()
+        # Check if the counts are same irrespective of orientation
+        df_readlen_orient_unmelt = df_readlen_orient.pivot(
+            index='read_length', columns='orientation', values='value')
+        assert (df_readlen_orient_unmelt['5prime'] ==
+                df_readlen_orient_unmelt['3prime']).all()
+        dt = h5py.special_dtype(vlen=str)
+        read_lengths_list = df_readlen_orient_unmelt.index.tolist()
+        read_lengths_counts = df_readlen_orient_unmelt.loc[read_lengths_list,
+                                                           '5prime'].tolist()
+
+        query_alignment_lengths = pd.Series(
+            query_alignment_lengths).sort_index()
+
+        with tqdm(total=len(df_readlen_grouped)) as pbar:
+            with h5py.File('{}.hdf5'.format(outprefix), 'w') as h5py_file:
+                h5py_file.attrs['protocol'] = protocol
+                h5py_file.attrs['version'] = __version__
+                dset = h5py_file.create_dataset(
+                    'read_lengths', (len(read_lengths_list), ),
+                    dtype=dt,
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(read_lengths_list)
+
+                dset = h5py_file.create_dataset(
+                    'read_lengths_counts', (len(read_lengths_list), ),
+                    dtype=np.dtype('int64'),
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(read_lengths_counts)
+
+                dset = h5py_file.create_dataset(
+                    'query_alignment_lengths',
+                    (len(query_alignment_lengths), ),
+                    dtype=dt,
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = query_alignment_lengths.index
+
+                dset = h5py_file.create_dataset(
+                    'query_alignment_lengths_counts',
+                    (len(query_alignment_lengths), ),
+                    dtype=np.dtype('int64'),
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = query_alignment_lengths.values
+
+                dset = h5py_file.create_dataset(
+                    'chrom_names', (len(reference_and_length.keys()), ),
+                    dtype=dt,
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(list(reference_and_length.keys()))
+
+                dset = h5py_file.create_dataset(
+                    'chrom_sizes', (len(reference_and_length.values()), ),
+                    dtype=np.dtype('int64'),
+                    compression='gzip',
+                    compression_opts=9)
+                dset[...] = np.array(list(reference_and_length.values()))
+
+                h5_readlen_group = h5py_file.create_group('fragments')
+
+                for read_length, df_readlen_group in df_readlen_grouped:
+                    h5_readlen_subgroup = h5_readlen_group.create_group(
+                        read_length)
+                    df_orientation_grouped = df_readlen_group.groupby(
+                        'orientation')
+                    for orientation, df_orientation_group in df_orientation_grouped:
+                        h5_orientation_subgroup = h5_readlen_subgroup.create_group(
+                            orientation)
+                        df_chrom_grouped = df_orientation_group.groupby(
+                            'chrom')
+                        for chrom, chrom_group in df_chrom_grouped:
+                            counts_series = pd.Series(
+                                chrom_group['value'].tolist())
+                            positions_series = pd.Series(
+                                chrom_group['start'].tolist())
+                            chrom_group = h5_orientation_subgroup.create_group(
+                                chrom)
+                            dset = chrom_group.create_dataset(
+                                'positions', (len(counts_series), ),
+                                dtype=np.dtype('int64'),
+                                compression='gzip',
+                                compression_opts=9)
+                            dset[...] = positions_series
+
+                            dset = chrom_group.create_dataset(
+                                'counts', (len(counts_series), ),
+                                dtype=np.dtype('float64'),
+                                compression='gzip',
+                                compression_opts=9)
+                            dset[...] = counts_series
+
+                            dset = chrom_group.create_dataset(
+                                'gene_strand', (len(counts_series), ),
+                                dtype=dt,
+                                compression='gzip',
+                                compression_opts=9)
+                            dset[...] = chrom_group['gene_strand']
+                    pbar.update()
         return df
     return coverage
 
@@ -884,4 +1173,3 @@ def get_bam_coverage_on_bed(bam,
     if saveto:
         df.to_csv(saveto, sep='\t', index=True, header=True)
     return df
-

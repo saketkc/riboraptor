@@ -4,21 +4,21 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import pysam
-from .count import _is_read_uniq_mapping, _create_bam_index
-from .helpers import read_refseq_bed
+from .helpers import is_read_uniq_mapping, create_bam_index
+from .helpers import read_refseq_bed, read_bed_as_intervaltree
 from collections import Counter
 import numpy as np
 
 
-def infer_protocol(bam, refseq, n_reads=20000):
+def infer_protocol(bam, bed, n_reads=20000):
     """Infer strandedness protocol given a bam file
 
     Parameters
     ----------
     bam: string
          Path to bam file
-    refseq: string
-                Path to refseq bed file
+    bed: string
+                Path to gene bed file
     n_reads: int
              Number of reads to use (downsampled)
 
@@ -33,12 +33,12 @@ def infer_protocol(bam, refseq, n_reads=20000):
           Proportion of reads of type + mapping to - (+-) or - mapping to + (-+)
     """
     iteration = 0
-    _create_bam_index(bam)
+    create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
-    refseq = read_refseq_bed(refseq)
+    bed = read_bed_as_intervaltree(bed)
     strandedness = Counter()
     for read in bam.fetch():
-        if not _is_read_uniq_mapping(read):
+        if not is_read_uniq_mapping(read):
             continue
         if read.is_reverse:
             mapped_strand = '-'
@@ -47,7 +47,7 @@ def infer_protocol(bam, refseq, n_reads=20000):
         mapped_start = read.reference_start
         mapped_end = read.reference_end
         chrom = read.reference_name
-        gene_strand = list(set(refseq[chrom].find(mapped_start, mapped_end)))
+        gene_strand = list(set(bed[chrom].find(mapped_start, mapped_end)))
         if len(gene_strand) != 1:
             # Filter out genes with ambiguous strand info
             # (those) that have a tx_start on opposite strands
@@ -70,6 +70,6 @@ def infer_protocol(bam, refseq, n_reads=20000):
     if np.isclose([ratio], [1]):
         return 'unstranded', forward_mapped_reads, reverse_mapped_reads
     elif forward_mapped_reads >= 0.5:
-        return 'forward', forward_mapped_reads, reverse_mapped_reads
+        return 'forward', forward_mapped_reads, reverse_mapped_reads, total
     else:
-        return 'reverse', forward_mapped_reads, reverse_mapped_reads
+        return 'reverse', forward_mapped_reads, reverse_mapped_reads, total

@@ -1,5 +1,9 @@
-import os
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import warnings
+import os
 
 import numpy as np
 import pyBigWig
@@ -23,12 +27,15 @@ class WigReader(object):
             raise Exception('Error reading wig file {} : {}'.format(
                 os.path.abspath(self.wig_location), e))
 
+    def close(self):
+        self.wig.close()
+
     def query(self, intervals):
         """ Query regions for scores.
 
         Parameters
         ----------
-        intervals : list of Interval 
+        intervals : list of Interval
 
         Returns
         -------

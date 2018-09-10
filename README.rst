@@ -68,12 +68,12 @@ We will now install all the dependencies:
 
    conda create --name riboraptor python=3.6 gcc matplotlib numpy pandas pybedtools \
    pyBigWig pyfaidx pysam scipy seaborn statsmodels six click click-help-colors htseq biopython bx-python \
-   trackhub snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort bamtools \
-   r-rcurl r-rsqlite r-devtools r-optparse bioconductor-biocinstaller bioconductor-annotationdbi \
-   bioconductor-geometadb bioconductor-geoquery && source activate riboraptor
-  
+   h5py joblib trackhub pytest snakemake sra-tools star fastqc trim-galore ucsc-bedgraphtobigwig ucsc-bedsort \
+   ucsc-bigwigmerge bamtools r-rcurl r-rsqlite r-devtools r-optparse bioconductor-biocinstaller \
+   bioconductor-annotationdbi bioconductor-geometadb bioconductor-geoquery && source activate riboraptor
+
 We also have the following two dependencies for processing and downloading SRA datasets:
-   
+
 #. `aspera connect`_ : For allowing '.fasp' downloads from SRA
 
 Linux download link: https://download.asperasoft.com/download/sw/connect/3.7.4/aspera-connect-3.7.4.147727-linux-64.tar.gz
@@ -83,10 +83,10 @@ Linux download link: https://download.asperasoft.com/download/sw/connect/3.7.4/a
 Since there is currently a bug in bioconductor-sradb, we will install it from github. 
 
 .. code-block:: bash
-   
+
    git clone https://github.com/seandavi/SRAdb
    cd SRAdb
-   
+
 Run `R`, and install SRAdb within `R` use `devtools`. Please make sure your `riboraptor` environment is already activated. (`source activate riboraptor`):
 
 .. code-block:: r
@@ -97,11 +97,11 @@ Run `R`, and install SRAdb within `R` use `devtools`. Please make sure your `rib
 And finally, we need two metadata files for processing SRA records:
 
 .. code-block:: bash
-    
+
    mkdir riboraptor-data && cd riboraptor-data
    wget -c http://starbuck1.s3.amazonaws.com/sradb/GEOmetadb.sqlite.gz && gunzip GEOmetadb.sqlite.gz
    wget -c https://starbuck1.s3.amazonaws.com/sradb/SRAmetadb.sqlite.gz && gunzip SRAmetadb.sqlite.gz
-  
+
 
 Installing riboraptor
 ~~~~~~~~~~~~~~~~~~~~~
@@ -153,8 +153,5 @@ Features
 --------
 
 See: https://riboraptor.readthedocs.io/en/latest/cmd-manual.html
-
-
-
 
 

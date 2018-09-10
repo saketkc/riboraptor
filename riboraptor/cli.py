@@ -10,6 +10,7 @@ import sys
 from textwrap import dedent
 
 import click
+import glob
 from click_help_colors import HelpColorsGroup
 import six
 import pandas as pd
@@ -30,6 +31,7 @@ from .count import extract_uniq_mapping_reads
 from .count import get_bam_coverage
 from .count import get_bam_coverage_on_bed
 
+from .helpers import scale_bigwig
 from .infer_protocol import infer_protocol
 
 from .sequence import export_gene_sequences
@@ -38,6 +40,13 @@ from .download import run_download_sra_script
 from .coherence import naive_periodicity
 from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist
+from .hdf_parser import create_metagene_from_multi_bigwig
+from .hdf_parser import hdf_to_bigwig
+from .hdf_parser import tsv_to_bigwig
+from .hdf_parser import merge_bigwigs
+from .hdf_parser import HDFParser
+from .hdf_parser import normalize_bw_hdf
+from .helpers import bwsum
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -103,22 +112,34 @@ def export_gene_coverages_cmd(bed, bw, saveto, offset_5p, offset_3p):
     '--offset_5p',
     help='Number of upstream bases to count(5\')',
     type=int,
-    default=0,
+    default=60,
     show_default=True)
 @click.option(
     '--offset_3p',
     help='Number of downstream bases to count(3\')',
     type=int,
-    default=0,
+    default=60,
+    show_default=True)
+@click.option(
+    '--orientation',
+    help='Orientation of read ends',
+    type=click.Choice(['5prime', '3prime']),
+    required=True)
+@click.option(
+    '--threads',
+    help='Number of threads to use',
+    type=int,
+    default=16,
     show_default=True)
 def export_metagene_coverage_cmd(bed, bw, max_positions, saveto, offset_5p,
-                                 offset_3p):
+                                 offset_3p, orientation, threads):
     metagene_profile = export_metagene_coverage(bed, bw, max_positions, saveto,
-                                                offset_5p, offset_3p)
-
-    for i, count in six.iteritems(metagene_profile):
-        sys.stdout.write('{}\t{}'.format(i, count))
-        sys.stdout.write(os.linesep)
+                                                offset_5p, offset_3p,
+                                                orientation, threads)
+    if saveto is None:
+        for i, count in six.iteritems(metagene_profile):
+            sys.stdout.write('{}\t{}'.format(i, count))
+            sys.stdout.write(os.linesep)
 
 
 ###################### export-read-counts ##############################
@@ -316,7 +337,8 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
     'plot-read-length',
     context_settings=CONTEXT_SETTINGS,
     help='Plot read length distribution')
-@click.option('--read-lengths', help='Path to read length pickle file')
+@click.option('--read-lengths', help='Path to read length counts file')
+@click.option('--hdf', help='Path to hdf file')
 @click.option('--title', help='Plot Title')
 @click.option(
     '--millify_labels',
@@ -328,7 +350,7 @@ def plot_read_counts_cmd(counts, title, marker, color, millify_labels,
     default=None,
     show_default=True)
 @click.option('--ascii', help='Do not plot ascii', is_flag=True)
-def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
+def plot_read_length_dist_cmd(read_lengths, hdf, title, millify_labels, saveto,
                               ascii):
     if read_lengths:
         plot_read_length_dist(
@@ -338,6 +360,26 @@ def plot_read_length_dist_cmd(read_lengths, title, millify_labels, saveto,
             input_is_stream=False,
             saveto=saveto,
             ascii=ascii)
+    elif hdf:
+        path, ext = os.path.splitext(saveto)
+        h5 = HDFParser(hdf)
+        read_length_dist = h5.get_read_length_dist()
+        query_alignment_length_dist = h5.get_query_alignment_length_dist()
+        plot_read_length_dist(
+            read_length_dist,
+            title=title,
+            millify_labels=millify_labels,
+            input_is_stream=False,
+            saveto=saveto,
+            ascii=ascii)
+        plot_read_length_dist(
+            query_alignment_length_dist,
+            title=title,
+            millify_labels=millify_labels,
+            input_is_stream=False,
+            saveto='{}_query_aligned_lengths{}'.format(path, ext),
+            ascii=ascii)
+        h5.close()
     else:
         plot_read_length_dist(
             sys.stdin.readlines(),
@@ -425,18 +467,6 @@ def uniq_mapping_cmd(bam):
     sys.stdout.write(os.linesep)
 
 
-###################### get-bam-coverage ######################################
-@cli.command(
-    'bam-coverage',
-    context_settings=CONTEXT_SETTINGS,
-    help='Get strandwise coerage from bam')
-@click.option('--bam', help='Path to BAM file', required=True)
-@click.option('--saveto', help='Path to store coverage stats', required=True)
-@click.option('--orientation', default='5prime', help='track 5prime or 3prime')
-def bam_coverage_cmd(bam, saveto, orientation):
-    get_bam_coverage(bam, orientation=orientation, saveto=saveto)
-
-
 ###################### get-bam-metagene-coverage ######################################
 @cli.command(
     'bam-metagene-coverage',
@@ -499,9 +529,156 @@ def download_srp_cmd(out, ascp, srpfile, srp_id_list):
 def infer_protocol_cmd(bam, refseq, n_reads):
     protocol, forward_mapped, reverse_mapped = infer_protocol(
         bam, refseq, n_reads)
-    print(
-        dedent('''\
+    print(dedent('''\
                  Forward mapped proportion: {:.4f}
                  Reverse mapped proportion: {:.4f}
                  Likely protocol: {}'''.format(forward_mapped, reverse_mapped,
                                                protocol)))
+
+
+################### Create metagene from multiple bigwigs #####################
+@cli.command(
+    'metagene-multi-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Merge multiple bigwigs')
+@click.option(
+    '--pattern', type=str, help='Pattern to search for', required=True)
+@click.option('--bed', type=str, help='Path to BED file', required=True)
+@click.option(
+    '--saveto', type=str, help='Save output bigwig to', required=True)
+@click.option(
+    '--max_positions',
+    help='maximum positions to count',
+    type=int,
+    default=500,
+    show_default=True)
+@click.option(
+    '--offset_5p',
+    help='Number of upstream bases to count(5\')',
+    type=int,
+    default=0,
+    show_default=True)
+@click.option(
+    '--offset_3p',
+    help='Number of downstream bases to count(3\')',
+    type=int,
+    default=0,
+    show_default=True)
+def merge_multiple_bw(pattern, bed, saveto, max_positions, offset_5p,
+                      offset_3p):
+    bigwigs = glob.glob(pattern, recursive=True)
+    create_metagene_from_multi_bigwig(
+        bed,
+        bigwigs,
+        max_positions,
+        offset_5p,
+        offset_3p,
+        n_jobs=16,
+        saveto=saveto)
+
+
+#######$$############ Create bigwig from tsv #################################
+@cli.command(
+    'tsv-to-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Create bigwig from tsv')
+@click.option('--tsv', type=str, help='Path to tsv file', required=True)
+@click.option(
+    '--chromsizes', type=str, help='Path to chrom.sizes file', required=True)
+@click.option('--prefix', type=str, help='Prefix ', required=True)
+def tsv_to_bw_cmd(tsv, chromsizes, prefix):
+    tsv_to_bigwig(tsv, chromsizes, prefix)
+
+
+################### Create metagene from multiple bigwigs #####################
+@cli.command(
+    'hdf-to-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Create bigwig from hdf')
+@click.option('--hdf', type=str, help='Path to hdf file', required=True)
+@click.option('--prefix', type=str, help='Prefix ', required=True)
+@click.option(
+    '--readlength',
+    type=int,
+    help='Create bw only of this fragment length',
+    required=False,
+    default='all')
+def hdf_to_bw_cmd(hdf, prefix, readlength):
+    hdf_to_bigwig(hdf, prefix, readlength)
+
+
+###################### get-bam-coverage ######################################
+@cli.command(
+    'bam-coverage',
+    context_settings=CONTEXT_SETTINGS,
+    help='Get strandwise coerage from bam')
+@click.option('--bam', help='Path to BAM file', required=True)
+@click.option('--genebed', help='Path to genes.bed file', required=True)
+@click.option(
+    '--outprefix', help='Prefix to store coverage output', required=True)
+def bam_coverage_cmd(bam, genebed, outprefix):
+    get_bam_coverage(bam, genebed, outprefix)
+
+
+################### Merge multiple bigwigs ####################################
+@cli.command(
+    'merge-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Merge multiple bigwigs')
+@click.option(
+    '--pattern', type=str, help='Pattern to search for', required=True)
+@click.option(
+    '--chromsizes', type=str, help='Path to chrom.sizes file', required=True)
+@click.option(
+    '--saveto', type=str, help='Save output bigwig to', required=True)
+def merge_bw_cmd(pattern, chromsizes, saveto):
+    bigwigs = glob.glob(os.path.abspath(pattern), recursive=True)
+    merge_bigwigs(bigwigs, chromsizes, saveto)
+
+
+####################### Sum bigwig ##########################################
+@cli.command('bwsum', context_settings=CONTEXT_SETTINGS, help='Scale bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+def sum_bigwig_cmd(inbw):
+    bw_sum, scale_factor = bwsum(inbw)
+    print('bw_sum: {} | scale_factor: {}'.format(bw_sum, scale_factor))
+
+
+####################### Scale bigwig ##########################################
+@cli.command(
+    'normalize-bw-hdf',
+    context_settings=CONTEXT_SETTINGS,
+    help='Scale fragment length specific bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+@click.option('--hdf', type=str, help='Path to HDF', required=True)
+@click.option(
+    '--readlength', type=int, help='Fragment length to use', required=True)
+@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
+def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
+    normalize_bw_hdf(inbw, hdf, readlength, outbw)
+
+
+####################### Scale bigwig ##########################################
+@cli.command(
+    'scale-bw', context_settings=CONTEXT_SETTINGS, help='Scale bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+@click.option(
+    '--chromsizes', type=str, help='Path to chrom.sizes', required=True)
+@click.option('--scalefactor', type=float, help='Scale factor', required=True)
+@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
+def scale_bigwig_cmd(inbw, chromsizes, scalefactor, outbw):
+    scale_bigwig(inbw, chromsizes, outbw, scalefactor)
+
+
+####################### Scale bigwig ##########################################
+@cli.command(
+    'normalize-bw-hdf',
+    context_settings=CONTEXT_SETTINGS,
+    help='Scale fragment length specific bigwig')
+@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
+@click.option('--hdf', type=str, help='Path to HDF', required=True)
+@click.option(
+    '--readlength', type=int, help='Fragment length to use', required=True)
+@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
+def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
+    normalize_bw_hdf(inbw, hdf, readlength, outbw)

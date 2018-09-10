@@ -16,7 +16,7 @@ test_requirements = requirements + ['pytest']
 
 setup(
     name='riboraptor',
-    version='0.2.2',
+    version='0.3.0',
     description="Python package to analyse ribosome profiling data",
     long_description=readme + '\n\n' + history,
     author="Saket Choudhary",
@@ -27,9 +27,10 @@ setup(
     ],
     package_dir={'riboraptor': 'riboraptor'},
     package_data={
-        'riboraptor':
-        ['annotation/hg38/*.*', 'annotation/mm10/*.*',
-        'annotation/sacCerR64/*.*', 'tests/data/*.*']
+        'riboraptor': [
+            'annotation/hg38/*.*', 'annotation/mm10/*.*',
+            'annotation/sacCerR64/*.*', 'tests/data/*.*'
+        ]
     },
     #data_files=[('riboraptor', ['annotation/*.*'])],
     entry_points={'console_scripts': ['riboraptor=riboraptor.cli:cli']},
