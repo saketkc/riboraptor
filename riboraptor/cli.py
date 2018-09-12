@@ -40,6 +40,7 @@ from .download import run_download_sra_script
 from .coherence import naive_periodicity
 from .plotting import plot_read_counts
 from .plotting import plot_read_length_dist
+from .plotting import plot_periodicity_df
 from .hdf_parser import create_metagene_from_multi_bigwig
 from .hdf_parser import hdf_to_bigwig
 from .hdf_parser import tsv_to_bigwig
@@ -682,3 +683,14 @@ def scale_bigwig_cmd(inbw, chromsizes, scalefactor, outbw):
 @click.option('--outbw', type=str, help='Path to output bigwig', required=True)
 def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
     normalize_bw_hdf(inbw, hdf, readlength, outbw)
+
+
+######################### Plot periodicty dataframe ##############################
+@cli.command(
+    'plot-periodicity-df',
+    context_settings=CONTEXT_SETTINGS,
+    help='Plot periodicity heatmap for fragment length specific dataframe')
+@click.option('--df', type=str, help='Path to tsv', required=True)
+@click.option('--saveto', type=str, help='Output pdf/png', required=True)
+def plot_periodicity_df_cmd(df, saveto):
+    plot_periodicity_df(df, saveto)

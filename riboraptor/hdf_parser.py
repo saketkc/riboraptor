@@ -193,6 +193,8 @@ def hdf_to_bigwig(hdf,
                     # OR mapped_strand - and gene_strand -i
                     for start, end, gene_strand, value in zip(
                             starts, ends, gene_strands, values):
+                        if gene_strand not in ['+', '-']:
+                            continue
                         if mapped_strand == gene_strand:
                             bws['collapsed_bw'].addEntries([chrom], [start],
                                                            ends=[end],
@@ -203,6 +205,8 @@ def hdf_to_bigwig(hdf,
                     # OR mapped_strand - and gene_strand +
                     for start, end, gene_strand, value in zip(
                             starts, ends, gene_strands, values):
+                        if gene_strand not in ['+', '-']:
+                            continue
                         if mapped_strand == complementary_strand(gene_strand):
                             bws['collapsed_bw'].addEntries([chrom], [start],
                                                            ends=[end],

@@ -61,6 +61,7 @@ rule all:
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
         'multiqc_report/aggregated_report.html',
         expand('reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
+        expand('plots/periodicity/{sample}.png', sample=SRX_SAMPLES),
         expand('bigWig_lengthwise_normalized/{sample}/{fragment_length}/{orientation}_{strand}.bw',
                sample=SRX_SAMPLES,
                fragment_length=FRAGMENT_LENGTHS,
@@ -348,7 +349,7 @@ rule create_hdf:
 
 rule hdf_to_bw:
     input: 'hdf/{sample}.hdf5'
-    benchmark: 'benchmarks/hdf_to_bw/{sample}.txt'
+    benchmark: 'benchmarks/hdf_to_bw/{sample}_{fragment_length}.txt'
     output:
         prime5_pos = 'bigWig_lengthwise/{sample}/{fragment_length}/5prime_pos.bw',
         prime3_pos = 'bigWig_lengthwise/{sample}/{fragment_length}/3prime_pos.bw',
@@ -429,7 +430,6 @@ rule multiqc:
         bams = expand('bams/{sample}.bam',
                       sample=SRX_SAMPLES),
         counts = 'featureCounts/fcounts.tsv',
-    benchmark: 'benchmarks/multiqc/multiqc.txt'
     output:
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png')
     resources:
@@ -449,6 +449,19 @@ rule aggregate_multiqc_plots:
         html='multiqc_report/aggregated_report.html'
     wrapper:
         get_wrapper('multiqc_report_wrapper')
+
+rule periodicity_matrix:
+    input: expand('metagene_coverage_lengthwise/{{sample}}/{fragment_length}/5prime_combined.tsv', fragment_length=FRAGMENT_LENGTHS)
+    output: 'periodicity/{sample}.tsv'
+    wrapper:
+        get_wrapper('periodicity_wrapper')
+
+
+rule plot_periodicity_matrix:
+    input: 'periodicity/{sample}.tsv'
+    output: 'plots/periodicity/{sample}.png'
+    shell:
+        r'''riboraptor plot-periodicity-df --df {input} --saveto {output}'''
 
 
 rule qc_report:
