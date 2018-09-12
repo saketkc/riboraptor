@@ -1,7 +1,7 @@
 __default__:
     partition: 'cmb'
     time: '12:00:00'
-    mem: '4gb'
+    mem: '2gb'
     cores: 1
     logout: 'slurm-logs/snakemake-slurm-logs-{rule}.{wildcards}.out'
     logerror: 'slurm-logs/snakemake-slurm-logs-{rule}.{wildcards}.err'
@@ -32,23 +32,23 @@ fragment_length_pickle:
 
 merge_bams:
     cores: 16
-    mem: '40gb'
+    mem: '16gb'
 
 pickle_counts_cds:
     cores: 1
-    mem: '40gb'
+    mem: '16gb'
 
 pickle_counts_utr3:
     cores: 1
-    mem: '40gb'
+    mem: '16gb'
 
 pickle_counts_utr5:
     cores: 1
-    mem: '40gb'
+    mem: '16gb'
 
 create_hdf:
     cores: 1
-    mem: '50gb'
+    mem: '16gb'
 
 hdf_to_bw:
     cores: 1

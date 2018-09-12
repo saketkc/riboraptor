@@ -72,7 +72,7 @@ rule all:
 rule sra_to_fastq:
     input: sra_to_fastq_input
     benchmark: 'benchmarks/sra_to_fastq/{sample}.txt'
-    output: 'sratofastq/{sample}.fastq.gz'
+    output: temp('sratofastq/{sample}.fastq.gz')
     params:
         prefix='sratofastq/{sample}.fastq'
     shell:
@@ -88,7 +88,7 @@ rule merge_fastq:
         all_fastq = expand('sratofastq/{srr}.fastq.gz', srr=ALL_SRR),
         dynamic_input = merge_fastq_input
     benchmark: 'benchmarks/merge_fastq/{sample}.txt'
-    output: 'fastq_merged/{sample}.fastq.gz'
+    output: temp('fastq_merged/{sample}.fastq.gz')
     wrapper:
         get_wrapper('merge_fastq_wrapper')
 
@@ -98,8 +98,8 @@ rule perform_qc:
         'fastq_merged/{sample}.fastq.gz'
     benchmark: 'benchmarks/perform_qc/{sample}.txt'
     output:
-       'qc/{sample}_fastqc.html',
-       'qc/{sample}_fastqc.zip',
+       temp('qc/{sample}_fastqc.html'),
+       temp('qc/{sample}_fastqc.zip'),
     params:
         out_dir = 'qc'
     resources:
@@ -115,8 +115,7 @@ rule perfom_trimming_merged:
     input:
         R1 = 'fastq_merged/{sample}.fastq.gz',
     benchmark: 'benchmarks/perform_trimming_merged/{sample}.txt'
-    output:
-        'merged_preprocessed/{sample}_trimmed.fq.gz'
+    output: temp('merged_preprocessed/{sample}_trimmed.fq.gz')
     params:
         out_dir = 'merged_preprocessed',
         phred_cutoff = 5,
@@ -133,7 +132,7 @@ rule perform_trimming:
         R1 = 'sratofastq/{sample}.fastq.gz'
     benchmark: 'benchmarks/perform_trimming/{sample}.txt'
     output:
-        'preprocessed/{sample}_trimmed.fq.gz'
+        temp('preprocessed/{sample}_trimmed.fq.gz')
     params:
         out_dir = 'preprocessed',
         phred_cutoff = 5,
@@ -157,7 +156,7 @@ rule map_star:
         index = STAR_INDEX
     benchmark: 'benchmarks/map_star/{sample}.txt'
     output:
-        bam = 'bams_srr/{sample}.bam',
+        bam = temp('bams_srr/{sample}.bam'),
         txbam = 'bams_srr_tx/{sample}.bam',
         counts = 'STARcounts/{sample}.counts',
         starlogs = 'starlogs/{sample}Log.final.out'
@@ -173,7 +172,7 @@ rule map_star:
 rule merge_bams:
     input: merge_bams_input
     benchmark: 'benchmarks/merge_bams/{sample}.txt'
-    output: 'bams/{sample}.bam'
+    output: temp('bams/{sample}.bam')
     params:
         tmp_dir = '/tmp'
     threads: 16
@@ -184,7 +183,7 @@ rule merge_bams:
 rule extract_uniq_mapping:
     input: 'bams/{sample}.bam'
     benchmark: 'benchmarks/extract_uniq_mapping/{sample}.txt'
-    output: 'bams_unique/{sample}.bam'
+    output: temp('bams_unique/{sample}.bam')
     params:
         tmp_dir = '/tmp'
     threads: 16
@@ -195,7 +194,7 @@ rule extract_uniq_mapping:
 rule bam_to_bedgraph:
     input: 'bams_unique/{sample}.bam'
     benchmark: 'benchmarks/bam_to_bedgraph/{sample}.txt'
-    output: 'bedGraphs/{sample}.bg'
+    output: temp('bedGraphs/{sample}.bg')
     shell:
         r'''
         riboraptor bam-to-bedgraph \
@@ -449,6 +448,8 @@ rule aggregate_multiqc_plots:
         html='multiqc_report/aggregated_report.html'
     wrapper:
         get_wrapper('multiqc_report_wrapper')
+
+
 
 rule periodicity_matrix:
     input: expand('metagene_coverage_lengthwise/{{sample}}/{fragment_length}/5prime_combined.tsv', fragment_length=FRAGMENT_LENGTHS)
