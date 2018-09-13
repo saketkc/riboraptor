@@ -156,7 +156,7 @@ rule map_star:
         index = STAR_INDEX
     benchmark: 'benchmarks/map_star/{sample}.txt'
     output:
-        bam = temp('bams_srr/{sample}.bam'),
+        bam = 'bams_srr/{sample}.bam',
         txbam = 'bams_srr_tx/{sample}.bam',
         counts = 'STARcounts/{sample}.counts',
         starlogs = 'starlogs/{sample}Log.final.out'
