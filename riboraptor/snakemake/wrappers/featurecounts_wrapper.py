@@ -28,8 +28,8 @@ df = pd.read_table(outputs[0], skiprows=[0])
 if len(outputs) > 1:
     for f in outputs[1:]:
         temp_df = pd.read_table(f, skiprows=[0])
-        temp_df = temp_df.drop(columns=['Geneid', 'Chr', 'Start', 'End', 'Strand', 'Length'])
+        temp_df = temp_df.drop(
+            columns=['Geneid', 'Chr', 'Start', 'End', 'Strand', 'Length'])
         df = pd.concat([df, temp_df], axis=1)
 
-df.to_csv(str(snakemake.output), sep = '\t',
-          index=False, header=True)
+df.to_csv(str(snakemake.output), sep='\t', index=False, header=True)

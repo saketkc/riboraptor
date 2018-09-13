@@ -60,6 +60,7 @@ rule all:
     input:
         dynamic('multiqc_report/multiqc_plots/png/{plot}.png'),
         'multiqc_report/aggregated_report.html',
+        'reports/riboraptor_report_summarized.html',
         expand('reports/{sample}_riboraptor_report.html', sample=SRX_SAMPLES),
         expand('plots/periodicity/{sample}.png', sample=SRX_SAMPLES),
         expand('bigWig_lengthwise_normalized/{sample}/{fragment_length}/{orientation}_{strand}.bw',
@@ -435,7 +436,7 @@ rule multiqc:
         mem_mb=10000
     shell:
         r'''
-        multiqc --export -f --outdir multiqc_report .
+        multiqc --export -f --outdir multiqc_report qc starlogs featureCounts merged_preprocessed bams
         '''
 
 
@@ -486,3 +487,15 @@ rule qc_report:
         html='reports/{sample}_riboraptor_report.html'
     wrapper:
         get_wrapper('qc_report_wrapper')
+
+
+rule qc_report_summarized:
+    input:
+      metagene = expand('plots/metagene/{sample}.png', sample=SRX_SAMPLES),
+      fragment_length = expand('plots/read_length/{sample}.png', sample=SRX_SAMPLES),
+      periodicity = expand('plots/periodicity/{sample}.png', sample=SRX_SAMPLES),
+    benchmark: 'benchmarks/qc_report_summarized/benchmark.txt'
+    output:
+        html='reports/riboraptor_report_summarized.html'
+    wrapper:
+        get_wrapper('qc_report_summarizer_wrapper')

@@ -7,6 +7,7 @@ import errno
 import itertools
 import math
 import os
+import re
 import sys
 import ntpath
 import pickle
@@ -985,3 +986,97 @@ def scale_bigwig(inbigwig, chrom_sizes, outbigwig, scale_factor=1):
             "tool from UCSC which can be downloaded from "
             "http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use "
             "`conda install ucsc-wigtobigwig`")
+
+
+def get_region_sizes(region_bed):
+    """Get summed up size of a CDS/UTR region from bed file
+
+    Parameters
+    ----------
+    region_bed: string
+                Input bed file
+
+    Returns
+    -------
+    region_sizes: pd.Series
+                  Series with region name as index and size as key
+    """
+    if isinstance(region_bed, six.string_types):
+        region_bed = pybedtools.BedTool(region_bed).to_dataframe()
+    region_bed_grouped = region_bed.groupby('name')
+    region_sizes = {}
+    for gene_name, gene_group in region_bed_grouped:
+        ## Get rid of trailing dots
+        gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+        # Collect all intervals at once
+        intervals = zip(gene_group['chrom'], gene_group['start'],
+                        gene_group['end'], gene_group['strand'])
+        for interval in intervals:
+            if gene_name not in region_sizes:
+                # End is always 1-based so does not require +1
+                region_sizes[gene_name] = interval[2] - interval[1]
+            else:
+                region_sizes[gene_name] += interval[2] - interval[1]
+    return pd.Series(region_sizes)
+
+
+def htseq_to_tpm(htseq_f, outfile, cds_bed_f):
+    """Convert htseq-counts file to tpm
+
+    Parameters
+    ----------
+    htseq_f: string
+             Path to htseq-count output
+    outfile: string
+             Path to output file with tpm values
+    cds_bed_f: string
+               Path to CDS/genesize bed file
+    """
+    cds_bed = pybedtools.BedTool(cds_bed_f).to_dataframe()
+    cds_bed_sizes = get_region_sizes(cds_bed)
+    htseq = pd.read_table(htseq_f, names=['name', 'counts']).set_index('name')
+    htseq = htseq.iloc[:-5]
+    if (htseq.shape[0] <= 10):
+        print('Empty dataframe for : {}\n'.format(htseq_f))
+        return None
+    rate = np.log(htseq['counts']).subtract(np.log(cds_bed_sizes))
+    denom = np.log(np.sum(np.exp(rate)))
+    tpm = np.exp(rate - denom + np.log(1e6))
+    tpm = pd.DataFrame(tpm, columns=['tpm'])
+    tpm = tpm.sort_values(by=['tpm'], ascending=False)
+    tpm.to_csv(outfile, sep='\t', index=True, header=False)
+
+
+def counts_to_tpm(counts, sizes):
+    """Counts to TPM
+
+    Parameters
+    ----------
+    counts: array like
+            Series/array of counts
+    sizes: array like
+           Series/array of region sizes
+    """
+    rate = np.log(counts).subtract(np.log(sizes))
+    denom = np.log(np.sum(np.exp(rate)))
+    tpm = np.exp(rate - denom + np.log(1e6))
+    return tpm
+
+
+def featurecounts_to_tpm(fc_f, outfile):
+    """Convert htseq-counts file to tpm
+
+    Parameters
+    ----------
+    fc_f: string
+             Path to htseq-count output
+    outfile: string
+             Path to output file with tpm values
+    """
+    feature_counts = pd.read_table(fc_f, skiprows=[0])
+    feature_counts = feature_counts.drop(
+        columns=['Geneid', 'Chr', 'Start', 'End', 'Strand'])
+    lengths = feature_counts['Length']
+    feature_counts = feature_counts.drop(columns=['Length'])
+    tpm = feature_counts.apply(lambda x: counts_to_tpm(x, lengths), axis=0)
+    tpm.to_csv(outfile, sep='\t', index=False, header=True)
