@@ -192,8 +192,8 @@ def search_orfs(fasta, intervals, min_len):
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
                     seq = merged_seq[start:i]
-                    leader = merged_seq[:start]
-                    trailer = merged_seq[i:]
+                    leader = merged_seq[:start][-99:]
+                    trailer = merged_seq[i:][:100]
                     if ivs:
                         orfs.append((ivs, seq, leader, trailer))
                     break
@@ -389,8 +389,8 @@ def split_bam(bam, protocol, prefix):
                     to_write += 'variableStep chrom={}\n'.format(chrom)
                 to_write += '{}\t{}\n'.format(
                     pos, coverages[length][strand][(chrom, pos)])
-            fname = '{}_{}nt_{}.wig'.format(prefix, length,
-                                            'pos' if strand == '+' else 'neg')
+            fname = '{}_{}nt_{}.wig'.format(prefix, length, 'pos'
+                                            if strand == '+' else 'neg')
             with open(fname, 'w') as output:
                 output.write(to_write)
             reads_of_length += 1
