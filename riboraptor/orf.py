@@ -10,8 +10,6 @@ import warnings
 from collections import Counter
 from collections import defaultdict
 
-import numpy as np
-import pandas as pd
 import pysam
 from tqdm import *
 
@@ -166,7 +164,7 @@ def fetch_seq(fasta, tracks):
     return merged_seq
 
 
-def search_orfs(fasta, intervals):
+def search_orfs(fasta, intervals, min_len):
     if not intervals:
         return []
 
@@ -193,6 +191,9 @@ def search_orfs(fasta, intervals):
             for i in range(start, len(merged_seq), 3):
                 if merged_seq[i:i + 3] in stop_codons:
                     ### found orf
+                    size = i - start
+                    if size < min_len:
+                        break
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
                     seq = merged_seq[start:i]
@@ -204,7 +205,7 @@ def search_orfs(fasta, intervals):
     return orfs
 
 
-def prepare_orfs(gtf, fasta, prefix):
+def prepare_orfs(gtf, fasta, prefix, min_len=30):
 
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
@@ -219,8 +220,8 @@ def prepare_orfs(gtf, fasta, prefix):
     for gid in tqdm(gtf.cds):
         for tid in gtf.cds[gid]:
             tracks = gtf.cds[gid][tid]
-            seq = fetch_seq(fasta, tracks)
-            orf = PutativeORF.from_tracks(tracks, 'CDS', seq)
+            # seq = fetch_seq(fasta, tracks)
+            orf = PutativeORF.from_tracks(tracks, 'CDS')
             if orf:
                 cds_orfs.append(orf)
 
@@ -263,7 +264,8 @@ def prepare_orfs(gtf, fasta, prefix):
 
     uorfs = []
     print('searching uORFs...')
-    for tid, tracks in utr5.items():
+    for tid in tqdm(utr5):
+        tracks = utr5[tid]
         ttype = tracks[0].transcript_type
         gid = tracks[0].gene_id
         gname = tracks[0].gene_name
@@ -272,7 +274,7 @@ def prepare_orfs(gtf, fasta, prefix):
         strand = tracks[0].strand
 
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs)
+        orfs = search_orfs(fasta, ivs, min_len)
         for ivs, seq, leader, trailer in orfs:
             orf = PutativeORF('uORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
@@ -280,7 +282,8 @@ def prepare_orfs(gtf, fasta, prefix):
 
     dorfs = []
     print('searching dORFs...')
-    for tid, tracks in utr3.items():
+    for tid in tqdm(utr3):
+        tracks = utr3[tid]
         ttype = tracks[0].transcript_type
         gid = tracks[0].gene_id
         gname = tracks[0].gene_name
@@ -289,25 +292,25 @@ def prepare_orfs(gtf, fasta, prefix):
         strand = tracks[0].strand
 
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs)
+        orfs = search_orfs(fasta, ivs, min_len)
         for ivs, seq, leader, trailer in orfs:
             orf = PutativeORF('dORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
             dorfs.append(orf)
 
     ### save to file
+    print('saving putative ORFs file...')
     to_write = ('ORF_ID\tORF_type\ttranscript_id\ttranscript_type'
                 '\tgene_id\tgene_name\tgene_type\tchrom'
                 '\tstrand\tcoordinate\tseq\tleader\ttrailer\n')
     formatter = '{}\t' * 12 + '{}\n'
-    for region in [cds_orfs, uorfs, dorfs]:
-        for orf in region:
-            coordinate = ','.join(
-                ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
-            to_write += formatter.format(
-                orf.oid, orf.category, orf.tid, orf.ttype, orf.gid, orf.gname,
-                orf.gtype, orf.chrom, orf.strand, coordinate, orf.seq,
-                orf.leader, orf.trailer)
+    for orf in tqdm(cds_orfs + uorfs + dorfs):
+        coordinate = ','.join(
+            ['{}-{}'.format(iv.start, iv.end) for iv in orf.intervals])
+        to_write += formatter.format(
+            orf.oid, orf.category, orf.tid, orf.ttype, orf.gid, orf.gname,
+            orf.gtype, orf.chrom, orf.strand, coordinate, orf.seq,
+            orf.leader, orf.trailer)
 
     with open('{}_putative_orfs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
