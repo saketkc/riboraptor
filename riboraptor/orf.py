@@ -149,6 +149,17 @@ class PutativeORF:
 
 
 def tracks_to_ivs(tracks):
+    """
+    Parameters
+    ----------
+    tracks: List[GTFTrack]
+            list of gtf tracks
+    
+    Returns
+    -------
+    intervals: List[Interval]
+               list of Interval
+    """
     chrom = {track.chrom for track in tracks}
     strand = {track.strand for track in tracks}
     if len(chrom) != 1 or len(strand) != 1:
@@ -164,6 +175,23 @@ def tracks_to_ivs(tracks):
 
 
 def transcript_to_genome_iv(start, end, intervals, reverse=False):
+    """
+    Parameters
+    ----------
+    start: int
+           start position in transcript
+    end: int
+         end position in transcript
+    intervals: List[Interval]
+               coordinate in genome
+    reverse: bool
+             whether if it is on the reverse strand
+
+    Returns
+    -------
+    ivs: List[Interval]
+         the coordinate for start, end in genome
+    """
     total_len = sum(i.end - i.start + 1 for i in intervals)
     if reverse:
         start, end = total_len - end - 1, total_len - start - 1
@@ -199,6 +227,19 @@ def transcript_to_genome_iv(start, end, intervals, reverse=False):
 
 
 def fetch_seq(fasta, tracks):
+    """
+    Parameters
+    ----------
+    fasta: FastaReader
+           instance of FastaReader
+    tracks: List[GTFTrack]
+            list of gtf track
+
+    Returns
+    -------
+    merged_seq: str
+                combined seqeunce for the region
+    """
     intervals = tracks_to_ivs(tracks)
     if not isinstance(fasta, FastaReader):
         fasta = FastaReader(fasta)
@@ -210,7 +251,24 @@ def fetch_seq(fasta, tracks):
     return merged_seq
 
 
-def search_orfs(fasta, intervals, min_len):
+def search_orfs(fasta, intervals):
+    """
+    Parameters
+    ----------
+    fasta: FastaReader
+           instance of FastaReader
+    intervals: List[Interval]
+               list of intervals
+
+    Returns
+    -------
+    orfs: list
+          list of (List[Interval], seq, leader, trailer)
+            list of intervals for putative ORF
+            seq: sequence for the putative ORF
+            leader: sequence upstream of the ORF
+            trailer: sequence downstream of the ORF
+    """
     if not intervals:
         return []
 
@@ -225,8 +283,11 @@ def search_orfs(fasta, intervals, min_len):
     if strand == '-':
         merged_seq = fasta.reverse_complement(merged_seq)
         reverse = True
-    start_codons = ['ATG', 'CTG', 'GTG']
-    stop_codons = ['TAG', 'TAA', 'TGA']
+    start_codons = set([
+        'ATG', 'TTG', 'CTG', 'GTG', 'AAG', 'AGG', 'ACG', 'ACG', 'ATA', 'ATT',
+        'ATC'
+    ])
+    stop_codons = set(['TAG', 'TAA', 'TGA'])
     for sc in start_codons:
         cur = 0
         while cur < len(merged_seq):
@@ -237,9 +298,6 @@ def search_orfs(fasta, intervals, min_len):
             for i in range(start, len(merged_seq), 3):
                 if merged_seq[i:i + 3] in stop_codons:
                     ### found orf
-                    size = i - start
-                    if size < min_len:
-                        break
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
                     seq = merged_seq[start:i]
@@ -251,7 +309,26 @@ def search_orfs(fasta, intervals, min_len):
     return orfs
 
 
-def prepare_orfs(gtf, fasta, prefix, min_len=30):
+def prepare_orfs(gtf, fasta, prefix):
+    """
+    Parameters
+    ----------
+    gtf: GTFReader
+         instance of GTFReader
+    fasta: FastaReader
+           instance of FastaReader
+    prefix: str
+            prefix for output file
+
+    Returns
+    -------
+    cds: List[PutativeORF]
+         list of CDS
+    uorfs: List[PutativeORF]
+           list of upstream ORFs
+    dorfs: List[PutativeORF]
+           list of downstream ORFs
+    """
 
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
@@ -320,7 +397,7 @@ def prepare_orfs(gtf, fasta, prefix, min_len=30):
         strand = tracks[0].strand
 
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs, min_len)
+        orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
             orf = PutativeORF('uORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
@@ -338,7 +415,7 @@ def prepare_orfs(gtf, fasta, prefix, min_len=30):
         strand = tracks[0].strand
 
         ivs = tracks_to_ivs(tracks)
-        orfs = search_orfs(fasta, ivs, min_len)
+        orfs = search_orfs(fasta, ivs)
         for ivs, seq, leader, trailer in orfs:
             orf = PutativeORF('dORF', tid, ttype, gid, gname, gtype, chrom,
                               strand, ivs, seq, leader, trailer)
@@ -364,7 +441,7 @@ def prepare_orfs(gtf, fasta, prefix, min_len=30):
     return (cds_orfs, uorfs, dorfs)
 
 
-def split_bam(bam, protocol, prefix):
+def split_bam(bam, protocol, prefix, countby='5prime'):
     """Split bam by read length and strand
 
     Parameters
@@ -374,10 +451,19 @@ def split_bam(bam, protocol, prefix):
     protocol: str
           Experiment protocol [forward, reverse]
     prefix: str
-            prefix for output files: {prefix}_xxnt_pos.wig and
-            {prefix}__xxnt_neg.wig
+            prefix for output files
+    countby: str
+             5prime or 3prime to count the read
+
+    Returns
+    -------
+    alignments: dict(dict(Counter))
+                bam split by length, strand, (chrom, pos)
+    read_lengths: dict
+                  key is the length, value is the number of reads
     """
     alignments = defaultdict(lambda: defaultdict(Counter))
+    read_lengths = defaultdict(int)
     qcfail = duplicate = secondary = unmapped = multi = valid = 0
     bam = pysam.AlignmentFile(bam, 'rb')
     total_count = bam.count()
@@ -421,6 +507,7 @@ def split_bam(bam, protocol, prefix):
                     strand = '+'
                     pos = ref_positions[0]
             alignments[length][strand][(chrom, pos)] += 1
+            read_lengths[length] += 1
 
             valid += 1
 
@@ -432,44 +519,31 @@ def split_bam(bam, protocol, prefix):
                    total_count, valid, qcfail, duplicate, secondary, unmapped,
                    multi)
 
-    for length in alignments:
-        reads_of_length = 0
-        for strand in alignments[length]:
-            to_write = ''
-            cur_chrom = ''
-            for chrom, pos in sorted(alignments[length][strand]):
-                if chrom != cur_chrom:
-                    cur_chrom = chrom
-                    to_write += 'variableStep chrom={}\n'.format(chrom)
-                to_write += '{}\t{}\n'.format(
-                    pos, alignments[length][strand][(chrom, pos)])
-            fname = '{}_{}nt_{}.wig'.format(prefix, length, 'pos'
-                                            if strand == '+' else 'neg')
-            with open(fname, 'w') as output:
-                output.write(to_write)
-            reads_of_length += 1
-        summary += '\t{}: {}\n'.format(length, reads_of_length)
-    with open('{}_summary.txt'.format(prefix), 'w') as output:
+    for length in read_lengths:
+        summary += '\t{}: {}\n'.format(length, read_lengths[length])
+
+    with open('{}_bam_summary.txt'.format(prefix), 'w') as output:
         output.write(summary)
 
-    return alignments
+    return (alignments, read_lengths)
 
 
-def align_coverages(coverages, base, saveto):
-    """align coverages to determine the lag to the base
+def align_metagenes(metagenes, read_lengths, prefix):
+    """align metagene coverages to determine the lag of the psites
 
     Parameters
     ----------
-    coverages: str
-               Path to file which contains paths of all metagene
-               from different lengths
-               format:
-               length (e.g. 28) path (e.g. metagene_28.tsv)
-               length (e.g. 29) path (e.g. metagene_29.tsv)
-    base: int
-          The reference length to align against
-    saveto: str
-          Path to save the aligned offsets
+    metagenes: dict
+               key is the length, value is the metagene coverage
+    read_lengths: dict
+                  key is the length, value is the number of reads
+    prefix: str
+            prefix for output files
+
+    Returns
+    -------
+    psite_offsets: dict
+                   key is the length, value is the offset
     """
     base = int(base)
     with open(coverages) as f:
@@ -495,62 +569,22 @@ def align_coverages(coverages, base, saveto):
         output.write(to_write)
 
 
-def merge_wigs(wigs, offsets, strand, saveto):
-    """merge wigs from different lengths into one with shift of offsets
-
+def merge_lengths(alignments, read_lengths, psite_offsets):
+    """
     Parameters
     ----------
-    wigs: str
-          Path to file which contains paths of all wigs from differnt lengths
-          format:
-          length1 path1
-          length2 path2
-    offsets: str
-             Path to file which contains offset for each length
-             format:
-             length1 offset1
-             length2 offset2
-    strand: str
-            '+' for positive strand,
-            '-' for negative strand
-    saveto: str
-            Path to save merged wig
+    alignments: dict(dict(Counter))
+                bam split by length, strand
+    read_lengths: dict
+                  key is the length, value is the number of reads
+    psite_offsets: dict
+                   key is the length, value is the offset
+    Returns
+    -------
+    merged_alignments: dict(dict)
+                       alignments by merging all lengths
     """
-    coverages = defaultdict(int)
-    with open(wigs) as wf:
-        wigs = {
-            int(x.strip().split()[0]): x.strip().split()[1]
-            for x in wf.readlines()
-        }
-    with open(offsets) as of:
-        offsets = {
-            int(x.strip().split()[0]): int(x.strip().split()[1])
-            for x in of.readlines()
-        }
-    for length, wig in wigs.items():
-        with open(wig) as f:
-            for line in f:
-                if line.startswith('variableStep'):
-                    line = line.strip()
-                    chrom = line[line.index('=') + 1:]
-                else:
-                    pos, count = line.strip().split()
-                    pos, count = int(pos), int(count)
-                    if strand == '+':
-                        pos_shifted = pos + offsets[length]
-                    else:
-                        pos_shifted = pos - offsets[length]
-                    if pos_shifted >= 0:
-                        coverages[(chrom, pos_shifted)] += count
-    to_write = ''
-    cur_chrom = ''
-    for chrom, pos in sorted(coverages):
-        if chrom != cur_chrom:
-            cur_chrom = chrom
-            to_write += 'variableStep chrom={}\n'.format(chrom)
-        to_write += '{}\t{}\n'.format(pos, coverages[(chrom, pos)])
-    with open(saveto, 'w') as output:
-        output.write(to_write)
+    pass
 
 
 def parse_annotation(annotation):
@@ -597,6 +631,25 @@ def parse_annotation(annotation):
 
 
 def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
+    """
+    Parameters
+    ----------
+    orf: PutativeORF
+         instance of PutativeORF
+    alignments: dict(dict(Counter))
+                alignments summarized from bam
+    length: int
+            the target length
+    offset_5p: int
+               the number of nts to include from 5'prime
+    offset_3p: int
+               the number of nts to include from 3'prime
+
+    Returns
+    -------
+    coverage: array
+              coverage for ORF for specific length
+    """
     coverage = []
     chrom = orf.chrom
     strand = orf.strand
@@ -608,26 +661,117 @@ def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
 
 def metagene_coverage(cds,
                       alignments,
+                      read_lengths,
                       prefix,
                       max_positions=500,
                       offset_5p=0,
                       offset_3p=0,
                       alignby='start_codon'):
-    coverages = defaultdict(list)
+    """
+    Parameters
+    ----------
+    cds: List[PutativeORF]
+         list of cds
+    alignments: dict(dict(Counter))
+                alignments summarized from bam
+    read_lengths: dict
+                  key is the length, value is the number of reads
+    prefix: str
+            prefix for the output file
+    max_positions: int
+                   the number of nts to include
+    offset_5p: int
+               the number of nts to include from the 5'prime
+    offset_3p: int
+               the number of nts to include from the 3'prime
+    alignby: str
+             'start_codon' or 'stop_codon'
+             align gene coverage at start or stop codon to generate metagene
+             coverage
+
+    Returns
+    -------
+    metagenes: dict
+               key is the length, value is the metagene coverage
+    """
+    metagenes = defaultdict(list)
     for length in alignments.keys():
         for orf in cds:
             coverage = orf_coverage(orf, alignments, length)
+    return metagenes
 
 
-def plot_read_dist(read_lengths):
+def plot_read_lengths(read_lengths, prefix):
+    """
+    Parameters
+    ----------
+    read_lengths: dict
+                  key is the length, value is the number of reads
+    prefix: str
+            prefix for the output file
+    """
     pass
 
 
-def plot_metagene(coverage):
+def plot_metagene(metagenes, read_lengths, prefix):
+    """
+    Parameters
+    ----------
+    metagenes: dict
+               key is the length, value is the metagene coverage
+    read_lengths: dict
+                  key is the length, value is the number of reads
+    prefix: str
+            prefix for the output file
+    """
+    pass
+
+
+def export_orf_coverages(orfs, merged_alignments, prefix):
+    """
+    Parameters
+    ----------
+    orfs: List[PutativeORF]
+          a list of putative orfs
+    merged_alignments: dict(dict)
+                       alignments by merging all lengths
+    prefix: str
+            prefix for output file
+    """
+    pass
+
+
+def export_wig(merged_alignments, prefix):
+    """
+    Parameters
+    ----------
+    merged_alignments: dict(dict)
+                       alignments by merging all lengths
+    prefix: str
+            prefix of output wig files
+    """
     pass
 
 
 def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
+    """
+    Parameters
+    ----------
+    gtf: str
+         Path to the GTF file
+    fasta: str
+           Path to the FASTA file
+    bam: str
+         Path to the bam file
+    prefix: str
+            prefix for all output files
+    annotation: str
+                Path for annontation files of putative ORFs
+                It will be automatically generated if None
+    protocol: str
+              'forward' for stranded, 'reverse' for reverse stranded
+              It will be automatically inferred if None
+    """
 
     if not isinstance(gtf, GTFReader):
         gtf = GTFReader(gtf)
@@ -641,7 +785,13 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
         cds, uorfs, dorfs = parse_annotation(annotation)
 
     if protocol is None:
-        protocol, _, _ = infer_protocol(bam, gtf, prefix)
+        protocol = infer_protocol(bam, gtf, prefix)
 
-    alignments = split_bam(bam, protocol, prefix)
+    alignments, read_lengths = split_bam(bam, protocol, prefix)
+    plot_read_lengths(read_lengths, prefix)
     metagenes = metagene_coverage(cds, alignments, prefix)
+    plot_metagene(metagenes, read_lengths, prefix)
+    psite_offsets = align_metagenes(metagenes, read_lengths)
+    merged_alignments = merge_lengths(alignments, read_lengths, psite_offsets)
+    export_wig(merged_alignments, prefix)
+    export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
