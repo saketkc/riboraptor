@@ -12,6 +12,9 @@ from collections import defaultdict
 
 import pysam
 from tqdm import *
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
@@ -301,8 +304,8 @@ def search_orfs(fasta, intervals):
                     ivs = transcript_to_genome_iv(start, i + 2, intervals,
                                                   reverse)
                     seq = merged_seq[start:i]
-                    leader = merged_seq[:start][-99:]
-                    trailer = merged_seq[i:][:100]
+                    leader = merged_seq[:start]
+                    trailer = merged_seq[i:]
                     if ivs:
                         orfs.append((ivs, seq, leader, trailer))
                     break
@@ -630,7 +633,7 @@ def parse_annotation(annotation):
     return (cds, uorfs, dorfs)
 
 
-def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
+def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
     """
     Parameters
     ----------
@@ -647,21 +650,49 @@ def orf_coverage(orf, alignments, length, offset_5p, offset_3p):
 
     Returns
     -------
-    coverage: array
+    coverage: Series
               coverage for ORF for specific length
     """
     coverage = []
     chrom = orf.chrom
     strand = orf.strand
+    if strand == '-':
+        offset_5p, offset_3p = offset_3p, offset_5p
+    first, last = orf.intervals[0], orf.intervals[-1]
+    for pos in range(first.start - offset_5p, first.start):
+        try:
+            coverage.append(alignments[length][strand][(chrom, pos)])
+        except KeyError:
+            coverage.append(0)
+
     for iv in orf.intervals:
         for pos in range(iv.start, iv.end + 1):
+            try:
+                coverage.append(alignments[length][strand][(chrom, pos)])
+            except KeyError:
+                coverage.append(0)
+
+    for pos in range(last.end + 1, last.end + offset_3p + 1):
+        try:
             coverage.append(alignments[length][strand][(chrom, pos)])
-    return coverage
+        except KeyError:
+            coverage.append(0)
+
+    if strand == '-':
+        coverage.reverse()
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_3p,
+                            len(coverage) - offset_3p))
+    else:
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_5p,
+                            len(coverage) - offset_5p))
 
 
 def metagene_coverage(cds,
                       alignments,
-                      read_lengths,
                       prefix,
                       max_positions=500,
                       offset_5p=0,
@@ -674,8 +705,6 @@ def metagene_coverage(cds,
          list of cds
     alignments: dict(dict(Counter))
                 alignments summarized from bam
-    read_lengths: dict
-                  key is the length, value is the number of reads
     prefix: str
             prefix for the output file
     max_positions: int
@@ -694,10 +723,24 @@ def metagene_coverage(cds,
     metagenes: dict
                key is the length, value is the metagene coverage
     """
-    metagenes = defaultdict(list)
+    metagenes = {}
     for length in alignments.keys():
+
+        metagene_coverage = pd.Series()
+
         for orf in cds:
-            coverage = orf_coverage(orf, alignments, length)
+            coverage = orf_coverage_length(orf, alignments, length, offset_5p,
+                                           offset_3p)
+            if len(coverage.index) > 0:
+                min_index = min(coverage.index.tolist())
+                max_index = max(coverage.index.tolist())
+                coverage = coverage[np.arange(min_index,
+                                              min(max_index, max_positions))]
+            if coverage.mean() > 0:
+                metagene_coverage = metagene_coverage.add(
+                    coverage, fill_value=0)
+        metagenes[length] = metagene_coverage
+
     return metagenes
 
 
@@ -713,7 +756,7 @@ def plot_read_lengths(read_lengths, prefix):
     pass
 
 
-def plot_metagene(metagenes, read_lengths, prefix):
+def plot_metagene(metagenes, read_lengths, prefix, offset=60):
     """
     Parameters
     ----------
@@ -724,7 +767,23 @@ def plot_metagene(metagenes, read_lengths, prefix):
     prefix: str
             prefix for the output file
     """
-    pass
+    total_reads = sum(read_lengths.values())
+    with PdfPages('{}_metagene_plots.pdf'.format(prefix)) as pdf:
+        for length in metagenes:
+            metagene_cov = metagenes[length]
+            min_index = min(metagene_cov.index.tolist())
+            max_index = max(metagene_cov.index.tolist())
+            offset = min(offset, max_index)
+            metagene_cov = metagene_cov[np.arange(min_index, offset)]
+            x = np.arange(min_index, offset)
+            colors = np.tile(['r', 'g', 'b'], len(x)//3 + 1)
+            xticks = np.arange(min_index, offset, 20)
+            ratio = '{:.2%}'.format(read_lengths[length] / total_reads)
+            fig, ax = plt.subplots()
+            ax.vlines(x, ymin=np.zeros(len(x)), ymax=metagene_cov)
+            ax.tick_params(axis='x', which='both', top='off', direction='out')
+            ax.set_xticks(xticks)
+            ax.set_xlim(())
 
 
 def export_orf_coverages(orfs, merged_alignments, prefix):
@@ -791,7 +850,7 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
     plot_read_lengths(read_lengths, prefix)
     metagenes = metagene_coverage(cds, alignments, prefix)
     plot_metagene(metagenes, read_lengths, prefix)
-    psite_offsets = align_metagenes(metagenes, read_lengths)
+    psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
     merged_alignments = merge_lengths(alignments, read_lengths, psite_offsets)
     export_wig(merged_alignments, prefix)
     export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
