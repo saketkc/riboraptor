@@ -24,6 +24,7 @@ from .gtf import GTFReader
 from .interval import Interval
 from .common import is_read_uniq_mapping
 from .common import merge_intervals
+from .common import cal_periodicity
 from .infer_protocol import infer_protocol
 
 
@@ -548,38 +549,34 @@ def align_metagenes(metagenes, read_lengths, prefix):
     psite_offsets: dict
                    key is the length, value is the offset
     """
-    base = int(base)
-    with open(coverages) as f:
-        cov_lens = f.readlines()
-    cov_lens = {
-        int(x.strip().split()[0]): x.strip().split()[1]
-        for x in cov_lens
-    }
-    if base not in cov_lens:
-        print('Failed to find base {} in coverages.'.format(base))
-        return
-    reference = pd.read_table(cov_lens[base])['count']
+    psite_offsets = {}
+    base = n_reads = 0
+    for length, reads in read_lengths.items():
+        if reads > n_reads:
+            base = length
+            n_reads = reads
+    reference = metagenes[base].values
     to_write = 'relative lag to base: {}\n'.format(base)
-    for length, path in cov_lens.items():
-        cov = pd.read_table(path)['count']
+    for length, meta in metagenes.items():
+        cov = meta.values
         xcorr = np.correlate(reference, cov, 'full')
         origin = len(xcorr) // 2
         bound = min(base, length)
         xcorr = xcorr[origin - bound:origin + bound]
         lag = np.argmax(xcorr) - len(xcorr) // 2
+        psite_offsets[length] = lag
         to_write += '\tlag of {}: {}\n'.format(length, lag)
-    with open(saveto, 'w') as output:
+    with open('{}_psite_offsets.txt'.format(prefix), 'w') as output:
         output.write(to_write)
+    return psite_offsets
 
 
-def merge_lengths(alignments, read_lengths, psite_offsets):
+def merge_lengths(alignments, psite_offsets):
     """
     Parameters
     ----------
     alignments: dict(dict(Counter))
                 bam split by length, strand
-    read_lengths: dict
-                  key is the length, value is the number of reads
     psite_offsets: dict
                    key is the length, value is the offset
     Returns
@@ -587,7 +584,18 @@ def merge_lengths(alignments, read_lengths, psite_offsets):
     merged_alignments: dict(dict)
                        alignments by merging all lengths
     """
-    pass
+    merged_alignments = defaultdict(Counter)
+
+    for length, offset in psite_offsets.items():
+        for strand in alignments[length]:
+            for chrom, pos in alignments[length][strand]:
+                count = alignments[length][strand][(chrom, pos)]
+                if strand == '+':
+                    pos_shifted = pos + offset
+                else:
+                    pos_shifted = pos - offset
+                merged_alignments[strand][(chrom, pos_shifted)] += count
+    return merged_alignments
 
 
 def parse_annotation(annotation):
@@ -631,6 +639,62 @@ def parse_annotation(annotation):
                     dorfs.append(orf)
                 pbar.update()
     return (cds, uorfs, dorfs)
+
+
+def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
+    """
+    Parameters
+    ----------
+    orf: PutativeORF
+         instance of PutativeORF
+    alignments: dict(Counter)
+                alignments summarized from bam by merging lengths
+    offset_5p: int
+               the number of nts to include from 5'prime
+    offset_3p: int
+               the number of nts to include from 3'prime
+
+    Returns
+    -------
+    coverage: Series
+              coverage for ORF for specific length
+    """
+    coverage = []
+    chrom = orf.chrom
+    strand = orf.strand
+    if strand == '-':
+        offset_5p, offset_3p = offset_3p, offset_5p
+    first, last = orf.intervals[0], orf.intervals[-1]
+    for pos in range(first.start - offset_5p, first.start):
+        try:
+            coverage.append(alignments[strand][(chrom, pos)])
+        except KeyError:
+            coverage.append(0)
+
+    for iv in orf.intervals:
+        for pos in range(iv.start, iv.end + 1):
+            try:
+                coverage.append(alignments[strand][(chrom, pos)])
+            except KeyError:
+                coverage.append(0)
+
+    for pos in range(last.end + 1, last.end + offset_3p + 1):
+        try:
+            coverage.append(alignments[strand][(chrom, pos)])
+        except KeyError:
+            coverage.append(0)
+
+    if strand == '-':
+        coverage.reverse()
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_3p,
+                            len(coverage) - offset_3p))
+    else:
+        return pd.Series(
+            np.array(coverage),
+            index=np.arange(-offset_5p,
+                            len(coverage) - offset_5p))
 
 
 def orf_coverage_length(orf, alignments, length, offset_5p=0, offset_3p=0):
@@ -753,7 +817,16 @@ def plot_read_lengths(read_lengths, prefix):
     prefix: str
             prefix for the output file
     """
-    pass
+    fig, ax = plt.subplots()
+    x = sorted(read_lengths.keys())
+    y = [read_lengths[i] for i in x]
+    ax.bar(x, y)
+    ax.set_xlabel('Read length')
+    ax.set_ylabel('Number of reads')
+    ax.set_title('Read length distribution')
+    fig.tight_layout()
+    fig.savefig('{}_read_length_dist.pdf'.format(prefix))
+    plt.close()
 
 
 def plot_metagene(metagenes, read_lengths, prefix, offset=60):
@@ -776,17 +849,28 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             offset = min(offset, max_index)
             metagene_cov = metagene_cov[np.arange(min_index, offset)]
             x = np.arange(min_index, offset)
-            colors = np.tile(['r', 'g', 'b'], len(x)//3 + 1)
+            colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
             xticks = np.arange(min_index, offset, 20)
             ratio = '{:.2%}'.format(read_lengths[length] / total_reads)
             fig, ax = plt.subplots()
             ax.vlines(x, ymin=np.zeros(len(x)), ymax=metagene_cov)
             ax.tick_params(axis='x', which='both', top='off', direction='out')
             ax.set_xticks(xticks)
-            ax.set_xlim(())
+            ax.set_xlim((min_index, offset))
+            ax.set_xlabel('Distance from start codon (nt)')
+            ax.set_ylabel('Number of reads')
+            ax.set_title('{} nt reads, proportion: {}'.format(length, ratio))
+
+            fig.tight_layout()
+            pdf.savefig(fig)
+            plt.close()
 
 
-def export_orf_coverages(orfs, merged_alignments, prefix):
+def export_orf_coverages(orfs,
+                         merged_alignments,
+                         prefix,
+                         min_count=0,
+                         min_corr=0.5):
     """
     Parameters
     ----------
@@ -797,7 +881,15 @@ def export_orf_coverages(orfs, merged_alignments, prefix):
     prefix: str
             prefix for output file
     """
-    pass
+    to_write = 'ORF_ID\tcoverage\tcount\tperiodicity\tpval\n'
+    for orf in orfs:
+        oid = orf.oid
+        cov = orf_coverage(orf, merged_alignments).values
+        count = sum(cov)
+        corr, pval = cal_periodicity(cov)
+        to_write += '{}\t{}\t{}\t{}\t{}\n'.format(oid, cov, count, corr, pval)
+    with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
+        output.write(to_write)
 
 
 def export_wig(merged_alignments, prefix):
@@ -809,7 +901,21 @@ def export_wig(merged_alignments, prefix):
     prefix: str
             prefix of output wig files
     """
-    pass
+    for strand in merged_alignments:
+        to_write = ''
+        cur_chrom = ''
+        for chrom, pos in sorted(merged_alignments[strand]):
+            if chrom != cur_chrom:
+                cur_chrom = chrom
+                to_write += 'variableStep chrom={}\n'.format(chrom)
+            to_write += '{}\t{}\n'.format(
+                pos, merged_alignments[strand][(chrom, pos)])
+        if strand == '+':
+            fname = '{}_pos.wig'.format(prefix)
+        else:
+            fname = '{}_neg.wig'.format(prefix)
+        with open(fname, 'w') as output:
+            output.write(to_write)
 
 
 def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
@@ -851,6 +957,6 @@ def detect_orfs(gtf, fasta, bam, prefix, annotation=None, protocol=None):
     metagenes = metagene_coverage(cds, alignments, prefix)
     plot_metagene(metagenes, read_lengths, prefix)
     psite_offsets = align_metagenes(metagenes, read_lengths, prefix)
-    merged_alignments = merge_lengths(alignments, read_lengths, psite_offsets)
+    merged_alignments = merge_lengths(alignments, psite_offsets)
     export_wig(merged_alignments, prefix)
     export_orf_coverages(cds + uorfs + dorfs, merged_alignments, prefix)
