@@ -445,7 +445,7 @@ def prepare_orfs(gtf, fasta, prefix):
     return (cds_orfs, uorfs, dorfs)
 
 
-def split_bam(bam, protocol, prefix, countby='5prime'):
+def split_bam(bam, protocol, prefix):
     """Split bam by read length and strand
 
     Parameters
@@ -456,8 +456,6 @@ def split_bam(bam, protocol, prefix, countby='5prime'):
           Experiment protocol [forward, reverse]
     prefix: str
             prefix for output files
-    countby: str
-             5prime or 3prime to count the read
 
     Returns
     -------
@@ -514,7 +512,8 @@ def split_bam(bam, protocol, prefix, countby='5prime'):
                 else:
                     strand = '+'
                     pos = ref_positions[0]
-            alignments[length][strand][(chrom, pos)] += 1
+            # convert bam coordinate to one-based
+            alignments[length][strand][(chrom, pos+1)] += 1
             read_lengths[length] += 1
 
             valid += 1
@@ -767,8 +766,7 @@ def metagene_coverage(cds,
                       max_positions=500,
                       offset_5p=0,
                       offset_3p=0,
-                      min_reads=50000,
-                      alignby='start_codon'):
+                      meta_min_reads=50000):
     """
     Parameters
     ----------
@@ -786,10 +784,6 @@ def metagene_coverage(cds,
                the number of nts to include from the 5'prime
     offset_3p: int
                the number of nts to include from the 3'prime
-    alignby: str
-             'start_codon' or 'stop_codon'
-             align gene coverage at start or stop codon to generate metagene
-             coverage
 
     Returns
     -------
@@ -798,7 +792,7 @@ def metagene_coverage(cds,
     """
     print('calculating metagene profiles...')
     metagenes = {}
-    lengths = [x for x in read_lengths if read_lengths[x] >= min_reads]
+    lengths = [x for x in read_lengths if read_lengths[x] >= meta_min_reads]
     for length in tqdm(lengths):
 
         metagene_coverage = pd.Series()
@@ -868,9 +862,7 @@ def plot_metagene(metagenes, read_lengths, prefix, offset=60):
             colors = np.tile(['r', 'g', 'b'], len(x) // 3 + 1)
             xticks = np.arange(min_index, offset, 20)
             ratio = read_lengths[length] / total_reads
-            # fig, ax = plt.subplots()
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1, aspect=0.95)
+            fig, (ax, ax2) = plt.subplots(nrows=2, ncols=1)
             ax.vlines(
                 x, ymin=np.zeros(len(x)), ymax=metagene_cov, colors=colors)
             ax.tick_params(axis='x', which='both', top='off', direction='out')
