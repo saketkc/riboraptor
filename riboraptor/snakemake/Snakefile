@@ -176,7 +176,7 @@ rule merge_bams:
     output: temp('bams/{sample}.bam')
     params:
         tmp_dir = '/tmp'
-    threads: 16
+    threads: 8
     wrapper:
         get_wrapper('merge_bams_wrapper')
 

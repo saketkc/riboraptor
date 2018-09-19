@@ -554,7 +554,7 @@ def create_wavelet(data, ax):
     return (iwave, period, power, sig95, coi)
 
 
-def plot_periodicity_df(df, saveto, figsize=(8, 8)):
+def plot_periodicity_df(df, saveto, cbar=False, figsize=(8, 8)):
     """Plot periodicty values across fragment lengths as a matrix.
 
     Parameters
@@ -563,11 +563,13 @@ def plot_periodicity_df(df, saveto, figsize=(8, 8)):
         Path to dataframe containing fragment length specific periodicities
     saveto: string
             Path to output plot file
+    cbar: bool
+          Whether to plot cbar or not
 
     """
 
     fig, ax = plt.subplots(figsize=figsize)
     df = pd.read_table(df, index_col=0)
-    sns.heatmap(df.T, cmap='Blues', square=True, annot=True, ax=ax)
+    sns.heatmap(df.T, cmap='Blues', square=True, annot=True, cbar=cbar, ax=ax)
     fig.tight_layout()
     fig.savefig(saveto)

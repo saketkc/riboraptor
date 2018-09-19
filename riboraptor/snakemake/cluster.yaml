@@ -31,7 +31,7 @@ fragment_length_pickle:
     mem: '40gb'
 
 merge_bams:
-    cores: 16
+    cores: 8
     mem: '16gb'
 
 pickle_counts_cds:
@@ -48,7 +48,7 @@ pickle_counts_utr5:
 
 create_hdf:
     cores: 1
-    mem: '16gb'
+    mem: '40gb'
 
 hdf_to_bw:
     cores: 1

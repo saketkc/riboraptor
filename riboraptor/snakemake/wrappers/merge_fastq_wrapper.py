@@ -8,4 +8,4 @@ if len(snakemake.input.dynamic_input) > 1:
 else:
     source = os.path.abspath(str(snakemake.input.dynamic_input[0]))
     destination = os.path.abspath(str(snakemake.output))
-    shell(r'''ln -s {source} {destination}''')
+    shell(r'''cp {source} {destination}''')

@@ -14,5 +14,4 @@ if len(snakemake.input) > 1:
 elif len(snakemake.input) == 1:
     source = os.path.abspath(str(snakemake.input[0]))
     destination = os.path.abspath(str(snakemake.output))
-    shell('''ln -s {source} {destination} \
-          && ln -s {source}.bai {destination}.bai''')
+    shell('''cp {source} {destination} && cp {source}.bai {destination}.bai''')
