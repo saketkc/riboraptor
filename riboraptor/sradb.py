@@ -2,6 +2,8 @@
 
 import re
 import sqlite3
+import pandas as pd
+
 """
 Tables
 
@@ -64,7 +66,7 @@ def _extract_first_field(data):
 class SRAdb(object):
     def __init__(self, sqlite_file):
         self.sqlite_file = sqlite_file
-        self.db = open()
+        self.open()
         self.cursor = self.db.cursor()
         self.valid_in_acc_type = [
             'SRA', 'ERA', 'DRA', 'SRP', 'ERP', 'DRP', 'SRS', 'ERS', 'DRS',
@@ -109,12 +111,15 @@ class SRAdb(object):
     def desc_table(self, table):
         results = self.cursor.execute(
             'PRAGMA table_info("{}")'.format(table)).fetchall()
-        print('cid\t{name}\ttype\tnotnull\tdflt_value\tpk\n')
+        print('cid\tname\ttype\tnotnull\tdflt_value\tpk\n')
         for result in results:
-            print('\t'.join(result))
+            print('\t'.join(map(lambda x: str(x), result)))
 
     def get_query(self, query):
-        return self.cursor.execute(query)
+        results = self.cursor.execute(query).fetchall()
+        column_names = list(map(lambda x: x[0], self.cursor.description))
+        results = [dict(zip(column_names, result)) for result in results]
+        return pd.DataFrame(results)
 
     def get_row_count(self, table):
         """Get row counts for a table"""
@@ -123,8 +128,8 @@ class SRAdb(object):
 
     def get_table_counts(self):
         tables = self.list_tables()
-        for table in tables:
-            print('{}\t{}'.format(table, self.get_row_count(table)))
+        results = dict([(table, self.get_row_count(table)) for table in tables])
+        return pd.DataFrame.from_dict(results, orient='index', columns=['count'])
 
     def sra_convert(self,
                     acc,
