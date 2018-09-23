@@ -513,11 +513,10 @@ def split_bam(bam, protocol, prefix):
                     strand = '+'
                     pos = ref_positions[0]
             # convert bam coordinate to one-based
-            alignments[length][strand][(chrom, pos+1)] += 1
+            alignments[length][strand][(chrom, pos + 1)] += 1
             read_lengths[length] += 1
 
             valid += 1
-
 
     summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
                '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n'
@@ -935,7 +934,12 @@ def export_wig(merged_alignments, prefix):
             output.write(to_write)
 
 
-def detect_orfs(bam, prefix, gtf=None, fasta=None, annotation=None, protocol=None):
+def detect_orfs(bam,
+                prefix,
+                gtf=None,
+                fasta=None,
+                annotation=None,
+                protocol=None):
     """
     Parameters
     ----------

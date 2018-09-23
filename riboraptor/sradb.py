@@ -3,7 +3,6 @@
 import re
 import sqlite3
 import pandas as pd
-
 """
 Tables
 
@@ -128,8 +127,10 @@ class SRAdb(object):
 
     def get_table_counts(self):
         tables = self.list_tables()
-        results = dict([(table, self.get_row_count(table)) for table in tables])
-        return pd.DataFrame.from_dict(results, orient='index', columns=['count'])
+        results = dict(
+            [(table, self.get_row_count(table)) for table in tables])
+        return pd.DataFrame.from_dict(
+            results, orient='index', columns=['count'])
 
     def sra_convert(self,
                     acc,
