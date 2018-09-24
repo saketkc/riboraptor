@@ -7,6 +7,7 @@ from riboraptor.interval import Interval
 from riboraptor.helpers import merge_intervals
 from riboraptor.helpers import read_refseq_bed
 from riboraptor.helpers import scale_bigwig
+from riboraptor.helpers import read_enrichment
 from riboraptor.hdf_parser import normalize_bw_hdf
 from riboraptor.wig import WigReader
 
@@ -99,3 +100,8 @@ def test_refseq_read():
     refseq = read_refseq_bed('tests/data/hg38_v24_refseq.bed12')
     assert list(sorted(refseq.keys())) == list(
         sorted(['chr1', 'chr22_KI270734v1_random', 'chr22_KI270733v1_random']))
+
+def test_read_enrichment():
+    enrichment, pval = read_enrichment('tests/data/read_lengths.tsv')
+    assert enrichment > 0.5
+

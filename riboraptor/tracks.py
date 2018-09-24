@@ -6,6 +6,7 @@ INDENT_SPACES = '\t'
 
 
 def get_compositetrack_text(track_name, parent):
+    """Create composite track text"""
     header = """\
     track {0}
     compositeTrack on
@@ -69,6 +70,7 @@ def get_supertrack_text(track_name):
 
 
 def get_bigwigtrack_text(track_name, parent, big_data_url, negate_values):
+    """Create bigwig track text"""
     text = """\
     track {0}
     parent {1}
@@ -89,21 +91,7 @@ def get_bigwigtrack_text(track_name, parent, big_data_url, negate_values):
 
 
 def create_trackdb(bwdir, srp, orientation='5prime'):
-    """bwdir is the root directory
-    where all fragment lengths sit
-
-    bwdir: string
-
-
-    SRPXXX
-          |_____SRXYYYY
-          |________29
-          |         | __5prime_pos.bw
-          |         | __5prime_
-          |
-          |________28
-
-
+    """Create track file
     """
 
     # Step 0. Create super track

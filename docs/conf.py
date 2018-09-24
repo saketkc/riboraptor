@@ -29,9 +29,11 @@ class Mock(MagicMock):
 MOCK_MODULES = [
     'numpy', 'scipy', 'scipy.stats.mstats', 'scipy.stats', 'scipy.spatial',
     'scipy.spatial.distance', 'HTSeq', 'pandas', 'pyBigWig', 'matplotlib',
-    'seaborn', 'matplotlib.pyplot', 'matplotlib.ticker', 'biopython', 'Bio',
-    'Bio.Seq', 'Bio.Alphabet', 'statsmodels', 'statsmodels.api', 'pyfaidx',
-    'pysam', 'click', 'click_help_colors', 'pybedtools', 'h5py', 'joblib'
+    'matplotlib.backends', 'matplotlib.backends.backend_pdf', 'seaborn',
+    'matplotlib.pyplot', 'matplotlib.ticker', 'biopython', 'Bio',
+    'Bio.Seq', 'Bio.SeqIO', 'Bio.SeqIO.QualityIO', 'Bio.Alphabet',
+    'statsmodels', 'statsmodels.api', 'pyfaidx', 'pysam', 'click',
+    'click_help_colors', 'pybedtools', 'h5py', 'joblib'
 ]
 sys.modules.update((mod_name, mock.Mock()) for mod_name in MOCK_MODULES)
 
@@ -81,7 +83,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'riboraptor'
-copyright = u"2017, Saket Choudhary"
+copyright = u"2018, Saket Choudhary"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -104,7 +106,7 @@ release = riboraptor.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', 'riboraptor/snakemake/*', 'riboraptor/orf.py']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

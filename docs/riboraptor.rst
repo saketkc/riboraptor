@@ -1,6 +1,7 @@
 riboraptor package
 ==================
 
+
 Submodules
 ----------
 
@@ -60,10 +61,26 @@ riboraptor.genome module
     :undoc-members:
     :show-inheritance:
 
+riboraptor.hdf\_parser module
+-----------------------------
+
+.. automodule:: riboraptor.hdf_parser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 riboraptor.helpers module
 -------------------------
 
 .. automodule:: riboraptor.helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+riboraptor.infer\_protocol module
+---------------------------------
+
+.. automodule:: riboraptor.infer_protocol
     :members:
     :undoc-members:
     :show-inheritance:
@@ -76,10 +93,27 @@ riboraptor.interval module
     :undoc-members:
     :show-inheritance:
 
+riboraptor.kmer module
+----------------------
+
+.. automodule:: riboraptor.kmer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 riboraptor.normalization module
 -------------------------------
 
 .. automodule:: riboraptor.normalization
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+riboraptor.parallel module
+--------------------------
+
+.. automodule:: riboraptor.parallel
     :members:
     :undoc-members:
     :show-inheritance:
@@ -92,10 +126,34 @@ riboraptor.plotting module
     :undoc-members:
     :show-inheritance:
 
+riboraptor.sequence module
+--------------------------
+
+.. automodule:: riboraptor.sequence
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+riboraptor.sradb module
+-----------------------
+
+.. automodule:: riboraptor.sradb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 riboraptor.statistics module
 ----------------------------
 
 .. automodule:: riboraptor.statistics
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+riboraptor.tracks module
+------------------------
+
+.. automodule:: riboraptor.tracks
     :members:
     :undoc-members:
     :show-inheritance:

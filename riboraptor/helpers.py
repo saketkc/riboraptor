@@ -1,6 +1,7 @@
 """All functions that are not so useful, but still useful."""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from collections import Counter
 from collections import OrderedDict
 from collections import defaultdict
 import errno
@@ -1080,3 +1081,83 @@ def featurecounts_to_tpm(fc_f, outfile):
     feature_counts = feature_counts.drop(columns=['Length'])
     tpm = feature_counts.apply(lambda x: counts_to_tpm(x, lengths), axis=0)
     tpm.to_csv(outfile, sep='\t', index=False, header=True)
+
+
+def read_htseq(htseq_f):
+    """Read HTSeq file.
+
+    Parameters
+    ----------
+    htseq_f: str
+             Path to htseq counts file
+
+    Returns
+    -------
+    htseq_df: dataframe
+              HTseq counts as in a dataframe
+    """
+    htseq = pd.read_table(htseq_f, names=['name', 'counts']).set_index('name')
+    htseq = htseq.iloc[:-5]
+    if (htseq.shape[0] <= 10):
+        sys.stderr.write('Empty dataframe for : {}\n'.format(htseq_f))
+        return None
+    return htseq
+
+
+def read_enrichment(read_lengths,
+                    enrichment_range=range(28, 33),
+                    input_is_stream=False,
+                    input_is_file=True):
+    """Calculate read enrichment for a certain range of lengths
+
+    Parameters
+    ----------
+    read_lengths: Counter
+                  A counter with read lengths and their counts
+    enrichment_range: range or str
+                      Range of reads to concentrate upon
+                      (28-32 or range(28,33))
+    input_is_stream: bool
+                     True if input is sent through stdin
+
+    Returns
+    -------
+    ratio: float
+           Enrichment in this range (Scale 0-1)
+    """
+    if input_is_file:
+        read_lengths = os.path.abspath(read_lengths)
+        if not check_file_exists(read_lengths):
+            raise RuntimeError('{} does not exist.'.format(read_lengths))
+        read_lengths = pd.read_table(read_lengths, sep='\t')
+        read_lengths = pd.Series(
+            read_lengths['count'].tolist(),
+            index=read_lengths['read_length'].tolist()).add(pd.Series([0]*len(enrichment_range), index=list(enrichment_range)), fill_value=0)
+    elif input_is_stream:
+        counter = {}
+        for line in read_lengths:
+            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            counter[splitted[0]] = splitted[1]
+        read_lengths = Counter(counter)
+    if isinstance(read_lengths, Counter):
+        read_lengths = pd.Series(read_lengths)
+        if isinstance(enrichment_range, six.string_types):
+            splitted = list(
+                map(lambda x: int(x),
+                    enrichment_range.strip().split('-')))
+        enrichment_range = range(splitted[0], splitted[1] + 1)
+    rpf_signal = read_lengths.get(list(enrichment_range)).sum()
+    total_signal = read_lengths.sum()
+    read_lengths = read_lengths.sort_index()
+    array = [[x] * int(y) for x, y in zip(read_lengths.index, read_lengths.values)]
+    mean_length, std_dev_length = stats.norm.fit(
+        np.concatenate(array).ravel().tolist())
+
+    # mean_length_floor = np.floor(mean_length)
+    # 1 - P(x1 < X <x2) = P(X<x1) + P(X>x2) = cdf(x1) + sf(x2)
+    cdf_min = stats.norm.cdf(
+        min(enrichment_range), mean_length, std_dev_length)
+    sf_max = stats.norm.sf(max(enrichment_range), mean_length, std_dev_length)
+    pvalue = cdf_min + sf_max
+    ratio = rpf_signal / float(total_signal)
+    return ratio, pvalue

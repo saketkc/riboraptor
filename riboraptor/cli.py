@@ -530,7 +530,8 @@ def download_srp_cmd(out, ascp, srpfile, srp_id_list):
 def infer_protocol_cmd(bam, refseq, n_reads):
     protocol, forward_mapped, reverse_mapped = infer_protocol(
         bam, refseq, n_reads)
-    print(dedent('''\
+    print(
+        dedent('''\
                  Forward mapped proportion: {:.4f}
                  Reverse mapped proportion: {:.4f}
                  Likely protocol: {}'''.format(forward_mapped, reverse_mapped,
