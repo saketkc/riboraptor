@@ -1,6 +1,6 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import tqdm
+from tqdm import tqdm
 import numpy as np
 import re
 import pickle
@@ -135,7 +135,7 @@ def copy_sra_data(
             9606: 'hg38'
         },
         sra_source_dir='/staging/as/skchoudh/SRA_datasets/',
-        sra_dest_dir='/staging/as/skchoudh/re-ribo-datasets/samples_to_process/'
+        sra_dest_dir='/staging/as/skchoudh/re-ribo-datasets/'
 ):
     """Copy SRA data to a new location retaining only single ended samples."""
     df = filter_single_end_samples(df)
@@ -149,13 +149,15 @@ def copy_sra_data(
         species_dest_dir = os.path.join(sra_dest_dir, species)
         srp_dest_dir = os.path.join(species_dest_dir, srp)
         mkdir_p(os.path.join(species_dest_dir, srp))
-        source_loc = srp_source_dir + os.path.sep + df[
+        source_loc = srp_source_dir + os.path.sep + df_group[
             'experiment_accession'].str.cat(
-                df['run_accession'] + '.sra', sep=os.path.sep)
-        dest_loc = srp_dest_dir + os.path.sep + df[
+                df_group['run_accession'] + '.sra', sep=os.path.sep)
+        dest_loc = srp_dest_dir + os.path.sep + df_group[
             'experiment_accession'].str.cat(
-                df['run_accession'] + '.sra', sep=os.path.sep)
-        for source, dest in tqdm(zip(source_loc, dest_loc)):
-            mkdir_p(os.path.dirname(dest))
-            if os.path.isfile(source):
-                symlink_force(source, dest)
+                df_group['run_accession'] + '.sra', sep=os.path.sep)
+        with tqdm(total=len(source_loc)) as pbar:
+            for source, dest in zip(source_loc, dest_loc):
+                mkdir_p(os.path.dirname(dest))
+                if os.path.isfile(source):
+                    symlink_force(source, dest)
+                pbar.update()
