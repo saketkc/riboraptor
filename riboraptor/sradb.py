@@ -110,9 +110,12 @@ class SRAdb(object):
     def desc_table(self, table):
         results = self.cursor.execute(
             'PRAGMA table_info("{}")'.format(table)).fetchall()
-        print('cid\tname\ttype\tnotnull\tdflt_value\tpk\n')
+        columns = ['cid', 'name', 'dtype', 'notnull', 'dflt_value', 'pk']
+        data = []
         for result in results:
-            print('\t'.join(map(lambda x: str(x), result)))
+            data.append(list(map(lambda x: str(x), result)))
+        df = pd.DataFrame(data, columns=columns)
+        return df
 
     def get_query(self, query):
         results = self.cursor.execute(query).fetchall()
@@ -135,8 +138,12 @@ class SRAdb(object):
     def sra_convert(self,
                     acc,
                     out_type=[
-                        'sra', 'submission', 'study', 'sample', 'experiment',
-                        'run'
+                        'submission_accession', 'study_accession',
+                        'sample_accession', 'experiment_accession',
+                        'run_accession', 'library_name',
+                        'library_strategy', 'library_source',
+                        'library_selection', 'library_layout',
+                        'common_name', 'bases', 'spots', 'adapter_spec', 'read_spec'
                     ]):
         in_acc_type = re.sub('\\d+$', '', acc).upper()
         if in_acc_type not in self.valid_in_acc_type:
@@ -145,9 +152,9 @@ class SRAdb(object):
         in_type = self.valid_in_type[in_acc_type]
         out_type = [x for x in out_type if x != in_type]
 
-        select_type = in_type + out_type
-        select_type_sql = select_type + "_accession"
-        sql = "SELECT DISTINCT " + select_type_sql + " FROM sra WHERE " + in_type + "_accession IN (" + acc + ")"
+        select_type = [in_type+'_accession'] + out_type
+        select_type_sql = (',').join(select_type)
+        sql = "SELECT DISTINCT " + select_type_sql + " FROM sra_ft WHERE sra_ft MATCH '" + acc + "';"
         return self.get_query(sql)
 
     def search_experiment(self, srx):
