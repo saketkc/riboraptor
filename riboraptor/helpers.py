@@ -171,6 +171,27 @@ def mkdir_p(path):
                 raise
 
 
+def symlink_force(source, destination):
+    """Create forcelink forcefully
+
+    Parameters
+    ----------
+    source: string
+            Location to source file
+    destination: string
+                 Location to target
+
+    """
+    try:
+        os.symlink(source, destination)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST:
+            os.remove(destination)
+            os.symlink(source, destination)
+        else:
+            raise exc
+
+
 def r2(x, y):
     '''Calculate pearson correlation between two vectors.
 
@@ -1132,7 +1153,10 @@ def read_enrichment(read_lengths,
         read_lengths = pd.read_table(read_lengths, sep='\t')
         read_lengths = pd.Series(
             read_lengths['count'].tolist(),
-            index=read_lengths['read_length'].tolist()).add(pd.Series([0]*len(enrichment_range), index=list(enrichment_range)), fill_value=0)
+            index=read_lengths['read_length'].tolist()).add(
+                pd.Series(
+                    [0] * len(enrichment_range), index=list(enrichment_range)),
+                fill_value=0)
     elif input_is_stream:
         counter = {}
         for line in read_lengths:
@@ -1149,7 +1173,8 @@ def read_enrichment(read_lengths,
     rpf_signal = read_lengths.get(list(enrichment_range)).sum()
     total_signal = read_lengths.sum()
     read_lengths = read_lengths.sort_index()
-    array = [[x] * int(y) for x, y in zip(read_lengths.index, read_lengths.values)]
+    array = [[x] * int(y)
+             for x, y in zip(read_lengths.index, read_lengths.values)]
     mean_length, std_dev_length = stats.norm.fit(
         np.concatenate(array).ravel().tolist())
 
