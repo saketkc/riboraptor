@@ -138,12 +138,12 @@ class SRAdb(object):
     def sra_convert(self,
                     acc,
                     out_type=[
-                        'submission_accession', 'study_accession',
-                        'sample_accession', 'experiment_accession',
-                        'run_accession', 'library_name',
+                        'study_accession', 'experiment_accession',
+                        'run_accession', 'taxon_id',
+                        'library_selection','library_layout',
                         'library_strategy', 'library_source',
-                        'library_selection', 'library_layout',
-                        'common_name', 'bases', 'spots', 'adapter_spec', 'read_spec'
+                        'library_name', 'bases', 'spots',
+                        'adapter_spec',
                     ]):
         in_acc_type = re.sub('\\d+$', '', acc).upper()
         if in_acc_type not in self.valid_in_acc_type:
@@ -155,7 +155,14 @@ class SRAdb(object):
         select_type = [in_type+'_accession'] + out_type
         select_type_sql = (',').join(select_type)
         sql = "SELECT DISTINCT " + select_type_sql + " FROM sra_ft WHERE sra_ft MATCH '" + acc + "';"
-        return self.get_query(sql)
+        df = self.get_query(sql)
+        df['avg_read_length'] = df['bases']/df['spots']
+        df['spots'] = df['spots'].astype(int)
+        df['bases'] = df['bases'].astype(int)
+        df['taxon_id'] = df['taxon_id'].astype(int)
+        df = df.sort_values(by=['taxon_id', 'avg_read_length', 'run_accession', 'experiment_accession', 'library_selection'])
+        df = df[out_type+['avg_read_length']].reset_index(drop=True)
+        return df
 
     def search_experiment(self, srx):
         """Search for a SRX/GSM id in the experiments"""
