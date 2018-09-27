@@ -132,7 +132,8 @@ def filter_single_end_samples(df):
 def copy_sra_data(df,
                   taxon_id_map={
                       10090: 'mm10',
-                      9606: 'hg38'
+                      9606: 'hg38',
+                      4932: 'sacCerR64',
                   },
                   sra_source_dir='/staging/as/skchoudh/SRA_datasets/',
                   sra_dest_dir='/staging/as/skchoudh/re-ribo-datasets/'):
@@ -170,34 +171,39 @@ riboraptor_annotation_dir = '/home/cmb-panasas2/skchoudh/github_projects/riborap
 
 genome_fasta_map = {
     'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.fa',
-    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.fa'
+    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.fa',
+    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa'
 }
 
 chrom_sizes_map = {
     'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.chrom.sizes',
-    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.chrom.sizes'
+    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.chrom.sizes',
+    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.sizes'
 }
 
 star_index_map = {
     'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/star_annotated',
-    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/star_annotated'
+    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/star_annotated',
+    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/star_annotated',
 }
 
 gtf_map = {
     'hg38':
     '/home/cmb-panasas2/skchoudh/genomes/hg38/annotation/gencode.v25.annotation.gtf',
     'mm10':
-    '/home/cmb-panasas2/skchoudh/genomes/mm10/annotation/gencode.vM11.annotation.gtf'
+    '/home/cmb-panasas2/skchoudh/genomes/mm10/annotation/gencode.vM11.annotation.gtf',
+    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/annotation/Saccharomyces_cerevisiae.R64-1-1.91.gtf',
+
 }
 
-genome_annotation_map = {'hg38': 'v25', 'mm10': 'vM11', 'mg1655': ''}
+genome_annotation_map = {'hg38': 'v25', 'mm10': 'vM11', 'mg1655': '', 'sacCerR64': 'v91'}
 
 
 def write_config(species, srp):
     rawdata_dir = os.path.join(samples_to_process_dir, species, srp)
     out_dir = os.path.join(re_ribo_analysis_dir, species, srp)
     gene_bed = os.path.join(riboraptor_annotation_dir, species,
-                            genome_annotation_map[species], 'genes.bed.gz')
+                            genome_annotation_map[species], 'gene.bed.gz')
     utr5_bed = os.path.join(riboraptor_annotation_dir, species,
                             genome_annotation_map[species], 'utr5.bed.gz')
     utr3_bed = os.path.join(riboraptor_annotation_dir, species,
@@ -239,7 +245,7 @@ def write_config(species, srp):
     return dedent(to_write)
 
 
-def create_config_file(df, taxon_id_map={10090: 'mm10', 9606: 'hg38'}):
+def create_config_file(df, taxon_id_map={10090: 'mm10', 9606: 'hg38', 4932: 'sacCerR64'}):
     df_grouped = df.groupby(['taxon_id'])
 
     for taxon_id, df_group in df_grouped:
