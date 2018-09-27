@@ -7,6 +7,7 @@ import pickle
 import os
 
 import pandas as pd
+from textwrap import dedent
 from .helpers import mkdir_p
 from .helpers import symlink_force
 
@@ -128,15 +129,13 @@ def filter_single_end_samples(df):
     return df
 
 
-def copy_sra_data(
-        df,
-        taxon_id_map={
-            10090: 'mm10',
-            9606: 'hg38'
-        },
-        sra_source_dir='/staging/as/skchoudh/SRA_datasets/',
-        sra_dest_dir='/staging/as/skchoudh/re-ribo-datasets/'
-):
+def copy_sra_data(df,
+                  taxon_id_map={
+                      10090: 'mm10',
+                      9606: 'hg38'
+                  },
+                  sra_source_dir='/staging/as/skchoudh/SRA_datasets/',
+                  sra_dest_dir='/staging/as/skchoudh/re-ribo-datasets/'):
     """Copy SRA data to a new location retaining only single ended samples."""
     df = filter_single_end_samples(df)
     assert len(df.study_accession.unique()) == 1, 'Multiple SRPs found'
@@ -161,3 +160,99 @@ def copy_sra_data(
                 if os.path.isfile(source):
                     symlink_force(source, dest)
                 pbar.update()
+
+
+re_ribo_root_dir = '/staging/as/skchoudh/SRA_datasets/'
+samples_to_process_dir = '/staging/as/skchoudh/re-ribo-datasets/'
+re_ribo_config_dir = '/home/cmb-panasas2/skchoudh/github_projects/re-ribo-smk/snakemake/configs'
+re_ribo_analysis_dir = '/staging/as/skchoudh/re-ribo-analysis/'
+riboraptor_annotation_dir = '/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/'
+
+genome_fasta_map = {
+    'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.fa',
+    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.fa'
+}
+
+chrom_sizes_map = {
+    'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.chrom.sizes',
+    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.chrom.sizes'
+}
+
+star_index_map = {
+    'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/star_annotated',
+    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/star_annotated'
+}
+
+gtf_map = {
+    'hg38':
+    '/home/cmb-panasas2/skchoudh/genomes/hg38/annotation/gencode.v25.annotation.gtf',
+    'mm10':
+    '/home/cmb-panasas2/skchoudh/genomes/mm10/annotation/gencode.vM11.annotation.gtf'
+}
+
+genome_annotation_map = {'hg38': 'v25', 'mm10': 'vM11', 'mg1655': ''}
+
+
+def write_config(species, srp):
+    rawdata_dir = os.path.join(samples_to_process_dir, species, srp)
+    out_dir = os.path.join(re_ribo_analysis_dir, species, srp)
+    gene_bed = os.path.join(riboraptor_annotation_dir, species,
+                            genome_annotation_map[species], 'genes.bed.gz')
+    utr5_bed = os.path.join(riboraptor_annotation_dir, species,
+                            genome_annotation_map[species], 'utr5.bed.gz')
+    utr3_bed = os.path.join(riboraptor_annotation_dir, species,
+                            genome_annotation_map[species], 'utr3.bed.gz')
+    intron_bed = os.path.join(riboraptor_annotation_dir, species,
+                              genome_annotation_map[species], 'intron.bed.gz')
+    start_codon_bed = os.path.join(riboraptor_annotation_dir, species,
+                                   genome_annotation_map[species],
+                                   'start_codon.bed.gz')
+    stop_codon_bed = os.path.join(riboraptor_annotation_dir, species,
+                                  genome_annotation_map[species],
+                                  'stop_codon.bed.gz')
+    cds_bed = os.path.join(riboraptor_annotation_dir, species,
+                           genome_annotation_map[species], 'cds.bed.gz')
+    genome_fasta = genome_fasta_map[species]
+    gtf = gtf_map[species]
+    chrom_sizes = chrom_sizes_map[species]
+    star_index = star_index_map[species]
+    to_write = """
+    RAWDATA_DIR = '{}'
+    OUT_DIR = '{}'
+    GENOME_FASTA = '{}'
+    CHROM_SIZES = '{}'
+    STAR_INDEX = '{}'
+    GTF = '{}'
+    GENE_BED = '{}'
+    STAR_CODON_BED = '{}'
+    STOP_CODON_BED = '{}'
+    CDS_BED = '{}'
+    UTR5_BED = '{}'
+    UTR3_BED = '{}'
+    INTRON_BED = '{}'
+    ORIENTATIONS = ['5prime', '3prime']
+    STRANDS = ['pos', 'neg', 'combined']
+    FRAGMENT_LENGTHS =  range(18, 39)
+    """.format(rawdata_dir, out_dir, genome_fasta, chrom_sizes, star_index,
+               gtf, gene_bed, start_codon_bed, stop_codon_bed, cds_bed,
+               utr5_bed, utr3_bed, intron_bed)
+    return dedent(to_write)
+
+
+def create_config_file(df, taxon_id_map={10090: 'mm10', 9606: 'hg38'}):
+    df_grouped = df.groupby(['taxon_id'])
+
+    for taxon_id, df_group in df_grouped:
+        assert len(
+            df_group['study_accession'].unique()) == 1, 'Multiple SRPs found'
+        species = taxon_id_map[taxon_id]
+        srp = df_group['study_accession'].unique()[0]
+        with open(
+                os.path.join(re_ribo_config_dir, '{}_{}.py'.format(
+                    species, srp)), 'w') as fh:
+
+            config = write_config(species, srp)
+            fh.write(config)
+            print('Wrote {}'.format(
+                os.path.join(re_ribo_config_dir, '{}_{}.py'.format(
+                    species, srp))))
