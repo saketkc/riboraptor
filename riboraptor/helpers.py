@@ -1191,45 +1191,46 @@ def read_enrichment(read_lengths,
 def bwshift(bw, shift_by, out_bw, chunk_size=20000):
     """Given a bigwig shift all the values by this
     Shifting by 10:
-        variableStep chrom=chr span=1
-        1	1
-        2	2
-        3	5
-        4	6
-        5	5
-        6	3
-        7	3
-        8	5
-        9	5
-        10	5
-        11	6
-        12	6
-        13	0
-        14	2
-        15	3
-        16	3
-        17	10
-        18	4
-        19	4
-        20	2
-        21	2
-        22	2
-        23	1
-        shifted by 10
-        variableStep chrom=chr span=1
-        1	6
-        2	6
-        3	0
-        4	2
-        5	3
-        6	3
-        7	10
-        8	4
-        9	4
-        10	2
-        11	2
-        12	2
-        13	1
+    variableStep chrom=chr span=1
+    1	1
+    2	2
+    3	5
+    4	6
+    5	5
+    6	3
+    7	3
+    8	5
+    9	5
+    10	5
+    11	6
+    12	6
+    13	0
+    14	2
+    15	3
+    16	3
+    17	10
+    18	4
+    19	4
+    20	2
+    21	2
+    22	2
+    23	1
+
+    shifted by 10
+    variableStep chrom=chr span=1
+    1	6
+    2	6
+    3	0
+    4	2
+    5	3
+    6	3
+    7	10
+    8	4
+    9	4
+    10	2
+    11	2
+    12	2
+    13	1
     """
     if isinstance(bw, six.string_types):
         bw = pyBigWig.open(bw)

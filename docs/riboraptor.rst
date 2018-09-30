@@ -1,7 +1,6 @@
 riboraptor package
 ==================
 
-
 Submodules
 ----------
 
@@ -108,7 +107,6 @@ riboraptor.normalization module
     :members:
     :undoc-members:
     :show-inheritance:
-
 
 riboraptor.parallel module
 --------------------------
