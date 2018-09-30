@@ -1186,3 +1186,98 @@ def read_enrichment(read_lengths,
     pvalue = cdf_min + sf_max
     ratio = rpf_signal / float(total_signal)
     return ratio, pvalue
+
+
+def bwshift(bw, shift_by, out_bw, chunk_size=20000):
+    """Given a bigwig shift all the values by this
+    Shifting by 10:
+        variableStep chrom=chr span=1
+        1	1
+        2	2
+        3	5
+        4	6
+        5	5
+        6	3
+        7	3
+        8	5
+        9	5
+        10	5
+        11	6
+        12	6
+        13	0
+        14	2
+        15	3
+        16	3
+        17	10
+        18	4
+        19	4
+        20	2
+        21	2
+        22	2
+        23	1
+        shifted by 10
+        variableStep chrom=chr span=1
+        1	6
+        2	6
+        3	0
+        4	2
+        5	3
+        6	3
+        7	10
+        8	4
+        9	4
+        10	2
+        11	2
+        12	2
+        13	1
+    """
+    if isinstance(bw, six.string_types):
+        bw = pyBigWig.open(bw)
+    chrom_sizes = bw.chroms()
+    out_bw = pyBigWig.open(out_bw, 'w')
+    out_bw.addHeader(list(chrom_sizes.items()), maxZooms=0)
+    for chrom, chrom_size in six.iteritems(chrom_sizes):
+        for start, end in yield_intervals(chrom_size, chunk_size):
+            shifted_values = []
+            shifted_end = end + shift_by
+            shifted_start = start + shift_by
+            # Cases
+            # Case1: shifted_start < chrom_start and shifted_end < chrom_end
+            # Need to set the first shifted_start - chrom_start bases to 0
+            if shifted_start < 0 and shifted_end < chrom_size:
+                zero_padding = np.array([0.0] * np.abs(shifted_start))
+                shifted_values = np.concatenate(
+                    [zero_padding,
+                     bw.values(chrom, 0, shifted_end)])
+            # Case2: shifted_start < 0 and shifted_end > chrom_end
+            elif shifted_start < 0 and shifted_end >= chrom_size:
+                zero_padding_start = np.array([0.0] * shifted_start)
+                zero_padding_end = np.array([0.0] * (shifted_end - chrom_size))
+                shifted_values = np.concatenate([
+                    zero_padding_start,
+                    bw.values(chrom, shifted_start, chrom_size),
+                    zero_padding_end
+                ])
+            # Case3: shifted_start > 0 and shifted_end > chrom_end
+            elif shifted_start > 0 and shifted_end >= chrom_size:
+                zero_padding_end = np.array([0.0] * (shifted_end - chrom_size))
+                shifted_values = np.concatenate([
+                    bw.values(chrom, shifted_start, chrom_size),
+                    zero_padding_end
+                ])
+            elif shifted_start > 0 and shifted_end < chrom_size:
+                shifted_values = bw.values(chrom, shifted_start, shifted_end)
+            elif shifted_start >= chrom_size:
+                shifted_values = []
+            else:
+                raise NotImplementedError(
+                    'Unhandled case: shifted_start = {} | shifted_end = {} | chrom_size = {}'
+                    .format(shifted_start, shifted_end, chrom_size))
+            assert end - start == len(
+                shifted_values
+            ), 'end = {} | shifted_end = {} | start={} | shifted_start ={} | values_len = {}'.format(
+                end, shifted_end, start, shifted_start, len(shifted_values))
+            starts = np.arange(start, end)
+            ends = starts + 1
+            out_bw.addEntries([chrom] * (end - start), starts, ends,
+                              shifted_values)

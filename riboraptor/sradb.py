@@ -165,7 +165,7 @@ class SRAdb(object):
         df['avg_read_length'] = df['bases'] / df['spots']
         df['spots'] = df['spots'].astype(int)
         df['bases'] = df['bases'].astype(int)
-        df['taxon_id'] = df['taxon_id'].astype(int)
+        df['taxon_id'] = df['taxon_id'].fillna(0).astype(int)
         df = df.sort_values(by=[
             'taxon_id', 'avg_read_length', 'run_accession',
             'experiment_accession', 'library_selection'

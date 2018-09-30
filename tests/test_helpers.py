@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import pytest
 import numpy as np
+import pyBigWig
 
 from riboraptor.interval import Interval
 from riboraptor.helpers import merge_intervals
@@ -10,6 +11,7 @@ from riboraptor.helpers import scale_bigwig
 from riboraptor.helpers import read_enrichment
 from riboraptor.hdf_parser import normalize_bw_hdf
 from riboraptor.wig import WigReader
+from riboraptor.helpers import bwshift
 
 
 def test_scale_bigwig():
@@ -101,7 +103,19 @@ def test_refseq_read():
     assert list(sorted(refseq.keys())) == list(
         sorted(['chr1', 'chr22_KI270734v1_random', 'chr22_KI270733v1_random']))
 
+
 def test_read_enrichment():
     enrichment, pval = read_enrichment('tests/data/read_lengths.tsv')
     assert enrichment > 0.5
 
+
+def test_bwshift():
+    bwshift('tests/data/chr1.bw', 10, 'tests/data/chr1.shifted_pos10.bw')
+    bwshift('tests/data/chr1.bw', -10, 'tests/data/chr1.shifted_neg10.bw')
+    bw1 = pyBigWig.open('tests/data/chr1.bw')
+    bw2 = pyBigWig.open('tests/data/chr1.shifted_pos10.bw', 'r')
+    bw3 = pyBigWig.open('tests/data/chr1.shifted_neg10.bw', 'r')
+    np.testing.assert_array_almost_equal(
+        bw1.values('chr1', 0, 23)[10:20], bw2.values('chr1', 0, 10))
+    np.testing.assert_array_almost_equal(
+        bw1.values('chr1', 0, 23)[0:10], bw3.values('chr1', 10, 20))

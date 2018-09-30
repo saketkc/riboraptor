@@ -48,6 +48,7 @@ from .hdf_parser import merge_bigwigs
 from .hdf_parser import HDFParser
 from .hdf_parser import normalize_bw_hdf
 from .helpers import bwsum
+from .helpers import bwshift
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -648,20 +649,6 @@ def sum_bigwig_cmd(inbw):
 
 ####################### Scale bigwig ##########################################
 @cli.command(
-    'normalize-bw-hdf',
-    context_settings=CONTEXT_SETTINGS,
-    help='Scale fragment length specific bigwig')
-@click.option('--inbw', type=str, help='Path to input bigwig', required=True)
-@click.option('--hdf', type=str, help='Path to HDF', required=True)
-@click.option(
-    '--readlength', type=int, help='Fragment length to use', required=True)
-@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
-def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
-    normalize_bw_hdf(inbw, hdf, readlength, outbw)
-
-
-####################### Scale bigwig ##########################################
-@cli.command(
     'scale-bw', context_settings=CONTEXT_SETTINGS, help='Scale bigwig')
 @click.option('--inbw', type=str, help='Path to input bigwig', required=True)
 @click.option(
@@ -672,7 +659,7 @@ def scale_bigwig_cmd(inbw, chromsizes, scalefactor, outbw):
     scale_bigwig(inbw, chromsizes, outbw, scalefactor)
 
 
-####################### Scale bigwig ##########################################
+####################### Normalize bigwig from hdf ##########################################
 @cli.command(
     'normalize-bw-hdf',
     context_settings=CONTEXT_SETTINGS,
@@ -695,3 +682,16 @@ def normalize_bw_hdf_cmd(inbw, hdf, readlength, outbw):
 @click.option('--saveto', type=str, help='Output pdf/png', required=True)
 def plot_periodicity_df_cmd(df, saveto):
     plot_periodicity_df(df, saveto)
+
+
+######################### Shift bigwig ###########################################
+@cli.command(
+    'shift-bw',
+    context_settings=CONTEXT_SETTINGS,
+    help='Shift a bigwig by certain bases')
+@click.option('--bw', type=str, help='Path to bigwig', required=True)
+@click.option(
+    '--shift', type=int, help='Shift by these many bases', required=True)
+@click.option('--outbw', type=str, help='Path to output bigwig', required=True)
+def bwshift_cmd(bw, shift, outbw):
+    bwshift(bw, shift, outbw)
