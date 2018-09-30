@@ -112,6 +112,81 @@ def get_fragment_enrichment_score(txt_file):
         return np.nan, 1
 
 
+re_ribo_root_dir = '/staging/as/skchoudh/SRA_datasets/'
+samples_to_process_dir = '/staging/as/skchoudh/re-ribo-datasets/'
+re_ribo_config_dir = '/home/cmb-panasas2/skchoudh/github_projects/re-ribo-smk/snakemake/configs'
+re_ribo_analysis_dir = '/staging/as/skchoudh/re-ribo-analysis/'
+riboraptor_annotation_dir = '/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/'
+
+genome_annotation_map = {
+    'hg38': 'v25',
+    'mm10': 'vM11',
+    'mg1655': '',
+    'sacCerR64': 'v91',
+    'MG1655': 'ASM584v2.38',
+    'BDGP6': 'v91'
+}
+taxon_id_map = {
+    10090: 'mm10',
+    9606: 'hg38',
+    4932: 'sacCerR64',
+    511145: 'MG1655',
+    7227: 'BDGP6'
+}
+
+genome_fasta_map = {
+    'hg38':
+    '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.fa',
+    'mm10':
+    '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.fa',
+    'sacCerR64':
+    '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa',
+    'MG1655':
+    '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/fasta/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.toplevel.fa',
+    'BDGP6':
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.fa'
+}
+
+chrom_sizes_map = {
+    'hg38':
+    '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.chrom.sizes',
+    'mm10':
+    '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.chrom.sizes',
+    'sacCerR64':
+    '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.sizes',
+    'MG1655':
+    '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/fasta/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.toplevel.sizes',
+    'BDGP6':
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.sizes'
+}
+
+star_index_map = {
+    'hg38':
+    '/home/cmb-panasas2/skchoudh/genomes/hg38/star_annotated',
+    'mm10':
+    '/home/cmb-panasas2/skchoudh/genomes/mm10/star_annotated',
+    'sacCerR64':
+    '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/star_annotated',
+    'MG1655':
+    '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/star_annotated',
+    'BDGP6':
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/star_annotated'
+}
+
+gtf_map = {
+    'hg38':
+    '/home/cmb-panasas2/skchoudh/genomes/hg38/annotation/gencode.v25.annotation.gtf',
+    'mm10':
+    '/home/cmb-panasas2/skchoudh/genomes/mm10/annotation/gencode.vM11.annotation.gtf',
+    'sacCerR64':
+    '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/annotation/Saccharomyces_cerevisiae.R64-1-1.91.gtf',
+    'MG1655':
+    '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/annotation/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.38.gtf',
+    'BDGP6':
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/annotation/Drosophila_melanogaster.BDGP6.91.gtf'
+}
+
+
 def filter_single_end_samples(df):
     """Filter single end samples from a dataframe
 
@@ -130,11 +205,6 @@ def filter_single_end_samples(df):
 
 
 def copy_sra_data(df,
-                  taxon_id_map={
-                      10090: 'mm10',
-                      9606: 'hg38',
-                      4932: 'sacCerR64',
-                  },
                   sra_source_dir='/staging/as/skchoudh/SRA_datasets/',
                   sra_dest_dir='/staging/as/skchoudh/re-ribo-datasets/'):
     """Copy SRA data to a new location retaining only single ended samples."""
@@ -161,42 +231,6 @@ def copy_sra_data(df,
                 if os.path.isfile(source):
                     symlink_force(source, dest)
                 pbar.update()
-
-
-re_ribo_root_dir = '/staging/as/skchoudh/SRA_datasets/'
-samples_to_process_dir = '/staging/as/skchoudh/re-ribo-datasets/'
-re_ribo_config_dir = '/home/cmb-panasas2/skchoudh/github_projects/re-ribo-smk/snakemake/configs'
-re_ribo_analysis_dir = '/staging/as/skchoudh/re-ribo-analysis/'
-riboraptor_annotation_dir = '/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/'
-
-genome_fasta_map = {
-    'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.fa',
-    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.fa',
-    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa'
-}
-
-chrom_sizes_map = {
-    'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.chrom.sizes',
-    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.chrom.sizes',
-    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.sizes'
-}
-
-star_index_map = {
-    'hg38': '/home/cmb-panasas2/skchoudh/genomes/hg38/star_annotated',
-    'mm10': '/home/cmb-panasas2/skchoudh/genomes/mm10/star_annotated',
-    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/star_annotated',
-}
-
-gtf_map = {
-    'hg38':
-    '/home/cmb-panasas2/skchoudh/genomes/hg38/annotation/gencode.v25.annotation.gtf',
-    'mm10':
-    '/home/cmb-panasas2/skchoudh/genomes/mm10/annotation/gencode.vM11.annotation.gtf',
-    'sacCerR64': '/home/cmb-panasas2/skchoudh/genomes/sacCerR64/annotation/Saccharomyces_cerevisiae.R64-1-1.91.gtf',
-
-}
-
-genome_annotation_map = {'hg38': 'v25', 'mm10': 'vM11', 'mg1655': '', 'sacCerR64': 'v91'}
 
 
 def write_config(species, srp):
@@ -245,7 +279,7 @@ def write_config(species, srp):
     return dedent(to_write)
 
 
-def create_config_file(df, taxon_id_map={10090: 'mm10', 9606: 'hg38', 4932: 'sacCerR64'}):
+def create_config_file(df):
     df_grouped = df.groupby(['taxon_id'])
 
     for taxon_id, df_group in df_grouped:
