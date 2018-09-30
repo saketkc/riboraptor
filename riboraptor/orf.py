@@ -18,8 +18,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
-from joblib import delayed
-from .parallel import ParallelExecutor
 
 from .fasta import FastaReader
 from .gtf import GTFReader
@@ -55,8 +53,8 @@ class PutativeORF:
         self.chrom = chrom
         self.strand = strand
         self.intervals = sorted(intervals, key=lambda x: x.start)
-        start = intervals[0].start
-        end = intervals[-1].end
+        start = self.intervals[0].start
+        end = self.intervals[-1].end
         self.seq = seq
         self.oid = '{}_{}_{}_{}'.format(transcript_id, start, end, len(seq))
         self.leader = leader
@@ -468,58 +466,55 @@ def split_bam(bam, protocol, prefix):
     """
     alignments = defaultdict(lambda: defaultdict(Counter))
     read_lengths = defaultdict(int)
-    qcfail = duplicate = secondary = unmapped = multi = valid = 0
+    total_count = qcfail = duplicate = secondary = unmapped = multi = valid = 0
     print('reading bam file...')
-    bam_file = bam
-    bam = pysam.AlignmentFile(bam_file, 'rb')
-    total_count = bam.count(until_eof=True)
-    bam = pysam.AlignmentFile(bam_file, 'rb')
-    with tqdm(total=total_count) as pbar:
-        for r in tqdm(bam.fetch(until_eof=True)):
-            pbar.update()
+    bam = pysam.AlignmentFile(bam, 'rb')
+    for r in tqdm(bam.fetch(until_eof=True)):
 
-            if r.is_qcfail:
-                qcfail += 1
-                continue
-            if r.is_duplicate:
-                duplicate += 1
-                continue
-            if r.is_secondary:
-                secondary += 1
-                continue
-            if r.is_unmapped:
-                unmapped += 1
-                continue
-            if not is_read_uniq_mapping(r):
-                multi += 1
-                continue
+        total_count += 1
 
-            map_strand = '-' if r.is_reverse else '+'
-            ref_positions = r.get_reference_positions()
-            strand = None
-            pos = None
-            chrom = r.reference_name
-            # length = r.query_length
-            length = len(ref_positions)
-            if protocol == 'forward':
-                if map_strand == '+':
-                    strand = '+'
-                    pos = ref_positions[0]
-                else:
-                    strand = '-'
-                    pos = ref_positions[-1]
-            elif protocol == 'reverse':
-                if map_strand == '+':
-                    strand = '-'
-                    pos = ref_positions[-1]
-                else:
-                    strand = '+'
-                    pos = ref_positions[0]
-            # convert bam coordinate to one-based
-            alignments[length][strand][(chrom, pos + 1)] += 1
-            read_lengths[length] += 1
+        if r.is_qcfail:
+            qcfail += 1
+            continue
+        if r.is_duplicate:
+            duplicate += 1
+            continue
+        if r.is_secondary:
+            secondary += 1
+            continue
+        if r.is_unmapped:
+            unmapped += 1
+            continue
+        if not is_read_uniq_mapping(r):
+            multi += 1
+            continue
 
-            valid += 1
+        map_strand = '-' if r.is_reverse else '+'
+        ref_positions = r.get_reference_positions()
+        strand = None
+        pos = None
+        chrom = r.reference_name
+        # length = r.query_length
+        length = len(ref_positions)
+        if protocol == 'forward':
+            if map_strand == '+':
+                strand = '+'
+                pos = ref_positions[0]
+            else:
+                strand = '-'
+                pos = ref_positions[0]
+        elif protocol == 'reverse':
+            if map_strand == '+':
+                strand = '-'
+                pos = ref_positions[0]
+            else:
+                strand = '+'
+                pos = ref_positions[0]
+        # convert bam coordinate to one-based
+        alignments[length][strand][(chrom, pos + 1)] += 1
+        read_lengths[length] += 1
+
+        valid += 1
 
     summary = ('summary:\n\ttotal_reads: {}\n\tunique_mapped: {}\n'
                '\tqcfail: {}\n\tduplicate: {}\n\tsecondary: {}\n'
@@ -647,7 +642,7 @@ def parse_annotation(annotation):
     return (cds, uorfs, dorfs)
 
 
-def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
+def orf_coverage(orf, alignments, offset_5p=20, offset_3p=0):
     """
     Parameters
     ----------
@@ -703,12 +698,7 @@ def orf_coverage(orf, alignments, offset_5p=0, offset_3p=0):
                             len(coverage) - offset_5p))
 
 
-def orf_coverage_length(orf,
-                        alignments,
-                        length,
-                        max_positions=500,
-                        offset_5p=0,
-                        offset_3p=0):
+def orf_coverage_length(orf, alignments, length, offset_5p=20, offset_3p=0):
     """
     Parameters
     ----------
@@ -718,8 +708,6 @@ def orf_coverage_length(orf,
                 alignments summarized from bam
     length: int
             the target length
-    max_positions: int
-                   the number of nts to include
     offset_5p: int
                the number of nts to include from 5'prime
     offset_3p: int
@@ -757,13 +745,11 @@ def orf_coverage_length(orf,
 
     if strand == '-':
         coverage.reverse()
-        coverage = coverage[:max_positions]
         return pd.Series(
             np.array(coverage),
             index=np.arange(-offset_3p,
                             len(coverage) - offset_3p))
     else:
-        coverage = coverage[:max_positions]
         return pd.Series(
             np.array(coverage),
             index=np.arange(-offset_5p,
@@ -775,9 +761,9 @@ def metagene_coverage(cds,
                       read_lengths,
                       prefix,
                       max_positions=500,
-                      offset_5p=0,
+                      offset_5p=20,
                       offset_3p=0,
-                      meta_min_reads=500000):
+                      meta_min_reads=50000):
     """
     Parameters
     ----------
@@ -807,13 +793,17 @@ def metagene_coverage(cds,
     for length in tqdm(lengths):
 
         metagene_coverage = pd.Series()
-        aprun = ParallelExecutor(n_jobs=16)
-        data = [(orf, alignments, length, max_positions, offset_5p, offset_3p)
-                for orf in cds]
-        total = len(cds)
-        all_coverages = aprun(total=total)(
-            delayed(orf_coverage_length)(d) for d in data)
-        for coverage in all_coverages:
+
+        for orf in tqdm(cds):
+            if orf.strand == '+':
+                continue
+            coverage = orf_coverage_length(orf, alignments, length, offset_5p,
+                                           offset_3p)
+            if len(coverage.index) > 0:
+                min_index = min(coverage.index.tolist())
+                max_index = max(coverage.index.tolist())
+                coverage = coverage[np.arange(min_index,
+                                              min(max_index, max_positions))]
             if coverage.mean() > 0:
                 metagene_coverage = metagene_coverage.add(
                     coverage, fill_value=0)
