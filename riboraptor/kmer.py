@@ -3,14 +3,16 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 from tqdm import tqdm
 import gzip
 import pandas as pd
+import numpy as np
 
 
 def fastq_kmer_histogram(fastq_file,
                          kmer_length=range(5, 31),
                          five_prime=False,
                          max_seq=1000000,
-                         offset=0):
-    """Get a histogram of kmers from a fastq file
+                         offset=0,
+                         drop_probability=0):
+    """Get a histogram of kmers from a fastq  file
 
     Parameters
     ----------
@@ -28,7 +30,9 @@ def fastq_kmer_histogram(fastq_file,
             Example: If the offset is 3, the first 3 bases will be skipped
             and kmers will start only from the 4th position
             For 3'end if the offset is 3, the last 3 bases will be skipped
-
+    drop_probability: float [0-1]
+                      Reads are randomly droppped with this probability to
+                      simulate sampling
     Returns
     -------
     kmers: Series
@@ -48,6 +52,12 @@ def fastq_kmer_histogram(fastq_file,
         for title, seq, qual in FastqGeneralIterator(handle):
             if not should_continue:
                 break
+            if drop_probability > 0:
+                should_drop = np.random.choice(
+                    [1, 0], p=[drop_probability, 1 - drop_probability])
+                if should_drop:
+                    continue
+
             cur_count += 1
             for k in kmer_length:
                 if not five_prime:
