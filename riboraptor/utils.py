@@ -124,14 +124,16 @@ genome_annotation_map = {
     'mg1655': '',
     'sacCerR64': 'v91',
     'MG1655': 'ASM584v2.38',
-    'BDGP6': 'v91'
+    'BDGP6': 'v91',
+    'GRCz10': 'v91'
 }
 taxon_id_map = {
     10090: 'mm10',
     9606: 'hg38',
     4932: 'sacCerR64',
     511145: 'MG1655',
-    7227: 'BDGP6'
+    7227: 'BDGP6',
+    7955: 'GRCz10'
 }
 
 genome_fasta_map = {
@@ -144,7 +146,9 @@ genome_fasta_map = {
     'MG1655':
     '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/fasta/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.toplevel.fa',
     'BDGP6':
-    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.fa'
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.fa',
+    'GRCz10':
+    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.fa'
 }
 
 chrom_sizes_map = {
@@ -157,7 +161,9 @@ chrom_sizes_map = {
     'MG1655':
     '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/fasta/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.toplevel.sizes',
     'BDGP6':
-    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.sizes'
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.sizes',
+    'GRCz10':
+    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.sizes'
 }
 
 star_index_map = {
@@ -170,7 +176,9 @@ star_index_map = {
     'MG1655':
     '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/star_annotated',
     'BDGP6':
-    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/star_annotated'
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/star_annotated',
+    'GRCz10':
+    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/star_annotated',
 }
 
 gtf_map = {
@@ -183,7 +191,9 @@ gtf_map = {
     'MG1655':
     '/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/annotation/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.38.gtf',
     'BDGP6':
-    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/annotation/Drosophila_melanogaster.BDGP6.91.gtf'
+    '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/annotation/Drosophila_melanogaster.BDGP6.91.gtf',
+    'GRCz10':
+    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/annotation/Danio_rerio.GRCz10.91.gtf'
 }
 
 
