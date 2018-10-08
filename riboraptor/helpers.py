@@ -1146,7 +1146,9 @@ def read_enrichment(read_lengths,
     ratio: float
            Enrichment in this range (Scale 0-1)
     """
-    if input_is_file:
+    if isinstance(read_lengths, pd.Series):
+        pass
+    elif input_is_file:
         read_lengths = os.path.abspath(read_lengths)
         if not check_file_exists(read_lengths):
             raise RuntimeError('{} does not exist.'.format(read_lengths))
