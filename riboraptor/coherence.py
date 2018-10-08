@@ -59,6 +59,42 @@ def naive_periodicity(values, identify_peak=False):
     return frame1_total / (frame1_total + frame2_total + frame3_total)
 
 
+def coherence(values):
+    """Calculate coherence and an idea ribo-seq signal
+
+    Parameters
+    ----------
+    values : array like
+             List of values
+
+    Returns
+    -------
+    periodicity : float
+                  Periodicity score calculated as
+                  coherence between input and idea 1-0-0 signal
+
+    f: array like
+       List of frequencies
+
+    Cxy: array like
+         List of coherence at the above frequencies
+
+    """
+    length = len(values)
+    uniform_signal = [0.7, 0.2, 0.1] * (length // 3)
+    mean_centered_values = values - np.nanmean(values)
+    normalized_values = mean_centered_values / \
+        np.max(np.abs(mean_centered_values))
+
+    mean_centered_values = uniform_signal - np.nanmean(uniform_signal)
+    uniform_signal = mean_centered_values / \
+        np.max(np.abs(uniform_signal))
+    f, Cxy = signal.coherence(
+        normalized_values, uniform_signal, nperseg=30, noverlap=27)
+    periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
+    return periodicity_score, f, Cxy
+
+
 def get_periodicity(values, input_is_stream=False):
     """Calculate periodicty wrt 1-0-0 signal.
 
