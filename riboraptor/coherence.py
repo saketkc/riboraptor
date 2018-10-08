@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import six
+from scipy import signal
 from .helpers import identify_peaks
 
 

@@ -30,10 +30,10 @@ MOCK_MODULES = [
     'numpy', 'scipy', 'scipy.stats.mstats', 'scipy.stats', 'scipy.spatial',
     'scipy.spatial.distance', 'HTSeq', 'pandas', 'pyBigWig', 'matplotlib',
     'matplotlib.backends', 'matplotlib.backends.backend_pdf', 'seaborn',
-    'matplotlib.pyplot', 'matplotlib.ticker', 'biopython', 'Bio',
-    'Bio.Seq', 'Bio.SeqIO', 'Bio.SeqIO.QualityIO', 'Bio.Alphabet',
-    'statsmodels', 'statsmodels.api', 'pyfaidx', 'pysam', 'click',
-    'click_help_colors', 'pybedtools', 'h5py', 'joblib'
+    'matplotlib.pyplot', 'matplotlib.ticker', 'biopython', 'Bio', 'Bio.Seq',
+    'Bio.SeqIO', 'Bio.SeqIO.QualityIO', 'Bio.Alphabet', 'statsmodels',
+    'statsmodels.api', 'pyfaidx', 'pysam', 'click', 'click_help_colors',
+    'pybedtools', 'h5py', 'joblib'
 ]
 sys.modules.update((mod_name, mock.Mock()) for mod_name in MOCK_MODULES)
 
