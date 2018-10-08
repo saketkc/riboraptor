@@ -26,7 +26,7 @@ install:
 - conda install numpy scipy matplotlib pandas seaborn statsmodels pyfaidx pysam
     six pytest click-help-colors pybigwig biopython htseq ucsc-bedgraphtobigwig
     ucsc-bedsort pybedtools bx-python tqdm h5py joblib ucsc-bigwigmerge wiggletools ucsc-wigtobigwig
-- pip install click==6.7
+- pip install click
 - pip install sphinx mock pytest-cov codecov
 - pip install numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
 - pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
