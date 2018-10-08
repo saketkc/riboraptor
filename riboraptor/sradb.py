@@ -188,3 +188,17 @@ class SRAdb(object):
         column_names = list(map(lambda x: x[0], self.cursor.description))
         results = dict(zip(column_names, results))
         return results
+
+    def convert_gse_to_srp(self, gse):
+        """Convert GSE to SRP id.
+        Requires input db to be GEOmetadb.sqlite
+        """
+        results = self.get_query('SELECT * from gse WHERE gse = "' + gse + '"')
+        if results.shape[0] == 1:
+            #result = results[0].split(';')[0]
+            splitted = results['supplementary_file'][0].split(';')
+            if len(splitted):
+                match = re.findall('SRP.*', splitted[-1])
+                if len(match):
+                    srp = match[0].split('/')[-1]
+                    return srp
