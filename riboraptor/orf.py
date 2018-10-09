@@ -502,11 +502,11 @@ def split_bam(bam, protocol, prefix):
                 pos = ref_positions[0]
             else:
                 strand = '-'
-                pos = ref_positions[0]
+                pos = ref_positions[-1]
         elif protocol == 'reverse':
             if map_strand == '+':
                 strand = '-'
-                pos = ref_positions[0]
+                pos = ref_positions[-1]
             else:
                 strand = '+'
                 pos = ref_positions[0]
@@ -763,7 +763,7 @@ def metagene_coverage(cds,
                       max_positions=500,
                       offset_5p=20,
                       offset_3p=0,
-                      meta_min_reads=50000):
+                      meta_min_reads=100000):
     """
     Parameters
     ----------
@@ -795,8 +795,6 @@ def metagene_coverage(cds,
         metagene_coverage = pd.Series()
 
         for orf in tqdm(cds):
-            if orf.strand == '+':
-                continue
             coverage = orf_coverage_length(orf, alignments, length, offset_5p,
                                            offset_3p)
             if len(coverage.index) > 0:
@@ -894,15 +892,17 @@ def export_orf_coverages(orfs,
             prefix for output file
     """
     print('exporting coverages for all ORFs...')
-    to_write = 'ORF_ID\tcoverage\tcount\tperiodicity\tpval\n'
+    to_write = 'ORF_ID\tcoverage\tcount\tlength\tnonzero\tperiodicity\tpval\n'
     for orf in tqdm(orfs):
         oid = orf.oid
         cov = orf_coverage(orf, merged_alignments)
         cov = cov.astype(int)
         cov = cov.tolist()
         count = sum(cov)
-        corr, pval = cal_periodicity(cov)
-        to_write += '{}\t{}\t{}\t{}\t{}\n'.format(oid, cov, count, corr, pval)
+        length = len(cov)
+        corr, pval, nonzero = cal_periodicity(cov)
+        to_write += '{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+            oid, cov, count, length, nonzero, corr, pval)
     with open('{}_translating_ORFs.tsv'.format(prefix), 'w') as output:
         output.write(to_write)
 
