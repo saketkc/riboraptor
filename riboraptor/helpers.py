@@ -475,7 +475,8 @@ def parse_star_logs(infile, outfile=None):
     filename = filename.strip('Log.final.out')
     counts_df = pd.DataFrame.from_dict(star_info, orient='index').T
     counts_df.index = [filename]
-    counts_df.to_csv(outfile, sep=str('\t'), index=True, header=True)
+    if outfile:
+        counts_df.to_csv(outfile, sep=str('\t'), index=True, header=True)
     return counts_df
 
 

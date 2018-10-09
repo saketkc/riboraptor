@@ -34,11 +34,13 @@ def cutadapt_to_json(filepath, savetofile=None):
     for l in fh:
         if 'cutadapt' in l:
             sample = None
-        if l.startswith('Used user provided'):
+        if l.startswith('Used user'):
             # Used user provided input and hence no second pass
             adapters = 'User provided'
-        if l.startswith('No adapter found'):
+            break
+        if l.startswith('No adapter'):
             adapters = 'None found (second pass)'
+            break
         if l.startswith('Command line parameters'):
             sample = l.split()[-1]
             sample = path_leaf(sample).replace('.fq.gz', '').replace(
