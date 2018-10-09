@@ -3,7 +3,6 @@ import re
 import logging as log
 from .helpers import path_leaf
 
-
 regexes = {
     'bp_processed': 'Total basepairs processed:\s*([\d,]+) bp',
     'bp_written': 'Total written \(filtered\):\s*([\d,]+) bp',
@@ -35,11 +34,18 @@ def cutadapt_to_json(filepath, savetofile=None):
     for l in fh:
         if 'cutadapt' in l:
             sample = None
+        if l.startswith('Used user provided'):
+            # Used user provided input and hence no second pass
+            adapters = 'User provided'
+        if l.startswith('No adapter found'):
+            adapters = 'None found (second pass)'
         if l.startswith('Command line parameters'):
             sample = l.split()[-1]
-            sample = path_leaf(sample).replace('.fq.gz', '').replace('.fastq.gz', '')
+            sample = path_leaf(sample).replace('.fq.gz', '').replace(
+                '.fastq.gz', '')
             if sample in trim_info:
-                log.debug('Duplicate sample name found! Overwriting: {}'.format(sample))
+                log.debug('Duplicate sample name found! Overwriting: {}'.
+                          format(sample))
             trim_info[sample] = dict()
         if sample is not None:
             for k, r in regexes.items():
@@ -67,9 +73,11 @@ def cutadapt_to_json(filepath, savetofile=None):
                         length_counts[plot_sname][a_len] = int(r_seqs.group(2))
                         length_exp[plot_sname][a_len] = float(r_seqs.group(3))
                         if float(r_seqs.group(3)) > 0:
-                            length_obsexp[plot_sname][a_len] = float(r_seqs.group(2)) / float(r_seqs.group(3))
+                            length_obsexp[plot_sname][a_len] = float(
+                                r_seqs.group(2)) / float(r_seqs.group(3))
                         else:
-                            length_obsexp[plot_sname][a_len] = float(r_seqs.group(2))
+                            length_obsexp[plot_sname][a_len] = float(
+                                r_seqs.group(2))
                     else:
                         break
     fh.close()
