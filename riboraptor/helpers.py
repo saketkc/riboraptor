@@ -141,6 +141,8 @@ def millify(n):
     millidx : str
               Formatted integer
     """
+    if n is None or np.isnan(n):
+        return 'NaN'
     millnames = ['', ' K', ' M', ' B', ' T']
     # Source: http://stackoverflow.com/a/3155023/756986
     n = float(n)
