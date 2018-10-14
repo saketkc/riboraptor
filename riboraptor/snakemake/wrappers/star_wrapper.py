@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import pybedtools
 import tempfile
 from riboraptor.helpers import path_leaf
 from snakemake.shell import shell
@@ -14,9 +15,7 @@ def total_genome_size(chrom_sizes_file):
 
 
 def get_align_intro_params(intron_bed_file):
-    df = pd.read_table(
-        intron_bed_file,
-        names=['chrom', 'start', 'end', 'name', 'score', 'strand'])
+    df = pybedtools.BedTool(intron_bed_file).to_dataframe()
     lengths = df['end'] - df['start']
 
     ## Based on small genomes. See https://groups.google.com/forum/#!topic/rna-star/hQeHTBbkc0c

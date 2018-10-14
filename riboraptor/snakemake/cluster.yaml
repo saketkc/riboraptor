@@ -6,6 +6,22 @@ __default__:
     logout: 'slurm-logs/snakemake-slurm-logs-{rule}.{wildcards}.out'
     logerror: 'slurm-logs/snakemake-slurm-logs-{rule}.{wildcards}.err'
 
+sra_to_fastq:
+    cores: 1
+    mem: '8gb'
+
+perform_trimming:
+    cores: 1
+    mem: '10gb'
+
+bam_to_bedgraph:
+    cores: 1
+    mem: '10gb'
+
+bigwig_from_uniq_bedgraph_raw:
+    cores: 1
+    mem: '40gb'
+
 create_index:
     cores: 16
     mem: '40gb'
@@ -31,8 +47,8 @@ fragment_length_pickle:
     mem: '40gb'
 
 merge_bams:
-    cores: 8
-    mem: '16gb'
+    cores: 1
+    mem: '100gb'
 
 pickle_counts_cds:
     cores: 1
@@ -48,7 +64,7 @@ pickle_counts_utr5:
 
 create_hdf:
     cores: 1
-    mem: '40gb'
+    mem: '100gb'
 
 hdf_to_bw:
     cores: 1
@@ -56,7 +72,7 @@ hdf_to_bw:
 
 export_metagene_individual:
     cores: 1
-    mem: '8gb'
+    mem: '4gb'
 
 report:
     cores: 1

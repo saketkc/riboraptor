@@ -8,6 +8,5 @@ snakemake --snakefile Snakefile\
     --keep-going\
     --stats $PWD/stats/$1.riboraptor.stats\
     --rerun-incomplete\
-    -j 100\
-    --restart-times 2\
+    -j 200\
     --cluster 'sbatch --partition={cluster.partition} --ntasks={cluster.cores} --mem={cluster.mem} --time={cluster.time} -o {cluster.logout} -e {cluster.logerror}'

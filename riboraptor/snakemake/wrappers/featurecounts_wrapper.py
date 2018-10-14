@@ -19,7 +19,7 @@ for protocol, bams in protocols.items():
     else:
         count_strat = ''
     bams = sorted(bams)
-    output = os.path.abspath(str(snakemake.output)) + '-protocol'
+    output = os.path.abspath(str(snakemake.output)) + '-' + protocol
     outputs.append(output)
     shell(
         r'''featureCounts {count_strat} -a {snakemake.params.annotation} -o {output} -t exon -g gene_id -Q 4 -T {snakemake.threads} {bams}'''
