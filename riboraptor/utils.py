@@ -125,7 +125,9 @@ genome_annotation_map = {
     'sacCerR64': 'v91',
     'MG1655': 'ASM584v2.38',
     'BDGP6': 'v91',
-    'GRCz10': 'v91'
+    'GRCz10': 'v91',
+    'panTro3': 'v94',
+    'Mmul8': 'v94'
 }
 taxon_id_map = {
     10090: 'mm10',
@@ -133,7 +135,9 @@ taxon_id_map = {
     4932: 'sacCerR64',
     511145: 'MG1655',
     7227: 'BDGP6',
-    7955: 'GRCz10'
+    7955: 'GRCz10',
+    9598: 'panTro3',
+    9544: 'Mmul8'
 }
 
 genome_fasta_map = {
@@ -148,7 +152,10 @@ genome_fasta_map = {
     'BDGP6':
     '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.fa',
     'GRCz10':
-    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.fa'
+    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.fa',
+    'panTro3': '/home/cmb-panasas2/skchoudh/genomes/panTro3/fasta/Pan_troglodytes.Pan_tro_3.0.dna.toplevel.fa',
+    'Mmul8': '/home/cmb-panasas2/skchoudh/genomes/Mmul8/fasta/Macaca_mulatta.Mmul_8.0.1.dna.toplevel.fa'
+
 }
 
 chrom_sizes_map = {
@@ -163,7 +170,9 @@ chrom_sizes_map = {
     'BDGP6':
     '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.sizes',
     'GRCz10':
-    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.sizes'
+    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.sizes',
+    'panTro3': '/home/cmb-panasas2/skchoudh/genomes/panTro3/fasta/Pan_troglodytes.Pan_tro_3.0.dna.toplevel.sizes',
+    'Mmul8': '/home/cmb-panasas2/skchoudh/genomes/Mmul8/fasta/Macaca_mulatta.Mmul_8.0.1.dna.toplevel.sizes'
 }
 
 star_index_map = {
@@ -179,6 +188,8 @@ star_index_map = {
     '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/star_annotated',
     'GRCz10':
     '/home/cmb-panasas2/skchoudh/genomes/GRCz10/star_annotated',
+    'panTro3': '/home/cmb-panasas2/skchoudh/genomes/panTro3/star_annotated',
+    'Mmul8': '/home/cmb-panasas2/skchoudh/genomes/Mmul8/star_annotated'
 }
 
 gtf_map = {
@@ -193,7 +204,9 @@ gtf_map = {
     'BDGP6':
     '/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/annotation/Drosophila_melanogaster.BDGP6.91.gtf',
     'GRCz10':
-    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/annotation/Danio_rerio.GRCz10.91.gtf'
+    '/home/cmb-panasas2/skchoudh/genomes/GRCz10/annotation/Danio_rerio.GRCz10.91.gtf',
+    'Mmul8': '/home/cmb-panasas2/skchoudh/genomes/Mmul8/annotation/Macaca_mulatta.Mmul_8.0.1.94.gtf',
+    'panTro3': '/home/cmb-panasas2/skchoudh/genomes/panTro3/annotation/Pan_troglodytes.Pan_tro_3.0.94.gtf'
 }
 
 
