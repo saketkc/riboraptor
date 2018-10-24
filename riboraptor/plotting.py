@@ -31,6 +31,8 @@ from .helpers import round_to_nearest
 from .helpers import set_xrotation
 
 __FRAME_COLORS__ = ['#1b9e77', '#d95f02', '#7570b3']
+__FRAME_COLORS__ = ['#fc8d62', '#66c2a5', '#8da0cb']
+
 DPI = 300
 
 
@@ -274,10 +276,11 @@ def plot_framewise_counts(counts,
     for index, cbar in enumerate(barlist):
         cbar.set_color(barplot_colors[index])
     ax.legend((barlist[0], barlist[1], barlist[2]),
-              ('Frame 1', 'Frame 2', 'Frame 3'))
+              ('Frame 1', 'Frame 2', 'Frame 3'),
+              bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+              ncol=3, mode='expand', borderaxespad=0.)
     if title:
         ax.set_title(title)
-    sns.despine(trim=True, offset=20)
     if millify_labels:
         ax.set_yticklabels(list([millify(x) for x in ax.get_yticks()]))
     if saveto:
@@ -293,9 +296,8 @@ def plot_framewise_counts(counts,
             terminal='dumb 200,40',
             unset='grid')
         sys.stdout.write(os.linesep)
-    plt.draw()
-    #if 'xrotation' in kwargs:
-    #    set_xrotation(ax, 45)#kwargs['xrotation'])
+    if 'xrotation' not in kwargs:
+        set_xrotation(ax, 90)#kwargs['xrotation'])
     return ax
 
 
