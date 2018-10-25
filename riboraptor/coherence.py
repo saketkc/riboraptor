@@ -94,11 +94,12 @@ def coherence(values, window='flattop'):
     mean_centered_values = uniform_signal - np.nanmean(uniform_signal)
     uniform_signal = mean_centered_values / \
         np.max(np.abs(uniform_signal))
-    f, Cxy = signal.coherence(normalized_values,
-                              uniform_signal,
-                              window=window,
-                              nperseg=30,
-                              noverlap=15)
+    f, Cxy = signal.coherence(
+        normalized_values,
+        uniform_signal,
+        window=window,
+        nperseg=30,
+        noverlap=15)
     periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
     return periodicity_score, f, Cxy
 
