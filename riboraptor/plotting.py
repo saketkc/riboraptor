@@ -263,13 +263,13 @@ def plot_framewise_counts(counts,
     if 'minorticks' not in kwargs:
         kwargs['minorticks'] = 5
     if 'xrotation' not in kwargs:
-        kwargs['xrotation'] = 45
+        kwargs['xrotation'] = 90
 
     setup_axis(ax, **kwargs)
     ax.set_ylabel('Number of reads')
-    ax.set_xlim(
-        min(counts.index) - 0.6,
-        round_to_nearest(max(counts.index), 10) + 0.6)
+    #ax.set_xlim(
+    #    min(counts.index) - 0.6,
+    #    round_to_nearest(max(counts.index), 10) + 0.6)
     barlist = ax.bar(counts.index, counts.values)
     barplot_colors = list(
         islice(cycle(__FRAME_COLORS__), None, len(counts.index)))
@@ -277,15 +277,15 @@ def plot_framewise_counts(counts,
         cbar.set_color(barplot_colors[index])
     ax.legend((barlist[0], barlist[1], barlist[2]),
               ('Frame 1', 'Frame 2', 'Frame 3'),
-              bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-              ncol=3, mode='expand', borderaxespad=0.)
+              bbox_to_anchor=(0., 1.02, 1., .102),
+              loc=3,
+              ncol=3,
+              mode='expand',
+              borderaxespad=0.)
     if title:
         ax.set_title(title)
     if millify_labels:
         ax.set_yticklabels(list([millify(x) for x in ax.get_yticks()]))
-    if saveto:
-        fig.tight_layout()
-        fig.savefig(saveto, dpi=DPI)
     if ascii:
         sys.stdout.write(os.linesep)
         import gnuplotlib as gp
@@ -296,8 +296,11 @@ def plot_framewise_counts(counts,
             terminal='dumb 200,40',
             unset='grid')
         sys.stdout.write(os.linesep)
-    if 'xrotation' not in kwargs:
-        set_xrotation(ax, 90)#kwargs['xrotation'])
+    set_xrotation(ax, kwargs['xrotation'])
+    fig.tight_layout()
+    if saveto:
+        fig.tight_layout()
+        fig.savefig(saveto, dpi=DPI)
     return ax
 
 

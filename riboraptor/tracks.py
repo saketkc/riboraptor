@@ -103,16 +103,16 @@ def create_trackdb(bwdir, srp, orientation='5prime'):
         srx_orientation_key = srx + '_' + orientation + '_multiWig'
         multiwig_header = indent(
             get_multiwigtrack_text(srx_orientation_key, srp), INDENT_SPACES)
-        master_text += multiwig_header + '\n\n'
         # Step 2. Inside each composite track for a SRX, create another
         # composite track for different orientations/strand inside which
         # we need another multiwig track comprising all fragments for this
         # particular orientation/strand
-        for read_length in sorted(os.listdir(os.path.join(bwdir, srx))):
+        add_header = 0
+        for read_index, read_length in enumerate(
+                sorted(os.listdir(os.path.join(bwdir, srx)))):
             bigwig_text = ''
-            for orientation_strand in [
-                    orientation + '_pos', orientation + '_neg'
-            ]:
+            for orientation_index, orientation_strand in enumerate(
+                [orientation + '_pos', orientation + '_neg']):
                 bwpath = os.path.join(bwdir, srx, read_length,
                                       orientation_strand + '.bw')
                 track_name = '{}_{}_{}'.format(srx, read_length,
@@ -123,10 +123,15 @@ def create_trackdb(bwdir, srp, orientation='5prime'):
                 else:
                     negate_values = 'off'
                 if os.path.isfile(bwpath) and os.stat(bwpath).st_size:
+                    add_header += 1
+                    if add_header == 1:
+                        # Add header only if there is atleast one
+                        # file with atleast one strand
+                        master_text += multiwig_header + '\n\n'
                     bigwig_text += indent(
                         get_bigwigtrack_text(track_name, srx_orientation_key,
-                                             bwpath, negate_values),
-                        2 * INDENT_SPACES)
+                                             'http://ribopod.usc.edu' + bwpath,
+                                             negate_values), 2 * INDENT_SPACES)
             master_text += '\n\n' + bigwig_text
         master_text += '\n\n###############SRXHeader end####################'
     return master_text
