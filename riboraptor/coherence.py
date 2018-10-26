@@ -60,7 +60,7 @@ def naive_periodicity(values, identify_peak=False):
     return frame1_total / (frame1_total + frame2_total + frame3_total)
 
 
-def coherence(values, window='flattop'):
+def coherence(values, nperseg=30, noverlap=15, window='flattop'):
     """Calculate coherence and an idea ribo-seq signal
 
     Parameters
@@ -97,8 +97,8 @@ def coherence(values, window='flattop'):
     f, Cxy = signal.coherence(normalized_values,
                               uniform_signal,
                               window=window,
-                              nperseg=30,
-                              noverlap=15)
+                              nperseg=nperseg,
+                              noverlap=noverlap)
     periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
     return periodicity_score, f, Cxy
 
