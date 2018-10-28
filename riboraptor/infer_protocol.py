@@ -10,7 +10,7 @@ from collections import Counter
 import numpy as np
 
 
-def infer_protocol(bam, bed, n_reads=20000):
+def infer_protocol(bam, bed, n_reads=500000, drop_probability=0):
     """Infer strandedness protocol given a bam file
 
     Parameters
@@ -18,9 +18,12 @@ def infer_protocol(bam, bed, n_reads=20000):
     bam: string
          Path to bam file
     bed: string
-                Path to gene bed file
+         Path to gene bed file
     n_reads: int
              Number of reads to use (downsampled)
+    drop_probability: float [0-1]
+                      Reads are randomly droppped with this probability to
+                      simulate sampling
 
 
     Returns
@@ -32,12 +35,18 @@ def infer_protocol(bam, bed, n_reads=20000):
     reverse_mapped_reads: float
           Proportion of reads of type + mapping to - (+-) or - mapping to + (-+)
     """
+    np.random.seed(42)
     iteration = 0
     create_bam_index(bam)
     bam = pysam.AlignmentFile(bam, 'rb')
     bed = read_bed_as_intervaltree(bed)
     strandedness = Counter()
     for read in bam.fetch():
+        if drop_probability > 0:
+            should_drop = np.random.choice(
+                [1, 0], p=[drop_probability, 1 - drop_probability])
+            if should_drop:
+                continue
         if not is_read_uniq_mapping(read):
             continue
         if read.is_reverse:
