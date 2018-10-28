@@ -67,7 +67,10 @@ def infer_protocol(bam, bed, n_reads=20000):
     forward_mapped_reads = (strandedness['++'] + strandedness['--']) / total
     reverse_mapped_reads = (strandedness['-+'] + strandedness['+-']) / total
     ratio = forward_mapped_reads / reverse_mapped_reads
-    if np.isclose([ratio], [1]):
+    # Prefer checking for unstrandedness
+    # Check if the forward mapped reads - 0.5 is small,
+    # this threhold is defined to be 0.05
+    if np.isclose([np.abs(forward_mapped_reads-0.5)], [0], atol=0.06):
         return 'unstranded', forward_mapped_reads, reverse_mapped_reads, total
     elif forward_mapped_reads >= 0.5:
         return 'forward', forward_mapped_reads, reverse_mapped_reads, total
