@@ -10,7 +10,7 @@ from collections import Counter
 import numpy as np
 
 
-def infer_protocol(bam, bed, n_reads=500000, drop_probability=0):
+def infer_protocol(bam, bed, n_reads=500000, drop_probability=0.2):
     """Infer strandedness protocol given a bam file
 
     Parameters
