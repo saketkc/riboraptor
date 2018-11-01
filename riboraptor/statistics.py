@@ -126,4 +126,3 @@ def coherence_pvalue(x, N):
     df, nc = 2, 2.0 / (N - 1)
     x = 2 * N**2 * x / (N - 1)
     return stats.ncx2.sf(x, df, nc)
-

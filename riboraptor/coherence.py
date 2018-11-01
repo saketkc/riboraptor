@@ -8,6 +8,7 @@ from scipy import signal
 from .helpers import identify_peaks
 from .stats import coherence_pvalue
 
+
 def _shift_bit_length(x):
     """Shift bit"""
     return 1 << (x - 1).bit_length()
@@ -103,6 +104,7 @@ def coherence_ft(values, nperseg=30, noverlap=15, window='flattop'):
     periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
     return periodicity_score, f, Cxy
 
+
 def coherence(original_values):
     """Calculate coherence and an idea ribo-seq signal
 
@@ -132,15 +134,19 @@ def coherence(original_values):
         normalized_values = []
         i = 0
         while i + 2 < len(values):
-            if values[i] == values[i+1] == values[i+2] == 0:
+            if values[i] == values[i + 1] == values[i + 2] == 0:
                 i += 3
                 continue
-            real = values[i] + values[i+1] * np.cos(2*np.pi/3) + values[i+2] * np.cos(4*np.pi/3)
-            imag = values[i+1] * np.sin(2*np.pi/3) + values[i+2] * np.sin(4*np.pi/3)
-            norm = np.sqrt(real ** 2 + imag ** 2)
+            real = values[i] + values[i + 1] * np.cos(
+                2 * np.pi / 3) + values[i + 2] * np.cos(4 * np.pi / 3)
+            imag = values[i + 1] * np.sin(
+                2 * np.pi / 3) + values[i + 2] * np.sin(4 * np.pi / 3)
+            norm = np.sqrt(real**2 + imag**2)
             if norm == 0:
                 norm = 1
-            normalized_values += [values[i] / norm, values[i+1] / norm, values[i+2] / norm]
+            normalized_values += [
+                values[i] / norm, values[i + 1] / norm, values[i + 2] / norm
+            ]
             i += 3
 
         length = len(normalized_values) // 3 * 3
@@ -149,7 +155,11 @@ def coherence(original_values):
         normalized_values = normalized_values[:length]
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
-            normalized_values, uniform_signal, window=[1.0,1.0,1.0], nperseg=3, noverlap=0)
+            normalized_values,
+            uniform_signal,
+            window=[1.0, 1.0, 1.0],
+            nperseg=3,
+            noverlap=0)
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
             periodicity_pval = coherence_pvalue(periodicity_score, length // 3)
