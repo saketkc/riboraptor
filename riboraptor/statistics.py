@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 from scipy.stats.mstats import ks_2samp
 import statsmodels.api as sm
+from scipy import stats
+from scipy import signal
+import scipy.integrate as integrate
 
 
 def KDE(values):
@@ -103,3 +106,24 @@ def KS_test(a, b):
     effect_size, p = ks_2samp(a, b, alternative='greater')
     D = cdf_a.subtract(cdf_b).abs().idxmax()
     return D, effect_size, p, cdf_a, cdf_b
+
+
+def coherence_pvalue(x, N):
+    """Calculate p-value for coherence score
+
+    Parameters
+    ----------
+    x: float [0-1]
+       Coherence value
+    N: int
+       Total number of windows
+
+    Returns
+    -------
+    pval: float
+          p-value
+    """
+    df, nc = 2, 2.0 / (N - 1)
+    x = 2 * N**2 * x / (N - 1)
+    return stats.ncx2.sf(x, df, nc)
+
