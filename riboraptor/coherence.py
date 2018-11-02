@@ -6,7 +6,7 @@ import pandas as pd
 import six
 from scipy import signal
 from .helpers import identify_peaks
-from .stats import coherence_pvalue
+from .statistics import coherence_pvalue
 
 
 def _shift_bit_length(x):
@@ -126,7 +126,7 @@ def coherence(original_values):
          List of coherence at the above frequencies
 
     """
-    if not isinstance(original_values):
+    if not isinstance(original_values, list):
         original_values = list(original_values)
     coh, pval, valid = 0.0, 1.0, -1
     for frame in [0, 1, 2]:
