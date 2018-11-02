@@ -792,7 +792,7 @@ def read_bed_as_intervaltree(filepath):
     Returns
     -------
     bedint_tree: dict
-                 dict with keys as gene name and values as intervaltree
+                 dict with keys as gene name and strand as intervaltree
 
     """
     bed_df = pybedtools.BedTool(filepath).sort().to_dataframe()

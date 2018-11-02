@@ -6,7 +6,6 @@ from scipy.stats.mstats import ks_2samp
 import statsmodels.api as sm
 from scipy import stats
 from scipy import signal
-import scipy.integrate as integrate
 
 
 def KDE(values):
