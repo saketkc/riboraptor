@@ -140,11 +140,7 @@ class SRAdb(object):
                     out_type=[
                         'study_accession',
                         'experiment_accession',
-                        'experiment_name',
                         'experiment_title',
-                        'sample_name',
-                        'sample_alias',
-                        'submission_date',
                         'run_accession',
                         'taxon_id',
                         'library_selection',

@@ -105,7 +105,7 @@ def coherence_ft(values, nperseg=30, noverlap=15, window='flattop'):
     return periodicity_score, f, Cxy
 
 
-def coherence(original_values):
+def coherence(original_values, frames=[0]):
     """Calculate coherence and an idea ribo-seq signal
 
     Parameters
@@ -129,7 +129,15 @@ def coherence(original_values):
     if not isinstance(original_values, list):
         original_values = list(original_values)
     coh, pval, valid = 0.0, 1.0, -1
-    for frame in [0, 1, 2]:
+    final_individual_angles =  []
+    final_angle =  np.nan
+    final_coherence_raw = np.nan
+    final_unit_vector_real = []
+    final_unit_vector_imag = []
+    thetas = []
+    for frame in frames:
+        unit_vectors_real = []
+        unit_vectors_imag = []
         values = original_values[frame:]
         normalized_values = []
         i = 0
@@ -144,14 +152,18 @@ def coherence(original_values):
             norm = np.sqrt(real**2 + imag**2)
             if norm == 0:
                 norm = 1
+            unit_vectors_real += [real/norm]
+            unit_vectors_imag  += [imag/norm]
             normalized_values += [
                 values[i] / norm, values[i + 1] / norm, values[i + 2] / norm
             ]
             i += 3
+        unit_vectors_real = np.array(unit_vectors_real)
+        unit_vectors_imag = np.array(unit_vectors_imag)
 
         length = len(normalized_values) // 3 * 3
         if length == 0:
-            return (0.0, 1.0, 0)
+            return coh, pval, valid, final_coherence_raw, final_angle, final_individual_angles, final_unit_vector_real, final_unit_vector_imag
         normalized_values = normalized_values[:length]
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
@@ -160,19 +172,31 @@ def coherence(original_values):
             window=[1.0, 1.0, 1.0],
             nperseg=3,
             noverlap=0)
+
+        coherence_raw = np.nanmean(unit_vectors_real)**2 + np.nanmean(unit_vectors_imag)**2
+        individual_angles = np.arctan2(unit_vectors_imag, unit_vectors_real)
+        combine_angle = np.arctan2(np.sum(unit_vectors_imag), np.sum(unit_vectors_real))
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
             periodicity_pval = coherence_pvalue(periodicity_score, length // 3)
         except:
             periodicity_score = 0.0
             periodicity_pval = 1.0
-        if periodicity_score > coh:
-            coh = periodicity_score
+
+        if coherence_raw > coh:
+            final_individual_angles =  individual_angles
+            final_angle = combine_angle
+            final_coherence_raw = coherence_raw
+            final_unit_vector_real = unit_vectors_real
+            final_unit_vector_imag = unit_vectors_imag
+
+            #coh = periodicity_score
+            coh = coherence_raw
             pval = periodicity_pval
             valid = length
         if valid == -1:
             valid = length
-    return coh, pval, valid
+    return coh, pval, valid, final_coherence_raw, final_angle, final_individual_angles, final_unit_vector_real, final_unit_vector_imag
 
 
 def get_periodicity(values, input_is_stream=False):
