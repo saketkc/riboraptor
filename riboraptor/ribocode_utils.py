@@ -14,14 +14,14 @@ WilcoxonResult = namedtuple('WilcoxonResult', ('statistic', 'pvalue'))
 
 def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
     """
-	data if x is larger than y, single-sided.
-	"""
+    data if x is larger than y, single-sided.
+    """
 
     if np.allclose(x, y, equal_nan=True):
         return WilcoxonResult(np.nan, np.nan)
     """
-	shamelessly stolen from scipy
-	"""
+    shamelessly stolen from scipy
+    """
     if len(x) < 10 and not (np.allclose(x, x[0]) and np.allclose(y, y[0])):
         #sample size too small, using the ttest
         t_statistic, t_pvalue = ttest_1samp(x - y, popmean=0)
@@ -49,7 +49,7 @@ def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
 
     count = len(d)
     # if count < 10:
-    # 	warnings.warn("Warning: sample size too small for normal approximation.")
+    #   warnings.warn("Warning: sample size too small for normal approximation.")
 
     r = stats.rankdata(abs(d))
     r_plus = np.sum((d > 0) * r, axis=0)
@@ -85,9 +85,9 @@ def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
 
 def combine_pvals(pvalues, method="stouffer"):
     """
-	:param pvs
-	:return: combined pvalue
-	"""
+    :param pvs
+    :return: combined pvalue
+    """
 
     pvs = pvalues[~np.isnan(pvalues)]
     if pvs.size != 2:
