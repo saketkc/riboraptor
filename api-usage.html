@@ -1,0 +1,274 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>API Usage &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Scores" href="scores.html" />
+    <link rel="prev" title="Manual" href="cmd-manual.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scores.html" title="Scores"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cmd-manual.html" title="Manual"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">riboraptor 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmd-manual.html">Manual</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#counting-fragment-lengths">Counting Fragment Lengths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gene-coverage">Gene Coverage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-bedgraph">Creating bedgraph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-bigwig">Creating bigwig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gene-coverage-plot">Gene coverage plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#periodicity-index">Periodicity Index</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utr-cds-3-utr-coverage">5’UTR/CDS/3’UTR coverage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">riboraptor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cmd-manual.html"
+                        title="previous chapter">Manual</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="scores.html"
+                        title="next chapter">Scores</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api-usage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>API Usage</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="api-usage">
+<h1>API Usage<a class="headerlink" href="#api-usage" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">riboraptor</span> <span class="kn">import</span> <span class="n">read_length_distribution</span>
+<span class="kn">from</span> <span class="nn">riboraptor</span> <span class="kn">import</span> <span class="n">fragment_enrichment</span>
+<span class="kn">from</span> <span class="nn">riboraptor.plotting</span> <span class="kn">import</span>  <span class="n">plot_read_counts</span>
+<span class="kn">from</span> <span class="nn">riboraptor.plotting</span> <span class="kn">import</span> <span class="n">plot_fragment_dist</span>
+</pre></div>
+</div>
+<div class="section" id="counting-fragment-lengths">
+<h2>Counting Fragment Lengths<a class="headerlink" href="#counting-fragment-lengths" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ribo_bam_f</span> <span class="o">=</span> <span class="s1">&#39;../data/U251_ribo.bam&#39;</span>
+<span class="n">fragment_lengths</span> <span class="o">=</span> <span class="n">read_length_distribution</span><span class="p">(</span><span class="n">ribo_bam_f</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">,</span> <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_fragment_dist</span><span class="p">(</span><span class="n">fragment_lengths</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/fragment_length_distribution_ideal.png"><img alt="fragment length distribution" src="_images/fragment_length_distribution_ideal.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Fragment length distribution of an Ideal Ribo-seq library</span></p>
+</div>
+<p>The abosve is a good example of an ideal Ribo-seq library where the fragment
+lengths are concentrated between 28 and 31 nucelotides.</p>
+<p>We can also “quantify” this enrichment:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ribo_enrichment</span> <span class="o">=</span> <span class="n">fragment_enrichment</span><span class="p">(</span><span class="n">ribo_bam_f</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">ribo_enrichment</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">75.19322097821424</span><span class="p">,</span> <span class="mf">0.045749574004642399</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s compare this with a RNA-Seq sample from the same sample.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rna_bam_f</span> <span class="o">=</span> <span class="s1">&#39;../data/U251_rna.bam&#39;</span>
+<span class="n">fragment_lengths</span> <span class="o">=</span> <span class="n">read_length_distribution</span><span class="p">(</span><span class="n">rna_bam_f</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">,</span> <span class="n">fig</span> <span class="o">=</span> <span class="n">plot_fragment_dist</span><span class="p">(</span><span class="n">fragment_lengths</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/fragment_length_distribution_rna.png"><img alt="fragment length distribution" src="_images/fragment_length_distribution_rna.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Fragment length distribution of a paired-end RNA-seq library</span></p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rna_enrichment</span> <span class="o">=</span> <span class="n">fragment_enrichment</span><span class="p">(</span><span class="n">rnabam_f</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">rna_enrichment</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">2.334333862251336e-05</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gene-coverage">
+<h2>Gene Coverage<a class="headerlink" href="#gene-coverage" title="Permalink to this headline">¶</a></h2>
+<p>In order to visualize genewise coverage, we need to create a bigwig file first. This inturn
+requires a bedgraph file.</p>
+<div class="section" id="creating-bedgraph">
+<h3>Creating bedgraph<a class="headerlink" href="#creating-bedgraph" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">riboraptor</span> <span class="kn">import</span> <span class="n">create_bedgraph</span>
+<span class="n">create_bedgraph</span><span class="p">(</span><span class="n">ribo_bam_f</span><span class="p">,</span> <span class="n">strand</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">end_type</span><span class="o">=</span><span class="s1">&#39;5prime&#39;</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;../data/U251_ribo.bg&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-bigwig">
+<h3>Creating bigwig<a class="headerlink" href="#creating-bigwig" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">riboraptor</span> <span class="kn">import</span> <span class="n">bedgraph_to_bigwig</span>
+<span class="n">bedgraph_f</span> <span class="o">=</span> <span class="s1">&#39;../data/U251_ribo.bg&#39;</span>
+<span class="n">chrom_sizes</span> <span class="o">=</span> <span class="s1">&#39;../data/hg38.sizes&#39;</span>
+<span class="n">bedgraph_to_bigwig</span><span class="p">(</span><span class="n">bedgraph_f</span><span class="p">,</span> <span class="n">chrom_sizes</span><span class="p">,</span> <span class="s1">&#39;../data/U251_ribo.bw&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gene-coverage-plot">
+<h3>Gene coverage plot<a class="headerlink" href="#gene-coverage-plot" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">riboraptor</span> <span class="kn">import</span> <span class="n">gene_coverage</span>
+<span class="n">cds_bed</span> <span class="o">=</span> <span class="s1">&#39;../data/hg38.cds.bed&#39;</span>
+<span class="n">bw</span> <span class="o">=</span> <span class="s1">&#39;../data/U251_ribo.bw&#39;</span>
+<span class="n">coverage</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">gene_coverage</span><span class="p">(</span><span class="s1">&#39;ENSG00000080824&#39;</span><span class="p">,</span> <span class="n">cds_bed</span><span class="p">,</span> <span class="n">bw</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The last argument 60 here specifies the number of upstream bases to count.
+We visualize only the first 100 bases:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">peak</span> <span class="o">=</span> <span class="n">plot_read_counts</span><span class="p">(</span><span class="n">coverage</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">60</span><span class="p">,</span><span class="mi">100</span><span class="p">)],</span>
+                                 <span class="n">majorticks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                                 <span class="n">minorticks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                 <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span>
+                                 <span class="n">millify_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id3">
+<a class="reference internal image-reference" href="_images/gene_coverage_ENSG00000080824.png"><img alt="Gene coverage" src="_images/gene_coverage_ENSG00000080824.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Gene coverage across ENSG00000080824</span></p>
+</div>
+</div>
+<div class="section" id="periodicity-index">
+<h3>Periodicity Index<a class="headerlink" href="#periodicity-index" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+<div class="section" id="utr-cds-3-utr-coverage">
+<h3>5’UTR/CDS/3’UTR coverage<a class="headerlink" href="#utr-cds-3-utr-coverage" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="cmd-manual.html" title="previous chapter (use the left arrow)">Manual</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="scores.html" title="next chapter (use the right arrow)">Scores</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scores.html" title="Scores"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="cmd-manual.html" title="Manual"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">riboraptor 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

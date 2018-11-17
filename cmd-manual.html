@@ -1,0 +1,551 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Manual &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Usage" href="api-usage.html" />
+    <link rel="prev" title="Example Workflow" href="example_workflow.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api-usage.html" title="API Usage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="example_workflow.html" title="Example Workflow"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">riboraptor 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Manual</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#contents">Contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#assumptions">Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#translatome-construction">Translatome construction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#trimming-reads">Trimming Reads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mapping-reads">Mapping Reads</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#creating-index">Creating Index</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mapping">Mapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sorting-and-indexing">Sorting and Indexing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#translatome-analysis">Translatome analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#counting-uniquely-mapped-reads">Counting uniquely mapped reads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#read-length-distribution">Read length distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#metagene-analysis">Metagene Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#creating-bigwig-file">Creating bigWig file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#distribution-in-5-utr-3-utr-cds-regions">Distribution in 5’UTR/3’UTR/CDS regions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#metagene-plot">Metagene plot</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#distribution-of-5-utr-cds-3-utr-counts">Distribution of 5’UTR/CDS/3’UTR counts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-usage.html">API Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">riboraptor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="example_workflow.html"
+                        title="previous chapter">Example Workflow</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api-usage.html"
+                        title="next chapter">API Usage</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cmd-manual.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Manual</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="manual">
+<h1>Manual<a class="headerlink" href="#manual" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<p>roboraptor is a comprehensive pipeline and set of tools for
+analyzing Ribo-seq data. This manual explains
+the stages in our pipeline, how to use the analysis tools and how to modify
+the pipeline for your specific context.</p>
+</div>
+<div class="section" id="assumptions">
+<h2>Assumptions<a class="headerlink" href="#assumptions" title="Permalink to this headline">¶</a></h2>
+<p>Our pipeline was designed to run in a cluster computing context, with many
+processing nodes available, and a job submission system like PBS or SGE.
+Much of this analysis is computationally intensive. We assume that individual
+nodes will have several GB of memory available for processing.</p>
+</div>
+<div class="section" id="translatome-construction">
+<h2>Translatome construction<a class="headerlink" href="#translatome-construction" title="Permalink to this headline">¶</a></h2>
+<p>Ribo-seq experiments are always single-end sequenced. Ribosome protected
+fragments range from 28-32 nucleotides and hence most experiments involve
+50 bp single end reads. Before mapping, we need to get rid of the adapters
+ligated at the 3’ end of the fragments as part of the library protocol.</p>
+<div class="section" id="trimming-reads">
+<h3>Trimming Reads<a class="headerlink" href="#trimming-reads" title="Permalink to this headline">¶</a></h3>
+<p>We use <a class="reference external" href="https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/">trim_galore</a> for trimming. It automates adapter trimming:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> trim_galore -o &lt;out_dir&gt; -q &lt;min_quality&gt; &lt;input.fq.gz&gt;
+</pre></div>
+</div>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-o <var>out_dir</var></span></kbd></td>
+<td>Output directory</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-q <var>min_quality</var></span></kbd></td>
+<td>Trim low-quality ends from reads in addition to adapter removal</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="mapping-reads">
+<h3>Mapping Reads<a class="headerlink" href="#mapping-reads" title="Permalink to this headline">¶</a></h3>
+<p>We use <a class="reference external" href="https://github.com/alexdobin/STAR">STAR</a> to map reads, though other splice-aware aligners can also be used.
+The first step is to create an index, preferably using a GTF file.
+If the index step is run without a GTF file (which is optional),  <a class="reference external" href="https://github.com/alexdobin/STAR">STAR</a> will
+not be splice-aware.</p>
+<div class="section" id="creating-index">
+<h4>Creating Index<a class="headerlink" href="#creating-index" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> STAR --runThreadN &lt;threads&gt;<span class="se">\</span>
+      --runMode genomeGenerate<span class="se">\</span>
+      --genomeDir &lt;index_out_dir&gt;<span class="se">\</span>
+      --genomeSAindexNbases &lt;SA_INDEX_Nbases&gt;<span class="se">\</span>
+      --genomeFastaFiles &lt;input.fasta&gt;<span class="se">\</span>
+      --sjdbGTFfile &lt;input.gtf&gt;
+</pre></div>
+</div>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--runThreadN</span></kbd></td>
+<td>Number of threads to use</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--runMode</span></kbd></td>
+<td>Flag to set for index mode</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--genomeDir</span></kbd></td>
+<td>Directory to write index files to</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--genomeSAindexNbases</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>min(14, log2(GenomeLength)/2 - 1), this <strong>must</strong> be scaled down for small genomes</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--genomeFastaFiles</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Path to reference fasta</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--sjdbGTFfile</span></kbd></td>
+<td>Path to GTF file</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="mapping">
+<h4>Mapping<a class="headerlink" href="#mapping" title="Permalink to this headline">¶</a></h4>
+<p>Often Ribo-seq experiments have a matching RNA-seq library. Ideally, the RNA-seq
+library should be as similar to Ribo-seq library and hence will often be single-ended.
+We recommend both RNA-seq and Ribo-seq samples be mapped using the following parameters:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> STAR --runThreadN &lt;threads&gt;<span class="se">\</span>
+      --genomeDir &lt;input.index&gt;<span class="se">\</span>
+      --outFilterMismatchNmax <span class="m">2</span><span class="se">\</span>
+      --alignIntronMin &lt;ALIGN_INTRON_Nmin&gt;<span class="se">\</span>
+      --alignIntronMax &lt;ALIGN_INTRON_Nmax&gt;<span class="se">\</span>
+      --outFileNamePrefix &lt;params.prefix&gt; --readFilesIn &lt;input.R1&gt;<span class="se">\</span>
+      --outSAMtype BAM Unsorted<span class="se">\</span>
+      --readFilesCommand zcat<span class="se">\</span>
+      --quantMode TranscriptomeSAM<span class="se">\</span>
+      --outTmpDir /tmp/&lt;params.name&gt;_tmp<span class="se">\</span>
+      --outReadsUnmapped Fastx<span class="se">\</span>
+</pre></div>
+</div>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--runThreadN</span></kbd></td>
+<td>Number of threads to use</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--genomeDir</span></kbd></td>
+<td>Path to index directory</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--outFilterMismatchNmax</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Allow a maximum of mismatches=2</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--alignIntronMin</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Minimum intron size. Any genomic gap
+is considered intron if its
+length &gt;= alignIntronMin. (Default = 20)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--alignIntronMax</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Maximum intron size (Default = 1000000)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--outFileNamePrefix</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Prefix for output files</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--readFilesIn</span></kbd></td>
+<td>Path to input fastq.gz</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--outSAMtype</span></kbd></td>
+<td>Output an unsorted BAM file (outtype=BAM Unsorted)</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--readFilesCommand</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>cat/zcat depending on input is fq/fq.gz</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--quantMode</span></kbd></td>
+<td>Also output BAM aligned to the transcriptome</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--outTmpDir</span></kbd></td>
+<td>Directory to use for writing temporary files</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--outReadsUnmapped</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>Write unmapped reads to separate fastq file</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="sorting-and-indexing">
+<h4>Sorting and Indexing<a class="headerlink" href="#sorting-and-indexing" title="Permalink to this headline">¶</a></h4>
+<p>STAR outputted BAM files are not sorted. We need a BAM file sorted
+by coordinates.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> samtools sort &lt;prefix&gt;Aligned.out.bam -o &lt;output.bam&gt; -T &lt;tmpdir&gt;_sort <span class="o">&amp;&amp;</span><span class="se">\</span>
+$ samtools index &lt;prefix&gt;Aligned.out.bam
+</pre></div>
+</div>
+<p>Additionaly, we also need BAM file sorted by name, since <a class="reference external" href="https://htseq.readthedocs.io/">htseq-counts</a>
+(and <a class="reference external" href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>) prefer a BAM sorted by name in their default mode.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> samtools sort -on &lt;input.bam&gt; -T &lt;tmpdir&gt; -o &lt;output.bam&gt; <span class="o">&amp;&amp;</span><span class="se">\</span>
+$ samtools index &lt;output.bam&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="translatome-analysis">
+<h2>Translatome analysis<a class="headerlink" href="#translatome-analysis" title="Permalink to this headline">¶</a></h2>
+<p>Once we have the bams, we are ready for downstream analysis.
+The downstream step often involves a number of steps.
+The following list summarises these steps along with their recommended
+values (wherever applicable):</p>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>Quality Control</dt>
+<dd><ul class="first last">
+<li>Number of uniquely mapped reads : &gt;=5M</li>
+<li>Periodicity : TODO</li>
+<li>Ratio of CDS/(5’UTR+3’UTR) : &gt;1 after length normalization</li>
+<li>Fragment length distribution : Peak around 28-32 nt</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Metagene analysis</dt>
+<dd><ul class="first last">
+<li>P-site offsets : Around 12-14 nt upstream of the start codon when counting based on 5’end</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="section" id="counting-uniquely-mapped-reads">
+<h3>Counting uniquely mapped reads<a class="headerlink" href="#counting-uniquely-mapped-reads" title="Permalink to this headline">¶</a></h3>
+<p>The first step is to simply caculate the number of uniquely mapped reads.
+We recommend a minimum of 5 million reads for any downstream analysis.
+TODO: list different recommendation for different species</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor uniq-mapping-count --bam &lt;input.bam&gt;
+</pre></div>
+</div>
+<p>–bam input.bam    Path to bam file</p>
+</div>
+<div class="section" id="read-length-distribution">
+<h3>Read length distribution<a class="headerlink" href="#read-length-distribution" title="Permalink to this headline">¶</a></h3>
+<p>An ideal Ribo-seq library is expected to have 28-32 nt long fragments most enriched.
+We can calculate enrichment and plot the fragment size distribution using riboraptor.</p>
+<p>Readd length distribution can be calculated using the <cite>read-length-dist</cite> subcommand:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor read-length-dist --bam &lt;input.bam&gt;
+</pre></div>
+</div>
+<p>This will print out the read length and associated counts on the console. In order to
+visualize thhese counts as a barplot, we can use the <cite>plot-read-dist</cite> subcommand:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor read-length-dist --bam &lt;input.bam&gt;<span class="se">\</span>
+     <span class="p">|</span> riboraptor plot-read-dist --saveto &lt;output.png&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="metagene-analysis">
+<h3>Metagene Analysis<a class="headerlink" href="#metagene-analysis" title="Permalink to this headline">¶</a></h3>
+<p>A metagene plot is used as a summary statistic to visualize the distribution of ribosome
+protected fragments along the positions of a gene often starting (ending) at the start (stop)
+codon. This is useful for estimating P-site offsets. The ribosome subunuits are known to protect
+28-32 nt and hence the P-site is often located 12 nt downstream the 5’ position of the mapped read.</p>
+<div class="section" id="creating-bigwig-file">
+<h4>Creating bigWig file<a class="headerlink" href="#creating-bigwig-file" title="Permalink to this headline">¶</a></h4>
+<p>To perform metagene analysis, we will work with <a class="reference external" href="https://genome.ucsc.edu/goldenpath/help/bigWig.html">bigWig</a> format. in order to do that, we need an
+intermediate <a class="reference external" href="https://genome.ucsc.edu/goldenpath/help/bedgraph.html">bedGraph</a> file. This can be done using <cite>bam-to-bedgraph</cite> subcommand:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor bam-to-bedgraph --bam &lt;input.bam&gt;
+</pre></div>
+</div>
+<p>This will print the bedGraph to console. this cna be piped to <cite>bedgraph-to-bigwig</cite> subcommand:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor bam-to-bedgraph --bam &lt;input.bam&gt; <span class="se">\</span>
+     <span class="p">|</span> riboraptor bedgraph-to-bigwig --sizes &lt;genome.sizes&gt; --saveto &lt;output.bw&gt;
+</pre></div>
+</div>
+<p>We now have <cite>&lt;output.bw&gt;</cite> ready for further downstream analysis.</p>
+</div>
+<div class="section" id="distribution-in-5-utr-3-utr-cds-regions">
+<h4>Distribution in 5’UTR/3’UTR/CDS regions<a class="headerlink" href="#distribution-in-5-utr-3-utr-cds-regions" title="Permalink to this headline">¶</a></h4>
+<p>TODO (See Example)</p>
+</div>
+<div class="section" id="metagene-plot">
+<h4>Metagene plot<a class="headerlink" href="#metagene-plot" title="Permalink to this headline">¶</a></h4>
+<p>TODO (See Example)</p>
+</div>
+</div>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>We will use two samples from <a class="reference external" href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE94454">GSE94454</a> , one RNA-seq sample (SRR5227310) and
+one Ribo-seq sample (SRR5227306) as examples for examples that follow.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor uniq-mapping-count --bam data/SRR5227310.bam
+<span class="go">28637667</span>
+</pre></div>
+</div>
+<p>This is a pretty deep library.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor read-length-dist --bam data/SRR5227310.bam<span class="se">\</span>
+     <span class="p">|</span> riboraptor plot-read-dist --saveto SRR5227310.png
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/SRR5227310.png"><img alt="Fragment length distribution SRR5227310" src="_images/SRR5227310.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Fragment length distribution for SRR5227310</span></p>
+</div>
+<p>How enriched is it in 27-32 nt fragment range?</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor read-length-dist --bam data/SRR5227310.bam<span class="se">\</span>
+     <span class="p">|</span> riboraptor read-enrichment
+<span class="go"> (Enrichment: 1.52768004237, pval: 0.458943823895)</span>
+</pre></div>
+</div>
+<p>So the fragment length distribution doesn’t seem to be enriched. We next perform metagene
+analysis. Ribo-seq data is expected to have an inherent periodicity of 3, since ribosomes move
+one codon at a time during active translation.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor bedgraph-to-bigwig -bg data/SRR5227310.bg -s hg38 -o data/SRR5227310.bw
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span>  riboraptor metagene-coverage -bw data/SRR5227310.bw <span class="se">\</span>
+   --region_bed hg38_cds --max-positions <span class="m">500</span> <span class="se">\</span>
+   --prefix data/SRR5227310.metagene --offset <span class="m">60</span> --ignore_tx_version
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor plot-read-counts <span class="se">\</span>
+    --counts data/SRR5227310.metagene_metagene_normalized.pickle<span class="se">\</span>
+    --saveto data/SRR5227310.metagene.png
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/SRR5227310.metagene.png"><img alt="Metagene distribution for SRR5227310" src="_images/SRR5227310.metagene.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Metagene distribution for SRR5227310</span></p>
+</div>
+<p>Since metagene gives a summary statistic, we can also look at the abolute counts distribution per frame:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor plot-framewise-counts --counts data/SRR5227310.metagene_metagene_raw.pickle<span class="se">\</span>
+     --saveto data/SRR5227310.framewise.png
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id3">
+<a class="reference internal image-reference" href="_images/SRR5227310.framewise.png"><img alt="Fragment length distribution SRR5227310" src="_images/SRR5227310.framewise.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Framewise distribution for SRR5227310</span></p>
+</div>
+<p>Let’s try another sample: SRR5227306 and compare it with SRR5227310
+with respect to distribution of reads.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor uniq-mapping-count --bam data/SRR5227306.bam
+<span class="go">10658208</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor read-length-dist --bam data/SRR5227306.bam <span class="p">|</span> riboraptor plot-read-dist --saveto SRR5227306.png
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id4">
+<a class="reference internal image-reference" href="_images/SRR5227306.png"><img alt="Fragment length distribution SRR5227306" src="_images/SRR5227306.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Fragment length distribution for SRR5227306</span></p>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor read-length-dist --bam data/SRR5227306.bam <span class="p">|</span> riboraptor read-enrichment
+<span class="go">(Enrichment: 14.0292145986, pval: 0.135220082438)</span>
+</pre></div>
+</div>
+<p>As compared to SRR5227310, the enrichment in this case is almost 10 times higher.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor plot-framewise-counts --counts data/SRR5227306.metagene_metagene_raw.pickle<span class="se">\</span>
+     --saveto data/SRR5227306.framewise.png
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id5">
+<a class="reference internal image-reference" href="_images/SRR5227306.framewise.png"><img alt="Fragment length distribution SRR5227306" src="_images/SRR5227306.framewise.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Framewise distribution for SRR5227306</span></p>
+</div>
+<p>We can see the framewise distribution of reads in SRR5227310 is more or less uniform, but not so in SRR5227306.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor bedgraph-to-bigwig -bg data/SRR5227306.bg -s hg38 -o data/SRR5227306.bw
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span>  riboraptor metagene-coverage -bw data/SRR5227306.bw <span class="se">\</span>
+   --region_bed hg38_cds --max-positions <span class="m">500</span> <span class="se">\</span>
+   --prefix data/SRR5227306.metagene --offset <span class="m">60</span> --ignore_tx_version
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> riboraptor plot-read-counts <span class="se">\</span>
+    --counts data/SRR5227306.metagene_metagene_normalized.pickle<span class="se">\</span>
+    --saveto data/SRR5227306.metagene.png
+</pre></div>
+</div>
+<div class="align center figure align-center" id="id6">
+<a class="reference internal image-reference" href="_images/SRR5227306.metagene.png"><img alt="Metagene distribution for SRR5227306" src="_images/SRR5227306.metagene.png" style="width: 100%;" /></a>
+<p class="caption"><span class="caption-text">Metagene distribution for SRR5227306</span></p>
+</div>
+<p>The metagene of a Ribo-seq sample will show periodicity as in the case of SRR5227306 sample.
+On the other hand a RNA-seq sample like SRR5227310 will tend to have a flat profile.</p>
+<div class="section" id="distribution-of-5-utr-cds-3-utr-counts">
+<h3>Distribution of 5’UTR/CDS/3’UTR counts<a class="headerlink" href="#distribution-of-5-utr-cds-3-utr-counts" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="example_workflow.html" title="previous chapter (use the left arrow)">Example Workflow</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="api-usage.html" title="next chapter (use the right arrow)">API Usage</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api-usage.html" title="API Usage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="example_workflow.html" title="Example Workflow"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">riboraptor 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

@@ -1,0 +1,259 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>riboraptor.statistics &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cmd-manual.html">Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-usage.html">API Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">riboraptor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>riboraptor.statistics</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for riboraptor.statistics</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span><span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">scipy.stats.mstats</span> <span class="k">import</span> <span class="n">ks_2samp</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">signal</span>
+
+
+<div class="viewcode-block" id="KDE"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.statistics.KDE">[docs]</a><span class="k">def</span> <span class="nf">KDE</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform Univariate Kernel Density Estimation.</span>
+
+<span class="sd">    Wrapper utility around statsmodels for quick KDE</span>
+<span class="sd">    TODO: scikit-learn has a faster implementation (?)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    values : array like</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    support : array_like</span>
+<span class="sd">    cdf : array_like</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+    <span class="n">density</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">nonparametric</span><span class="o">.</span><span class="n">KDEUnivariate</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">density</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">density</span><span class="o">.</span><span class="n">support</span><span class="p">,</span> <span class="n">density</span><span class="o">.</span><span class="n">cdf</span></div>
+
+
+<div class="viewcode-block" id="calculate_cdf"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.statistics.calculate_cdf">[docs]</a><span class="k">def</span> <span class="nf">calculate_cdf</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate CDF given data points</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : array-like</span>
+<span class="sd">        Input values</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cdf : series</span>
+<span class="sd">        Cumulative distribution funvtion calculated at indexed points</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">cdf</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">index</span><span class="p">)):</span>
+        <span class="n">cdf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">i</span><span class="p">)])</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">cdf</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span></div>
+
+
+<div class="viewcode-block" id="series_cdf"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.statistics.series_cdf">[docs]</a><span class="k">def</span> <span class="nf">series_cdf</span><span class="p">(</span><span class="n">series</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate cdf of series preserving the index</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    series : series like</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cdf : series</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">skipna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cdf</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">skipna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">/</span> <span class="n">total</span>
+    <span class="k">return</span> <span class="n">cdf</span></div>
+
+
+<div class="viewcode-block" id="KS_test"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.statistics.KS_test">[docs]</a><span class="k">def</span> <span class="nf">KS_test</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform KS test between a and b values</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a, b : array-like</span>
+<span class="sd">           Input</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    D : int</span>
+<span class="sd">        KS D statistic</span>
+<span class="sd">    effect_size : float</span>
+<span class="sd">                  maximum difference at point of D-statistic</span>
+<span class="sd">    cdf_a, cdf_b : float</span>
+<span class="sd">                   CDF of a, b</span>
+
+<span class="sd">    Note:    By default this method does testing for alternative=lesser implying</span>
+<span class="sd">    that the test will reject H0 when the CDf of b is &#39;above&#39; a</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="n">cdf_a</span> <span class="o">=</span> <span class="n">series_cdf</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">cdf_b</span> <span class="o">=</span> <span class="n">series_cdf</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">effect_size</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ks_2samp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s1">&#39;greater&#39;</span><span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">cdf_a</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">cdf_b</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">D</span><span class="p">,</span> <span class="n">effect_size</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cdf_a</span><span class="p">,</span> <span class="n">cdf_b</span></div>
+
+
+<div class="viewcode-block" id="coherence_pvalue"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.statistics.coherence_pvalue">[docs]</a><span class="k">def</span> <span class="nf">coherence_pvalue</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate p-value for coherence score</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x: float [0-1]</span>
+<span class="sd">       Coherence value</span>
+<span class="sd">    N: int</span>
+<span class="sd">       Total number of windows</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pval: float</span>
+<span class="sd">          p-value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">nc</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">N</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">ncx2</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">nc</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

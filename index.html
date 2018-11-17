@@ -1,0 +1,264 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Welcome to riboraptor’s documentation! &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">riboraptor 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmd-manual.html">Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-usage.html">API Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">riboraptor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="next chapter">Installation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="#">Docs</a></li>
+              
+              <li>Welcome to riboraptor’s documentation!</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="welcome-to-riboraptor-s-documentation">
+<h1>Welcome to riboraptor’s documentation!<a class="headerlink" href="#welcome-to-riboraptor-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">riboraptor</span></code> library is a Python library for analysis of Ribo-seq data.
+It assumes the reads have already been aligned to a reference and are available as BAM/SAM for input.</p>
+<p>Current capabilities of <code class="docutils literal notranslate"><span class="pre">riboraptor</span></code> include:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Visualization:</th><td class="field-body"><ul class="first simple">
+<li>Plot read length distribution</li>
+<li>Plot metagene coverage</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Utilities:</th><td class="field-body"><ul class="first last simple">
+<li>Export all gene coverages</li>
+<li>Export metagene coverage</li>
+<li>Export read length distribution</li>
+<li>Calculate periodicity</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> Usage: riboraptor <span class="o">[</span>OPTIONS<span class="o">]</span> COMMAND <span class="o">[</span>ARGS<span class="o">]</span>...
+
+<span class="go">  riboraptor: Tool for ribosome profiling analysis</span>
+
+<span class="go"> Options:</span>
+<span class="go">    --version  Show the version and exit.</span>
+<span class="go">    --help     Show this message and exit.</span>
+
+<span class="go"> Commands:</span>
+<span class="go">    bam-to-bedgraph              Convert bam to bedgraph</span>
+<span class="go">    bedgraph-to-bigwig           Convert bedgraph to bigwig</span>
+<span class="go">    export-bed-fasta             Export gene level fasta from specified bed</span>
+<span class="go">    export-gene-coverages        Export gene level coverage for all genes for given region</span>
+<span class="go">    export-metagene-coverage     Export metagene coverage for given region</span>
+<span class="go">    export-read-length           Calculate read length distribution</span>
+<span class="go">    periodicity                  Calculate periodicity</span>
+<span class="go">    plot-metagene                Plot metagene profile</span>
+<span class="go">    plot-read-length             Plot read length distribution</span>
+<span class="go">    uniq-bam                     Create a new bam with unique mapping reads only</span>
+<span class="go">    uniq-mapping-count           Count number of unique mapping reads</span>
+</pre></div>
+</div>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#stable-release">Stable release</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-sources">From sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="example_workflow.html">Example Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="example_workflow.html#step-1-downloading-datasets">Step 1: Downloading datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example_workflow.html#step-2-copy-template">Step 2: Copy template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example_workflow.html#step-3-change-your-miniconda-path">Step 3 : Change your miniconda path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example_workflow.html#step-4-edit-snakemake-cluster-yaml">Step 4: Edit snakemake/cluster.yaml</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example_workflow.html#step-5-submit-job">Step 5: Submit job</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example_workflow.html#visualizing-results">Visualizing Results</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cmd-manual.html">Manual</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cmd-manual.html#contents">Contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmd-manual.html#assumptions">Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmd-manual.html#translatome-construction">Translatome construction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmd-manual.html#translatome-analysis">Translatome analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmd-manual.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-usage.html">API Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-usage.html#counting-fragment-lengths">Counting Fragment Lengths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-usage.html#gene-coverage">Gene Coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">riboraptor</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="riboraptor.html">riboraptor package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="history.html#id1">0.2.0 (04-23-2018)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#types-of-contributions">Types of Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#get-started">Get Started!</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#pull-request-guidelines">Pull Request Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#tips">Tips</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="authors.html#development-lead">Development Lead</a></li>
+<li class="toctree-l2"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="site-map">
+<h1>Site map<a class="headerlink" href="#site-map" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div></blockquote>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="installation.html" title="next chapter (use the right arrow)">Installation</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">riboraptor 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

@@ -1,0 +1,1421 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>riboraptor.helpers &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cmd-manual.html">Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-usage.html">API Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">riboraptor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>riboraptor.helpers</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for riboraptor.helpers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;All functions that are not so useful, but still useful.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span><span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">pybedtools</span>
+<span class="kn">import</span> <span class="nn">pysam</span>
+<span class="kn">import</span> <span class="nn">pyBigWig</span>
+<span class="kn">from</span> <span class="nn">bx.intervals.intersection</span> <span class="k">import</span> <span class="n">IntervalTree</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">.interval</span> <span class="k">import</span> <span class="n">Interval</span>
+
+<span class="c1"># Unmapped, Unmapped+Reverse strand, Not primary alignment,</span>
+<span class="c1"># Not primary alignment + reverse strand, supplementary alignment</span>
+
+<span class="c1"># Source: https://broadinstitute.github.io/picard/explain-flags.html</span>
+<span class="n">__SAM_NOT_UNIQ_FLAGS__</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">272</span><span class="p">,</span> <span class="mi">2048</span><span class="p">]</span>
+
+<span class="n">CBB_PALETTE</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;#000000&quot;</span><span class="p">,</span> <span class="s2">&quot;#E69F00&quot;</span><span class="p">,</span> <span class="s2">&quot;#56B4E9&quot;</span><span class="p">,</span> <span class="s2">&quot;#009E73&quot;</span><span class="p">,</span> <span class="s2">&quot;#F0E442&quot;</span><span class="p">,</span> <span class="s2">&quot;#0072B2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;#D55E00&quot;</span><span class="p">,</span> <span class="s2">&quot;#CC79A7&quot;</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="order_dataframe"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.order_dataframe">[docs]</a><span class="k">def</span> <span class="nf">order_dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Order a dataframe</span>
+
+<span class="sd">    Order a dataframe by moving the `columns` in the front</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df: Dataframe</span>
+<span class="sd">        Dataframe</span>
+<span class="sd">    columns: list</span>
+<span class="sd">             List of columns that need to be put in front</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">columns</span><span class="p">]</span>  <span class="c1">#let the command take a string or list</span>
+    <span class="n">remaining_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">]</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">columns</span> <span class="o">+</span> <span class="n">remaining_columns</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<span class="k">def</span> <span class="nf">_fix_bed_coltype</span><span class="p">(</span><span class="n">bed</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fix bed chrom and name columns to be string</span>
+
+<span class="sd">    This is necessary since the chromosome numbers are often interpreted as int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bed</span><span class="p">[</span><span class="s1">&#39;chrom&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bed</span><span class="p">[</span><span class="s1">&#39;chrom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">bed</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bed</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bed</span>
+
+
+<div class="viewcode-block" id="check_file_exists"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.check_file_exists">[docs]</a><span class="k">def</span> <span class="nf">check_file_exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if file exists.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">               Path to file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filepath</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="list_to_ranges"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.list_to_ranges">[docs]</a><span class="k">def</span> <span class="nf">list_to_ranges</span><span class="p">(</span><span class="n">list_of_int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a list to a list of range object</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    list_of_int: list</span>
+<span class="sd">        List of integers to be squeezed into range</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    list_of_range: list</span>
+<span class="sd">        List of range objects</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sorted_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">list_of_int</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span>
+            <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_list</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">group</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="create_ideal_periodic_signal"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.create_ideal_periodic_signal">[docs]</a><span class="k">def</span> <span class="nf">create_ideal_periodic_signal</span><span class="p">(</span><span class="n">signal_length</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create ideal ribo-seq signal.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    signal_length : int</span>
+<span class="sd">                    Length of signal to create</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    signal : array_like</span>
+<span class="sd">             1-0-0 signal</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uniform_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">signal_length</span><span class="p">)</span>
+    <span class="n">uniform_signal</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniform_signal</span><span class="p">),</span> <span class="mi">3</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">6.0</span>
+    <span class="n">uniform_signal</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniform_signal</span><span class="p">),</span> <span class="mi">3</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">6.0</span>
+    <span class="k">return</span> <span class="n">uniform_signal</span></div>
+
+
+<div class="viewcode-block" id="identify_peaks"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.identify_peaks">[docs]</a><span class="k">def</span> <span class="nf">identify_peaks</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given coverage array, find the site of maximum density&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">coverage</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">18</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">))])</span></div>
+
+
+<div class="viewcode-block" id="millify"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.millify">[docs]</a><span class="k">def</span> <span class="nf">millify</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert integer to human readable format.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n : int</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    millidx : str</span>
+<span class="sd">              Formatted integer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;NaN&#39;</span>
+    <span class="n">millnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39; K&#39;</span><span class="p">,</span> <span class="s1">&#39; M&#39;</span><span class="p">,</span> <span class="s1">&#39; B&#39;</span><span class="p">,</span> <span class="s1">&#39; T&#39;</span><span class="p">]</span>
+    <span class="c1"># Source: http://stackoverflow.com/a/3155023/756986</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">millidx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="mi">0</span><span class="p">,</span>
+        <span class="nb">min</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">millnames</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">/</span> <span class="mi">3</span><span class="p">))))</span>
+
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{:.1f}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">millidx</span><span class="p">),</span> <span class="n">millnames</span><span class="p">[</span><span class="n">millidx</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="mkdir_p"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.mkdir_p">[docs]</a><span class="k">def</span> <span class="nf">mkdir_p</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Python version mkdir -p</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    path : str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># Python &gt;2.5</span>
+            <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="symlink_force"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.symlink_force">[docs]</a><span class="k">def</span> <span class="nf">symlink_force</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create forcelink forcefully</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    source: string</span>
+<span class="sd">            Location to source file</span>
+<span class="sd">    destination: string</span>
+<span class="sd">                 Location to target</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exc</span></div>
+
+
+<div class="viewcode-block" id="r2"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.r2">[docs]</a><span class="k">def</span> <span class="nf">r2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Calculate pearson correlation between two vectors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array_like</span>
+<span class="sd">        Input</span>
+<span class="sd">    y : array_like</span>
+<span class="sd">        Input</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">pearsonr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="round_to_nearest"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.round_to_nearest">[docs]</a><span class="k">def</span> <span class="nf">round_to_nearest</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Round to nearest base.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float</span>
+<span class="sd">        Input</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    v : int</span>
+<span class="sd">        Output</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">base</span> <span class="o">*</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">base</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="set_xrotation"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.set_xrotation">[docs]</a><span class="k">def</span> <span class="nf">set_xrotation</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rotate labels on x-axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax : matplotlib.Axes</span>
+<span class="sd">         Axes object</span>
+<span class="sd">    degrees : int</span>
+<span class="sd">              Rotation degrees</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xticklabels</span><span class="p">():</span>
+        <span class="n">i</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="n">degrees</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="summary_stats_two_arrays_welch"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.summary_stats_two_arrays_welch">[docs]</a><span class="k">def</span> <span class="nf">summary_stats_two_arrays_welch</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">,</span>
+                                   <span class="n">new_array</span><span class="p">,</span>
+                                   <span class="n">old_var_array</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">old_n_counter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">carried_forward_observations</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Average two arrays using welch&#39;s method</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    old_mean_array : Series</span>
+<span class="sd">                Series of previous means with index as positions</span>
+<span class="sd">    old_var_array : Series</span>
+<span class="sd">                Series of previous variances with index as positions</span>
+<span class="sd">    new_array : array like</span>
+<span class="sd">                Series of new observations</span>
+<span class="sd">                (Does noes</span>
+<span class="sd">                Ciunts of number of positions at a certain index</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    m : array like</span>
+<span class="sd">        Column wise Mean array</span>
+<span class="sd">    var : array like</span>
+<span class="sd">         Column wise variance</span>
+
+<span class="sd">    Consider an example: [1,2,3], [1,2,3,4], [1,2,3,4,5]</span>
+
+<span class="sd">    old = [1,2,3]</span>
+<span class="sd">    new = [1,2,3,4]</span>
+<span class="sd">    counter = [1,1,1]</span>
+<span class="sd">    mean = [1,2,3,4] Var =[na, na, na, na], carried_fowrad = [[1,1], [2,2], [3,3], [4]]</span>
+
+<span class="sd">    old = [1,2,3,4]</span>
+<span class="sd">    new = [1,2,3,4,5]</span>
+<span class="sd">    couter = [2,2,2,1]</span>
+
+<span class="sd">    mean = [1,2,3,4,5]</span>
+<span class="sd">    var = [0,0,0, na, na]</span>
+<span class="sd">    carried_forward = [[], [], [], [4,4], [5]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">old_mean_array</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_array</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">new_array</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">new_array</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">old_n_counter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old_n_counter</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">old_n_counter</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">old_n_counter</span><span class="p">)</span>
+
+    <span class="n">len_old</span><span class="p">,</span> <span class="n">len_new</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_array</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">old_n_counter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Initlaized from current series</span>
+        <span class="n">old_n_counter</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">old_mean_array</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">old_var_array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Initlaized from current series</span>
+        <span class="n">old_var_array</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">old_mean_array</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="c1"># Update positions counts based on new_array</span>
+    <span class="n">new_n_counter</span> <span class="o">=</span> <span class="n">old_n_counter</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_array</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">new_array</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+        <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">len_old</span> <span class="o">&gt;</span> <span class="n">len_new</span><span class="p">:</span>
+        <span class="n">len_diff</span> <span class="o">=</span> <span class="n">len_old</span> <span class="o">-</span> <span class="n">len_new</span>
+        <span class="c1"># Pad the incoming array</span>
+        <span class="c1"># We append NAs to the end of new_array since it will mostly be in the metagene context</span>
+        <span class="n">max_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">new_array</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">new_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">len_diff</span><span class="p">)</span>
+        <span class="n">new_array</span> <span class="o">=</span> <span class="n">new_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">len_diff</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">new_index</span><span class="p">),</span>
+            <span class="n">verify_integrity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">len_old</span> <span class="o">&lt;</span> <span class="n">len_new</span><span class="p">:</span>
+        <span class="n">len_diff</span> <span class="o">=</span> <span class="n">len_new</span> <span class="o">-</span> <span class="n">len_old</span>
+        <span class="c1"># Pad the old array</span>
+        <span class="k">if</span> <span class="n">len_old</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">old_mean_array</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">max_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">old_mean_array</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="n">new_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">len_diff</span><span class="p">)</span>
+            <span class="n">old_mean_array</span> <span class="o">=</span> <span class="n">old_mean_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">len_diff</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">new_index</span><span class="p">),</span>
+                <span class="n">verify_integrity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">old_mean_array</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="n">new_array</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;old array index: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;new array index: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">new_array</span><span class="p">))</span>
+    <span class="n">positions_with_less_than3_obs</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">counts</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">new_n_counter</span><span class="p">):</span>
+        <span class="c1"># Which positions has &lt;3 counts for calculating variance</span>
+        <span class="k">if</span> <span class="n">counts</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># Fetch the exact observations from history</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">last_observations</span> <span class="o">=</span> <span class="n">carried_forward_observations</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="c1"># No carreid forward passed</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">[</span><span class="n">index</span><span class="p">]):</span>
+                    <span class="n">last_observations</span> <span class="o">=</span> <span class="p">[</span><span class="n">old_mean_array</span><span class="p">[</span><span class="n">index</span><span class="p">]]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">last_observations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># Add entry from new_array only if it is not NAN</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">new_array</span><span class="p">[</span><span class="n">index</span><span class="p">]):</span>
+                <span class="n">last_observations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_array</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="n">positions_with_less_than3_obs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_observations</span>
+
+    <span class="c1"># positions_with_less_than3_obs = pd.Series(positions_with_less_than3_obs)</span>
+
+    <span class="c1"># delta = x_n - mean(x_{n-1})</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">new_array</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    for index, value in six.iteritems( delta ):</span>
+<span class="sd">        if np.isnan(value):</span>
+<span class="sd">            if not np.isnan(old_mean_array[index]):</span>
+<span class="sd">                delta[index] = old_mean_array[index]</span>
+<span class="sd">            else:</span>
+<span class="sd">                delta[index] = new_array[index]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># delta = delta/n</span>
+    <span class="n">delta_normalized</span> <span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">new_n_counter</span><span class="p">)</span>
+    <span class="c1"># mean(x_n) = mean(x_{n-1}) + delta/n</span>
+    <span class="n">new_mean_array</span> <span class="o">=</span> <span class="n">old_mean_array</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">delta_normalized</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">new_mean_array</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">old_mean_array</span><span class="p">[</span><span class="n">index</span><span class="p">]):</span>
+                <span class="n">new_mean_array</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_mean_array</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">new_mean_array</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_array</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+    <span class="c1">#print(delta)</span>
+    <span class="c1">#print(new_n_counter)</span>
+    <span class="c1">#print(delta_normalized)</span>
+    <span class="c1">#print(new_mean_array)</span>
+    <span class="c1"># mean_difference_current = x_n - mean(x_n)</span>
+    <span class="c1"># mean_difference_previous = x_n - mean(x_{n-1})</span>
+
+    <span class="n">mean_difference_current</span> <span class="o">=</span> <span class="n">new_array</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">new_mean_array</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">mean_difference_previous</span> <span class="o">=</span> <span class="n">new_array</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">old_mean_array</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># (x_n-mean(x_n))(x_n-mean(x_{n-1})</span>
+    <span class="n">product</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">mean_difference_current</span><span class="p">,</span> <span class="n">mean_difference_previous</span><span class="p">)</span>
+
+    <span class="c1"># (n-1)S_n^2 - (n-2)S_{n-1}^2 = (x_n-mean(x_n)) (x_n-mean(x_{n-1}))</span>
+
+    <span class="c1"># old_ssq = (n-1)S_{n-1}^2</span>
+    <span class="c1"># (n-2)S_{n-1}^2</span>
+    <span class="n">old_sum_of_sq</span> <span class="o">=</span> <span class="p">(</span><span class="n">old_n_counter</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">old_var_array</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+
+    <span class="c1"># new_ssq = (old_ssq + product)</span>
+    <span class="c1"># (n-1) S_n^2</span>
+    <span class="n">new_sum_of_sq</span> <span class="o">=</span> <span class="n">old_sum_of_sq</span> <span class="o">+</span> <span class="n">product</span>
+
+    <span class="c1"># if counts is less than 3, set sum of sq to NA</span>
+    <span class="n">new_sum_of_sq</span><span class="p">[</span><span class="n">new_n_counter</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="c1"># if counts just became 3, compute the variance</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">counts</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">new_n_counter</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">counts</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">observations</span> <span class="o">=</span> <span class="n">positions_with_less_than3_obs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">variance</span><span class="p">)</span>
+            <span class="n">new_sum_of_sq</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">variance</span>
+            <span class="c1"># delete it from the history</span>
+            <span class="k">del</span> <span class="n">positions_with_less_than3_obs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="n">new_var_array</span> <span class="o">=</span> <span class="n">new_sum_of_sq</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">new_n_counter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">new_var_array</span><span class="p">[</span><span class="n">new_var_array</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">new_var_array</span><span class="p">[</span><span class="n">new_n_counter</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    for index, counts in six.iteritems(new_n_counter):</span>
+<span class="sd">        if counts &lt; 3:</span>
+<span class="sd">            if not np.isnan(new_array[index]):</span>
+<span class="sd">                if index not in list(positions_with_less_than3_obs.keys()):</span>
+<span class="sd">                    positions_with_less_than3_obs[index] = list()</span>
+<span class="sd">                assert index in positions_with_less_than3_obs.keys()</span>
+<span class="sd">                positions_with_less_than3_obs[index].append(new_array[index])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">new_mean_array</span><span class="p">,</span> <span class="n">new_var_array</span><span class="p">,</span> <span class="n">new_n_counter</span><span class="p">,</span> <span class="n">positions_with_less_than3_obs</span></div>
+
+
+<div class="viewcode-block" id="path_leaf"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.path_leaf">[docs]</a><span class="k">def</span> <span class="nf">path_leaf</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get path&#39;s tail from a filepath&quot;&quot;&quot;</span>
+    <span class="n">head</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">ntpath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tail</span> <span class="ow">or</span> <span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">head</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_star_logs"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.parse_star_logs">[docs]</a><span class="k">def</span> <span class="nf">parse_star_logs</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse star logs into a dict</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    infile : str</span>
+<span class="sd">        Path to starlogs.final.out file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    star_info : dict</span>
+<span class="sd">                Dict with necessary records parsed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ANNOTATIONS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;total_reads&#39;</span><span class="p">,</span> <span class="s1">&#39;uniquely_mapped&#39;</span><span class="p">,</span> <span class="s1">&#39;uniquely_mapped_percent&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;multi_mapped_percent&#39;</span><span class="p">,</span> <span class="s1">&#39;unmapped_percent&#39;</span><span class="p">,</span> <span class="s1">&#39;multi_mapped&#39;</span>
+    <span class="p">]</span>
+    <span class="n">star_info</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Number of input reads&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Uniquely mapped reads number&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Uniquely mapped reads %&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Number of reads mapped to multiple loci&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Number of reads mapped to too many loci&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% o</span><span class="s1">f reads mapped to multiple loci&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% o</span><span class="s1">f reads mapped to too many loci&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% o</span><span class="s1">f reads unmapped: too many mismatches&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% o</span><span class="s1">f reads unmapped: too short&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">% o</span><span class="s1">f reads unmapped: other&#39;</span><span class="p">):</span>
+                <span class="n">star_info</span><span class="p">[</span><span class="n">ANNOTATIONS</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">star_info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">star_info</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">star_info</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">outfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">star_info</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">path_leaf</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;Log.final.out&#39;</span><span class="p">)</span>
+    <span class="n">counts_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">star_info</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">counts_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">filename</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">outfile</span><span class="p">:</span>
+        <span class="n">counts_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">counts_df</span></div>
+
+
+<div class="viewcode-block" id="get_strandedness"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.get_strandedness">[docs]</a><span class="k">def</span> <span class="nf">get_strandedness</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse output of infer_experiment.py from RSeqC to get strandedness.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">               Path to infer_experiment.py output</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    strandedness : str</span>
+<span class="sd">                   reverse or forward or none</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">splitted</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">splitted</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;This is SingleEnd Data&#39;</span>
+    <span class="n">fwd_percentage</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">rev_percentage</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">splitted</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="s1">&#39;Fraction of reads failed to determine:&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="s1">&#39;Fraction of reads explained by &quot;++,--&quot;:&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">fwd_percentage</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="s1">&#39;Fraction of reads explained by &quot;+-,-+&quot;:&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">rev_percentage</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">assert</span> <span class="n">rev_percentage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">fwd_percentage</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="n">ratio</span> <span class="o">=</span> <span class="n">fwd_percentage</span> <span class="o">/</span> <span class="n">rev_percentage</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">([</span><span class="n">ratio</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="s1">&#39;none&#39;</span>
+    <span class="k">elif</span> <span class="n">ratio</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;forward&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;reverse&#39;</span></div>
+
+
+<div class="viewcode-block" id="load_pickle"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.load_pickle">[docs]</a><span class="k">def</span> <span class="nf">load_pickle</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read pickled files easy in Python 2/3&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;.tsv&#39;</span> <span class="ow">in</span> <span class="n">filepath</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">pickled</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pickled</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pickled</span></div>
+
+
+<div class="viewcode-block" id="pad_or_truncate"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.pad_or_truncate">[docs]</a><span class="k">def</span> <span class="nf">pad_or_truncate</span><span class="p">(</span><span class="n">some_list</span><span class="p">,</span> <span class="n">target_len</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pad or truncate a list upto given target length</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    some_list : list</span>
+<span class="sd">                Input list</span>
+<span class="sd">    target_length : int</span>
+<span class="sd">                    Final length of list</span>
+
+<span class="sd">    If being extended, returns list padded with NAs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">some_list</span><span class="p">[:</span><span class="n">target_len</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">target_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">some_list</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="pad_five_prime_or_truncate"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.pad_five_prime_or_truncate">[docs]</a><span class="k">def</span> <span class="nf">pad_five_prime_or_truncate</span><span class="p">(</span><span class="n">some_list</span><span class="p">,</span> <span class="n">offset_5p</span><span class="p">,</span> <span class="n">target_len</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pad first the 5prime end and then the 3prime end or truncate</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    some_list : list</span>
+<span class="sd">                Input list</span>
+<span class="sd">    offset_5p : int</span>
+<span class="sd">                5&#39; offset</span>
+<span class="sd">    target_length : int</span>
+<span class="sd">                    Final length of list</span>
+
+<span class="sd">    If being extended, returns list padded with NAs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">some_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">some_list</span><span class="p">)</span>
+    <span class="n">padded_5p</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="o">*</span> <span class="n">offset_5p</span> <span class="o">+</span> <span class="n">some_list</span>
+    <span class="k">return</span> <span class="n">padded_5p</span><span class="p">[:</span><span class="n">target_len</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">target_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">padded_5p</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="codon_to_anticodon"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.codon_to_anticodon">[docs]</a><span class="k">def</span> <span class="nf">codon_to_anticodon</span><span class="p">(</span><span class="n">codon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Codon to anticodon.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    codon : string</span>
+<span class="sd">            Input codon</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pairs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pairs</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">codon</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="merge_intervals"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.merge_intervals">[docs]</a><span class="k">def</span> <span class="nf">merge_intervals</span><span class="p">(</span><span class="n">intervals</span><span class="p">,</span>
+                    <span class="n">chromosome_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">offset_5p</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">offset_3p</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">zero_based</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Collapse intervals into non overlapping manner</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    intervals : list of Interval</span>
+<span class="sd">    chromosome_lengths : dict</span>
+<span class="sd">                         A map of each chromosome&#39;e length</span>
+<span class="sd">                         Only used with offset_3p, offset_5p&gt;0</span>
+<span class="sd">    offset_5p : int (positive)</span>
+<span class="sd">                Number of bases to count upstream (5&#39;)</span>
+<span class="sd">    offset_3p : int (positive)</span>
+<span class="sd">                Number of bases to count downstream (3&#39;)</span>
+<span class="sd">    zero_based: bool</span>
+<span class="sd">                Indicate if the intervals are zero-based</span>
+<span class="sd">                True means zero-based half open</span>
+<span class="sd">                False means one-based full closed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    interval_combined : list of Interval sorted by the start</span>
+<span class="sd">                        A merged version of intervals</span>
+<span class="sd">                        This is useful when the annotations are overlapping.</span>
+<span class="sd">                        Example:</span>
+<span class="sd">                        chr1 310 320 gene1 +</span>
+<span class="sd">                        chr1 319 324 gene1 +</span>
+<span class="sd">                        Returns:</span>
+<span class="sd">                        chr1 310 324 gene1 +</span>
+
+<span class="sd">    gene_offset_5p: Gene wise 5 prime offset</span>
+<span class="sd">                    This might be different from `offset_5p` in cases where</span>
+<span class="sd">                    `offset_5p` leads to a negative coordinate</span>
+<span class="sd">    gene_offset_3p: Gene wise 3 prime offset</span>
+<span class="sd">                    This might be different from `offset_3p` in cases where</span>
+<span class="sd">                    `offset_3p` leads to position beyond chromsome length</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">intervals</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">([],</span> <span class="n">offset_5p</span><span class="p">,</span> <span class="n">offset_3p</span><span class="p">)</span>
+
+    <span class="n">chroms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">chrom</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">intervals</span><span class="p">]))</span>
+    <span class="n">strands</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">strand</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">intervals</span><span class="p">]))</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chroms</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Error: chromosomes should be unique&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">([],</span> <span class="n">offset_5p</span><span class="p">,</span> <span class="n">offset_3p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">strands</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Error: strands should be unique&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">([],</span> <span class="n">offset_5p</span><span class="p">,</span> <span class="n">offset_3p</span><span class="p">)</span>
+
+    <span class="n">chrom</span> <span class="o">=</span> <span class="n">chroms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">strand</span> <span class="o">=</span> <span class="n">strands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Sort intervals by start</span>
+    <span class="n">intervals</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+
+    <span class="c1"># Find first interval</span>
+    <span class="n">first_interval</span> <span class="o">=</span> <span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Find last interval</span>
+    <span class="n">last_interval</span> <span class="o">=</span> <span class="n">intervals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">intervals</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;</span> <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+            <span class="n">last_interval</span> <span class="o">=</span> <span class="n">i</span>
+
+    <span class="k">if</span> <span class="n">offset_5p</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">offset_3p</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span> <span class="ow">in</span> <span class="n">chromosome_lengths</span><span class="p">:</span>
+            <span class="n">chrom_length</span> <span class="o">=</span> <span class="n">chromosome_lengths</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">chrom</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Chromosome </span><span class="si">{}</span><span class="s1"> does not exist&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chrom</span><span class="p">),</span>
+                          <span class="ne">UserWarning</span><span class="p">)</span>
+            <span class="n">chrom_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">chrom_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="k">if</span> <span class="n">zero_based</span><span class="p">:</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lower_bound</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">chrom_length</span>
+
+    <span class="k">if</span> <span class="n">strand</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">offset_5p</span> <span class="o">&gt;=</span> <span class="n">lower_bound</span><span class="p">:</span>
+            <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">-=</span> <span class="n">offset_5p</span>
+            <span class="n">gene_offset_5p</span> <span class="o">=</span> <span class="n">offset_5p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gene_offset_5p</span> <span class="o">=</span> <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">lower_bound</span>
+            <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">lower_bound</span>
+
+        <span class="k">if</span> <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">offset_3p</span> <span class="o">&lt;=</span> <span class="n">upper_bound</span><span class="p">:</span>
+            <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">+=</span> <span class="n">offset_3p</span>
+            <span class="n">gene_offset_3p</span> <span class="o">=</span> <span class="n">offset_3p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gene_offset_3p</span> <span class="o">=</span> <span class="n">upper_bound</span> <span class="o">-</span> <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span>
+            <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">upper_bound</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">+</span> <span class="n">offset_5p</span> <span class="o">&lt;=</span> <span class="n">upper_bound</span><span class="p">:</span>
+            <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">+=</span> <span class="n">offset_5p</span>
+            <span class="n">gene_offset_5p</span> <span class="o">=</span> <span class="n">offset_5p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gene_offset_5p</span> <span class="o">=</span> <span class="n">upper_bound</span> <span class="o">-</span> <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span>
+            <span class="n">last_interval</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">upper_bound</span>
+
+        <span class="k">if</span> <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">offset_3p</span> <span class="o">&gt;=</span> <span class="n">lower_bound</span><span class="p">:</span>
+            <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">-=</span> <span class="n">offset_3p</span>
+            <span class="n">gene_offset_3p</span> <span class="o">=</span> <span class="n">offset_3p</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gene_offset_3p</span> <span class="o">=</span> <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">lower_bound</span>
+            <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">lower_bound</span>
+
+    <span class="c1"># Merge overlapping intervals</span>
+    <span class="n">to_merge</span> <span class="o">=</span> <span class="n">Interval</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">first_interval</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">first_interval</span><span class="o">.</span><span class="n">end</span><span class="p">,</span>
+                        <span class="n">strand</span><span class="p">)</span>
+    <span class="n">intervals_combined</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">intervals</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">to_merge</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+            <span class="n">to_merge</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">to_merge</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">intervals_combined</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">to_merge</span><span class="p">)</span>
+            <span class="n">to_merge</span> <span class="o">=</span> <span class="n">Interval</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">)</span>
+    <span class="n">intervals_combined</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">to_merge</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">intervals_combined</span><span class="p">,</span> <span class="n">gene_offset_5p</span><span class="p">,</span> <span class="n">gene_offset_3p</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="summarize_counters"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.summarize_counters">[docs]</a><span class="k">def</span> <span class="nf">summarize_counters</span><span class="p">(</span><span class="n">samplewise_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Summarize gene counts for a collection of samples.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    samplewise_dict : dict</span>
+<span class="sd">                      A dictionary with key as sample name and value</span>
+<span class="sd">                      as another dictionary of counts for each gene</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    totals : dict</span>
+<span class="sd">             A dictionary with key as sample name and value as total gene count</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">totals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">sample_dict</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">samplewise_dict</span><span class="p">):</span>
+        <span class="n">totals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">sample_dict</span><span class="o">.</span><span class="n">values</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">totals</span></div>
+
+
+<div class="viewcode-block" id="complementary_strand"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.complementary_strand">[docs]</a><span class="k">def</span> <span class="nf">complementary_strand</span><span class="p">(</span><span class="n">strand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get complementary strand</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    strand: string</span>
+<span class="sd">            +/-</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rs: string</span>
+<span class="sd">        -/+</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">strand</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;-&#39;</span>
+    <span class="k">elif</span> <span class="n">strand</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;+&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not a valid strand: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">strand</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="read_refseq_bed"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.read_refseq_bed">[docs]</a><span class="k">def</span> <span class="nf">read_refseq_bed</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read refseq bed12 from UCSC.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath: string</span>
+<span class="sd">              Location to bed12</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    refseq: dict</span>
+<span class="sd">            dict with keys as gene name and values as intervaltree</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">refseq</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">IntervalTree</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;track&#39;</span><span class="p">,</span> <span class="s1">&#39;browser&#39;</span><span class="p">)):</span>
+                <span class="k">continue</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">tx_start</span><span class="p">,</span> <span class="n">tx_end</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">strand</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">tx_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tx_start</span><span class="p">)</span>
+            <span class="n">tx_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tx_end</span><span class="p">)</span>
+            <span class="n">refseq</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">tx_start</span><span class="p">,</span> <span class="n">tx_end</span><span class="p">,</span> <span class="n">strand</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">refseq</span></div>
+
+
+<div class="viewcode-block" id="read_bed_as_intervaltree"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.read_bed_as_intervaltree">[docs]</a><span class="k">def</span> <span class="nf">read_bed_as_intervaltree</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read bed as interval tree</span>
+
+<span class="sd">    Useful for reading start/stop codon beds</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath: string</span>
+<span class="sd">              Location to bed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bedint_tree: dict</span>
+<span class="sd">                 dict with keys as gene name and strand as intervaltree</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bed_df</span> <span class="o">=</span> <span class="n">pybedtools</span><span class="o">.</span><span class="n">BedTool</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+    <span class="n">bed_df</span><span class="p">[</span><span class="s1">&#39;chrom&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bed_df</span><span class="p">[</span><span class="s1">&#39;chrom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">bed_df</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bed_df</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">bed_grouped</span> <span class="o">=</span> <span class="n">bed_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;chrom&#39;</span><span class="p">)</span>
+
+    <span class="n">bedint_tree</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">IntervalTree</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">bed_grouped</span><span class="p">:</span>
+        <span class="n">df_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;end&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;strand&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span> <span class="ow">in</span> <span class="n">df_list</span><span class="p">:</span>
+            <span class="n">bedint_tree</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bedint_tree</span></div>
+
+
+<div class="viewcode-block" id="read_chrom_sizes"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.read_chrom_sizes">[docs]</a><span class="k">def</span> <span class="nf">read_chrom_sizes</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read chr.sizes file sorted by chromosome name</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath: string</span>
+<span class="sd">              Location to chr.sizes</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    chrom_lengths: list of tuple</span>
+<span class="sd">                   A list of tuples with chromsome name and their size</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">chrom_lengths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">chrom</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">chrom_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">chrom</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">size</span><span class="p">)))</span>
+        <span class="n">chrom_lengths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">chrom_lengths</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="create_bam_index"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.create_bam_index">[docs]</a><span class="k">def</span> <span class="nf">create_bam_index</span><span class="p">(</span><span class="n">bam</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create bam index.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bam : str</span>
+<span class="sd">          Path to bam file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bam</span><span class="p">,</span> <span class="n">pysam</span><span class="o">.</span><span class="n">AlignmentFile</span><span class="p">):</span>
+        <span class="n">bam</span> <span class="o">=</span> <span class="n">bam</span><span class="o">.</span><span class="n">filename</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.bai&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bam</span><span class="p">)):</span>
+        <span class="n">pysam</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">bam</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="is_read_uniq_mapping"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.is_read_uniq_mapping">[docs]</a><span class="k">def</span> <span class="nf">is_read_uniq_mapping</span><span class="p">(</span><span class="n">read</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if read is uniquely mappable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    read : pysam.Alignment.fetch object</span>
+
+
+<span class="sd">    Most reliable: [&#39;NH&#39;] tag</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Filter out secondary alignments</span>
+    <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">is_secondary</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">get_tags</span><span class="p">())</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">nh_count</span> <span class="o">=</span> <span class="n">tags</span><span class="p">[</span><span class="s1">&#39;NH&#39;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="c1"># Reliable in case of STAR</span>
+        <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">mapping_quality</span> <span class="o">==</span> <span class="mi">255</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">mapping_quality</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># NH tag not set so rely on flags</span>
+        <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">flag</span> <span class="ow">in</span> <span class="n">__SAM_NOT_UNIQ_FLAGS__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Malformed BAM?&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nh_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="find_first_non_none"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.find_first_non_none">[docs]</a><span class="k">def</span> <span class="nf">find_first_non_none</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a list of positions, find the index and value of first non-none element.</span>
+
+<span class="sd">    This method is specifically designed for pysam, which has a weird way of returning</span>
+<span class="sd">    the reference positions. If they are mismatched/softmasked it returns None</span>
+<span class="sd">    when fetched using get_reference_positions.</span>
+
+<span class="sd">    query_alignment_start and query_alignment_end give you indexes of position in the read</span>
+<span class="sd">    which technically align, but are not softmasked i.e. it is set to None even if the position does not align</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    positions: list of int</span>
+<span class="sd">               Positions as returned by pysam.fetch.get_reference_positions</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    index: int</span>
+<span class="sd">           Index of first non-None value</span>
+<span class="sd">    position: int</span>
+<span class="sd">               Value at that index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">position</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="n">position</span></div>
+
+
+<div class="viewcode-block" id="find_last_non_none"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.find_last_non_none">[docs]</a><span class="k">def</span> <span class="nf">find_last_non_none</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a list of positions, find the index and value of last non-none element.</span>
+
+
+<span class="sd">    This function is similar to the `find_first_non_none` function, but does it for the reversed</span>
+<span class="sd">    list. It is specifically useful for reverse strand cases</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    positions: list of int</span>
+<span class="sd">               Positions as returned by pysam.fetch.get_reference_positions</span>
+
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">    index: int</span>
+<span class="sd">           Index of first non-None value</span>
+<span class="sd">    position: int</span>
+<span class="sd">               Value at that index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">find_first_non_none</span><span class="p">(</span><span class="n">positions</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<span class="c1"># NOTE: We can in principle do a longer metagene anaylsis</span>
+<span class="c1"># using this helper funciont</span>
+<div class="viewcode-block" id="yield_intervals"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.yield_intervals">[docs]</a><span class="k">def</span> <span class="nf">yield_intervals</span><span class="p">(</span><span class="n">chrom_size</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">20000</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">chrom_size</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">chunk_size</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">chrom_size</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">chrom_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="bwsum"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.bwsum">[docs]</a><span class="k">def</span> <span class="nf">bwsum</span><span class="p">(</span><span class="n">bw</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">scale_to</span><span class="o">=</span><span class="mf">1e6</span><span class="p">):</span>
+    <span class="n">bw_sum</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bw</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">bw</span> <span class="o">=</span> <span class="n">pyBigWig</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">bw</span><span class="p">)</span>
+    <span class="n">chrom_sizes</span> <span class="o">=</span> <span class="n">bw</span><span class="o">.</span><span class="n">chroms</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">chrom_size</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">chrom_sizes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">yield_intervals</span><span class="p">(</span><span class="n">chrom_size</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
+            <span class="n">bw_sum</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">bw</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+    <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">bw_sum</span> <span class="o">/</span> <span class="n">scale_to</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bw_sum</span><span class="p">,</span> <span class="n">scale_factor</span></div>
+
+
+<div class="viewcode-block" id="scale_bigwig"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.scale_bigwig">[docs]</a><span class="k">def</span> <span class="nf">scale_bigwig</span><span class="p">(</span><span class="n">inbigwig</span><span class="p">,</span> <span class="n">chrom_sizes</span><span class="p">,</span> <span class="n">outbigwig</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Scale a bigwig by certain factor.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    inbigwig: string</span>
+<span class="sd">              Path to input bigwig</span>
+<span class="sd">    chrom_sizes: string</span>
+<span class="sd">                 Path to chrom.sizes file</span>
+<span class="sd">    outbigwig: string</span>
+<span class="sd">               Path to output bigwig</span>
+<span class="sd">    scale_factor: float</span>
+<span class="sd">                  Scale by value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">wigfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.wig&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outbigwig</span><span class="p">))</span>
+    <span class="n">chrom_sizes</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">chrom_sizes</span><span class="p">)</span>
+    <span class="n">inbigwig</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">inbigwig</span><span class="p">)</span>
+    <span class="n">outbigwig</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">outbigwig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">wigfile</span><span class="p">):</span>
+        <span class="c1"># wiggletools errors if the file already exists</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">wigfile</span><span class="p">)</span>
+
+    <span class="n">cmds</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;wiggletools&#39;</span><span class="p">,</span> <span class="s1">&#39;write&#39;</span><span class="p">,</span> <span class="n">wigfile</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">),</span> <span class="n">inbigwig</span>
+    <span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+            <span class="n">cmds</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+        <span class="n">rc</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">returncode</span>
+        <span class="k">if</span> <span class="n">rc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;Error running wiggletools.</span><span class="se">\n</span><span class="s1">stdout : </span><span class="si">{}</span><span class="s1"> </span><span class="se">\n</span><span class="s1"> stderr : </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span>
+                <span class="nb">format</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;wiggletool not found on the path.&quot;</span>
+                                <span class="s2">&quot;Use `conda install wiggletools`&quot;</span><span class="p">)</span>
+
+    <span class="n">cmds</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;wigToBigWig&#39;</span><span class="p">,</span> <span class="n">wigfile</span><span class="p">,</span> <span class="n">chrom_sizes</span><span class="p">,</span> <span class="n">outbigwig</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+            <span class="n">cmds</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+        <span class="n">rc</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">returncode</span>
+        <span class="k">if</span> <span class="n">rc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;Error running wigToBigWig.</span><span class="se">\n</span><span class="s1">stdout : </span><span class="si">{}</span><span class="s1"> </span><span class="se">\n</span><span class="s1"> stderr : </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span>
+                <span class="nb">format</span><span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">wigfile</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+            <span class="s2">&quot;wigToBigwig not found on the path. This is an external &quot;</span>
+            <span class="s2">&quot;tool from UCSC which can be downloaded from &quot;</span>
+            <span class="s2">&quot;http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use &quot;</span>
+            <span class="s2">&quot;`conda install ucsc-wigtobigwig`&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_region_sizes"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.get_region_sizes">[docs]</a><span class="k">def</span> <span class="nf">get_region_sizes</span><span class="p">(</span><span class="n">region_bed</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get summed up size of a CDS/UTR region from bed file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    region_bed: string</span>
+<span class="sd">                Input bed file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    region_sizes: pd.Series</span>
+<span class="sd">                  Series with region name as index and size as key</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">region_bed</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">region_bed</span> <span class="o">=</span> <span class="n">pybedtools</span><span class="o">.</span><span class="n">BedTool</span><span class="p">(</span><span class="n">region_bed</span><span class="p">)</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+    <span class="n">region_bed_grouped</span> <span class="o">=</span> <span class="n">region_bed</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">region_sizes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">gene_name</span><span class="p">,</span> <span class="n">gene_group</span> <span class="ow">in</span> <span class="n">region_bed_grouped</span><span class="p">:</span>
+        <span class="c1">## Get rid of trailing dots</span>
+        <span class="n">gene_name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\.[0-9]+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">gene_name</span><span class="p">)</span>
+        <span class="c1"># Collect all intervals at once</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gene_group</span><span class="p">[</span><span class="s1">&#39;chrom&#39;</span><span class="p">],</span> <span class="n">gene_group</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">],</span>
+                        <span class="n">gene_group</span><span class="p">[</span><span class="s1">&#39;end&#39;</span><span class="p">],</span> <span class="n">gene_group</span><span class="p">[</span><span class="s1">&#39;strand&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">interval</span> <span class="ow">in</span> <span class="n">intervals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gene_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">region_sizes</span><span class="p">:</span>
+                <span class="c1"># End is always 1-based so does not require +1</span>
+                <span class="n">region_sizes</span><span class="p">[</span><span class="n">gene_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">interval</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">interval</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">region_sizes</span><span class="p">[</span><span class="n">gene_name</span><span class="p">]</span> <span class="o">+=</span> <span class="n">interval</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">interval</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">region_sizes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="htseq_to_tpm"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.htseq_to_tpm">[docs]</a><span class="k">def</span> <span class="nf">htseq_to_tpm</span><span class="p">(</span><span class="n">htseq_f</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">cds_bed_f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert htseq-counts file to tpm</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    htseq_f: string</span>
+<span class="sd">             Path to htseq-count output</span>
+<span class="sd">    outfile: string</span>
+<span class="sd">             Path to output file with tpm values</span>
+<span class="sd">    cds_bed_f: string</span>
+<span class="sd">               Path to CDS/genesize bed file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cds_bed</span> <span class="o">=</span> <span class="n">pybedtools</span><span class="o">.</span><span class="n">BedTool</span><span class="p">(</span><span class="n">cds_bed_f</span><span class="p">)</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+    <span class="n">cds_bed_sizes</span> <span class="o">=</span> <span class="n">get_region_sizes</span><span class="p">(</span><span class="n">cds_bed</span><span class="p">)</span>
+    <span class="n">htseq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">htseq_f</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;counts&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">htseq</span> <span class="o">=</span> <span class="n">htseq</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">htseq</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Empty dataframe for : </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">htseq_f</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">htseq</span><span class="p">[</span><span class="s1">&#39;counts&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">cds_bed_sizes</span><span class="p">))</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">rate</span><span class="p">)))</span>
+    <span class="n">tpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">rate</span> <span class="o">-</span> <span class="n">denom</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e6</span><span class="p">))</span>
+    <span class="n">tpm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tpm</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tpm&#39;</span><span class="p">])</span>
+    <span class="n">tpm</span> <span class="o">=</span> <span class="n">tpm</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tpm&#39;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">tpm</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="counts_to_tpm"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.counts_to_tpm">[docs]</a><span class="k">def</span> <span class="nf">counts_to_tpm</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">sizes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Counts to TPM</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    counts: array like</span>
+<span class="sd">            Series/array of counts</span>
+<span class="sd">    sizes: array like</span>
+<span class="sd">           Series/array of region sizes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sizes</span><span class="p">))</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">rate</span><span class="p">)))</span>
+    <span class="n">tpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">rate</span> <span class="o">-</span> <span class="n">denom</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1e6</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tpm</span></div>
+
+
+<div class="viewcode-block" id="featurecounts_to_tpm"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.featurecounts_to_tpm">[docs]</a><span class="k">def</span> <span class="nf">featurecounts_to_tpm</span><span class="p">(</span><span class="n">fc_f</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert htseq-counts file to tpm</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fc_f: string</span>
+<span class="sd">             Path to htseq-count output</span>
+<span class="sd">    outfile: string</span>
+<span class="sd">             Path to output file with tpm values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">feature_counts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">fc_f</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">feature_counts</span> <span class="o">=</span> <span class="n">feature_counts</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Geneid&#39;</span><span class="p">,</span> <span class="s1">&#39;Chr&#39;</span><span class="p">,</span> <span class="s1">&#39;Start&#39;</span><span class="p">,</span> <span class="s1">&#39;End&#39;</span><span class="p">,</span> <span class="s1">&#39;Strand&#39;</span><span class="p">])</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">feature_counts</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span>
+    <span class="n">feature_counts</span> <span class="o">=</span> <span class="n">feature_counts</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">])</span>
+    <span class="n">tpm</span> <span class="o">=</span> <span class="n">feature_counts</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">counts_to_tpm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lengths</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">tpm</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_htseq"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.read_htseq">[docs]</a><span class="k">def</span> <span class="nf">read_htseq</span><span class="p">(</span><span class="n">htseq_f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read HTSeq file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    htseq_f: str</span>
+<span class="sd">             Path to htseq counts file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    htseq_df: dataframe</span>
+<span class="sd">              HTseq counts as in a dataframe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">htseq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">htseq_f</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;counts&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">htseq</span> <span class="o">=</span> <span class="n">htseq</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">htseq</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Empty dataframe for : </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">htseq_f</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">htseq</span></div>
+
+
+<div class="viewcode-block" id="read_enrichment"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.read_enrichment">[docs]</a><span class="k">def</span> <span class="nf">read_enrichment</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">,</span>
+                    <span class="n">enrichment_range</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">28</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span>
+                    <span class="n">input_is_stream</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">input_is_file</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate read enrichment for a certain range of lengths</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    read_lengths: Counter</span>
+<span class="sd">                  A counter with read lengths and their counts</span>
+<span class="sd">    enrichment_range: range or str</span>
+<span class="sd">                      Range of reads to concentrate upon</span>
+<span class="sd">                      (28-32 or range(28,33))</span>
+<span class="sd">    input_is_stream: bool</span>
+<span class="sd">                     True if input is sent through stdin</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ratio: float</span>
+<span class="sd">           Enrichment in this range (Scale 0-1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">input_is_file</span><span class="p">:</span>
+        <span class="n">read_lengths</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">check_file_exists</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> does not exist.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">))</span>
+        <span class="n">read_lengths</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">read_lengths</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="n">read_lengths</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">read_lengths</span><span class="p">[</span><span class="s1">&#39;read_length&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">enrichment_range</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">enrichment_range</span><span class="p">)),</span>
+                <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">input_is_stream</span><span class="p">:</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">read_lengths</span><span class="p">:</span>
+            <span class="n">splitted</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)))</span>
+            <span class="n">counter</span><span class="p">[</span><span class="n">splitted</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">splitted</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">read_lengths</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">counter</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">,</span> <span class="n">Counter</span><span class="p">):</span>
+        <span class="n">read_lengths</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">read_lengths</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">enrichment_range</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">splitted</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                    <span class="n">enrichment_range</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)))</span>
+        <span class="n">enrichment_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">splitted</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">splitted</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">rpf_signal</span> <span class="o">=</span> <span class="n">read_lengths</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">enrichment_range</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">total_signal</span> <span class="o">=</span> <span class="n">read_lengths</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">read_lengths</span> <span class="o">=</span> <span class="n">read_lengths</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="p">[[</span><span class="n">x</span><span class="p">]</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+             <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">read_lengths</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">read_lengths</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span>
+    <span class="n">mean_length</span><span class="p">,</span> <span class="n">std_dev_length</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">array</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+    <span class="c1"># mean_length_floor = np.floor(mean_length)</span>
+    <span class="c1"># 1 - P(x1 &lt; X &lt;x2) = P(X&lt;x1) + P(X&gt;x2) = cdf(x1) + sf(x2)</span>
+    <span class="n">cdf_min</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span>
+        <span class="nb">min</span><span class="p">(</span><span class="n">enrichment_range</span><span class="p">),</span> <span class="n">mean_length</span><span class="p">,</span> <span class="n">std_dev_length</span><span class="p">)</span>
+    <span class="n">sf_max</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">enrichment_range</span><span class="p">),</span> <span class="n">mean_length</span><span class="p">,</span> <span class="n">std_dev_length</span><span class="p">)</span>
+    <span class="n">pvalue</span> <span class="o">=</span> <span class="n">cdf_min</span> <span class="o">+</span> <span class="n">sf_max</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="n">rpf_signal</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">total_signal</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">pvalue</span></div>
+
+
+<div class="viewcode-block" id="bwshift"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.helpers.bwshift">[docs]</a><span class="k">def</span> <span class="nf">bwshift</span><span class="p">(</span><span class="n">bw</span><span class="p">,</span> <span class="n">shift_by</span><span class="p">,</span> <span class="n">out_bw</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">20000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a bigwig shift all the values by this</span>
+<span class="sd">    Shifting by 10:</span>
+<span class="sd">    variableStep chrom=chr span=1</span>
+<span class="sd">    1	1</span>
+<span class="sd">    2	2</span>
+<span class="sd">    3	5</span>
+<span class="sd">    4	6</span>
+<span class="sd">    5	5</span>
+<span class="sd">    6	3</span>
+<span class="sd">    7	3</span>
+<span class="sd">    8	5</span>
+<span class="sd">    9	5</span>
+<span class="sd">    10	5</span>
+<span class="sd">    11	6</span>
+<span class="sd">    12	6</span>
+<span class="sd">    13	0</span>
+<span class="sd">    14	2</span>
+<span class="sd">    15	3</span>
+<span class="sd">    16	3</span>
+<span class="sd">    17	10</span>
+<span class="sd">    18	4</span>
+<span class="sd">    19	4</span>
+<span class="sd">    20	2</span>
+<span class="sd">    21	2</span>
+<span class="sd">    22	2</span>
+<span class="sd">    23	1</span>
+
+<span class="sd">    shifted by 10</span>
+<span class="sd">    variableStep chrom=chr span=1</span>
+<span class="sd">    1	6</span>
+<span class="sd">    2	6</span>
+<span class="sd">    3	0</span>
+<span class="sd">    4	2</span>
+<span class="sd">    5	3</span>
+<span class="sd">    6	3</span>
+<span class="sd">    7	10</span>
+<span class="sd">    8	4</span>
+<span class="sd">    9	4</span>
+<span class="sd">    10	2</span>
+<span class="sd">    11	2</span>
+<span class="sd">    12	2</span>
+<span class="sd">    13	1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bw</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">bw</span> <span class="o">=</span> <span class="n">pyBigWig</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">bw</span><span class="p">)</span>
+    <span class="n">chrom_sizes</span> <span class="o">=</span> <span class="n">bw</span><span class="o">.</span><span class="n">chroms</span><span class="p">()</span>
+    <span class="n">out_bw</span> <span class="o">=</span> <span class="n">pyBigWig</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">out_bw</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">out_bw</span><span class="o">.</span><span class="n">addHeader</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">chrom_sizes</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span> <span class="n">maxZooms</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">chrom_size</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">chrom_sizes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">yield_intervals</span><span class="p">(</span><span class="n">chrom_size</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
+            <span class="n">shifted_values</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">shifted_end</span> <span class="o">=</span> <span class="n">end</span> <span class="o">+</span> <span class="n">shift_by</span>
+            <span class="n">shifted_start</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">shift_by</span>
+            <span class="c1"># Cases</span>
+            <span class="c1"># Case1: shifted_start &lt; chrom_start and shifted_end &lt; chrom_end</span>
+            <span class="c1"># Need to set the first shifted_start - chrom_start bases to 0</span>
+            <span class="k">if</span> <span class="n">shifted_start</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">shifted_end</span> <span class="o">&lt;</span> <span class="n">chrom_size</span><span class="p">:</span>
+                <span class="n">zero_padding</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">shifted_start</span><span class="p">))</span>
+                <span class="n">shifted_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">zero_padding</span><span class="p">,</span>
+                     <span class="n">bw</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shifted_end</span><span class="p">)])</span>
+            <span class="c1"># Case2: shifted_start &lt; 0 and shifted_end &gt; chrom_end</span>
+            <span class="k">elif</span> <span class="n">shifted_start</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">shifted_end</span> <span class="o">&gt;=</span> <span class="n">chrom_size</span><span class="p">:</span>
+                <span class="n">zero_padding_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">shifted_start</span><span class="p">)</span>
+                <span class="n">zero_padding_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">shifted_end</span> <span class="o">-</span> <span class="n">chrom_size</span><span class="p">))</span>
+                <span class="n">shifted_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span>
+                    <span class="n">zero_padding_start</span><span class="p">,</span>
+                    <span class="n">bw</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">shifted_start</span><span class="p">,</span> <span class="n">chrom_size</span><span class="p">),</span>
+                    <span class="n">zero_padding_end</span>
+                <span class="p">])</span>
+            <span class="c1"># Case3: shifted_start &gt; 0 and shifted_end &gt; chrom_end</span>
+            <span class="k">elif</span> <span class="n">shifted_start</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">shifted_end</span> <span class="o">&gt;=</span> <span class="n">chrom_size</span><span class="p">:</span>
+                <span class="n">zero_padding_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">shifted_end</span> <span class="o">-</span> <span class="n">chrom_size</span><span class="p">))</span>
+                <span class="n">shifted_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span>
+                    <span class="n">bw</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">shifted_start</span><span class="p">,</span> <span class="n">chrom_size</span><span class="p">),</span>
+                    <span class="n">zero_padding_end</span>
+                <span class="p">])</span>
+            <span class="k">elif</span> <span class="n">shifted_start</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">shifted_end</span> <span class="o">&lt;</span> <span class="n">chrom_size</span><span class="p">:</span>
+                <span class="n">shifted_values</span> <span class="o">=</span> <span class="n">bw</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">shifted_start</span><span class="p">,</span> <span class="n">shifted_end</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">shifted_start</span> <span class="o">&gt;=</span> <span class="n">chrom_size</span><span class="p">:</span>
+                <span class="n">shifted_values</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="s1">&#39;Unhandled case: shifted_start = </span><span class="si">{}</span><span class="s1"> | shifted_end = </span><span class="si">{}</span><span class="s1"> | chrom_size = </span><span class="si">{}</span><span class="s1">&#39;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shifted_start</span><span class="p">,</span> <span class="n">shifted_end</span><span class="p">,</span> <span class="n">chrom_size</span><span class="p">))</span>
+            <span class="k">assert</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">shifted_values</span>
+            <span class="p">),</span> <span class="s1">&#39;end = </span><span class="si">{}</span><span class="s1"> | shifted_end = </span><span class="si">{}</span><span class="s1"> | start=</span><span class="si">{}</span><span class="s1"> | shifted_start =</span><span class="si">{}</span><span class="s1"> | values_len = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">end</span><span class="p">,</span> <span class="n">shifted_end</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">shifted_start</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">shifted_values</span><span class="p">))</span>
+            <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">ends</span> <span class="o">=</span> <span class="n">starts</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">out_bw</span><span class="o">.</span><span class="n">addEntries</span><span class="p">([</span><span class="n">chrom</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">),</span> <span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">,</span>
+                              <span class="n">shifted_values</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

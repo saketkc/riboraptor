@@ -1,0 +1,460 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>riboraptor.utils &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cmd-manual.html">Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-usage.html">API Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">riboraptor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>riboraptor.utils</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for riboraptor.utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span><span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">textwrap</span> <span class="k">import</span> <span class="n">dedent</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="k">import</span> <span class="n">mkdir_p</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="k">import</span> <span class="n">symlink_force</span>
+
+
+<div class="viewcode-block" id="load_tpm"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.load_tpm">[docs]</a><span class="k">def</span> <span class="nf">load_tpm</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gene_id&#39;</span><span class="p">,</span> <span class="s1">&#39;tpm&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;gene_id&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="get_cell_line_or_tissue"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.get_cell_line_or_tissue">[docs]</a><span class="k">def</span> <span class="nf">get_cell_line_or_tissue</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;cell_line&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span>
+            <span class="n">row</span><span class="p">[</span><span class="s1">&#39;cell_line&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;nan&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;cell_line&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;study_accession&#39;</span><span class="p">],</span>
+                                 <span class="n">row</span><span class="p">[</span><span class="s1">&#39;experiment_accession&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;tissue&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;tissue&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;nan&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;tissue&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;study_accession&#39;</span><span class="p">],</span>
+                                 <span class="n">row</span><span class="p">[</span><span class="s1">&#39;experiment_accession&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;source_name&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span>
+            <span class="n">row</span><span class="p">[</span><span class="s1">&#39;source_name&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;nan&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;source_name&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;study_accession&#39;</span><span class="p">],</span>
+                                 <span class="n">row</span><span class="p">[</span><span class="s1">&#39;experiment_accession&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;study_accession&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;SRP052229&#39;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;source_name&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;study_accession&#39;</span><span class="p">],</span>
+                             <span class="n">row</span><span class="p">[</span><span class="s1">&#39;experiment_accession&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="determine_cell_type"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.determine_cell_type">[docs]</a><span class="k">def</span> <span class="nf">determine_cell_type</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">):</span>
+    <span class="n">sample_attribute</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;cell line:&#39;</span> <span class="ow">in</span> <span class="n">sample_attribute</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;cell line: \w+&#39;</span><span class="p">,</span> <span class="n">sample_attribute</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;cell line: &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;cell_line:&#39;</span> <span class="ow">in</span> <span class="n">sample_attribute</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;cell_line: \w+&#39;</span><span class="p">,</span> <span class="n">sample_attribute</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;cell_line: &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;cell-line:&#39;</span> <span class="ow">in</span> <span class="n">sample_attribute</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;cell-line: \w+&#39;</span><span class="p">,</span> <span class="n">sample_attribute</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;cell-line: &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;cell_type:&#39;</span> <span class="ow">in</span> <span class="n">sample_attribute</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;cell_type: \w+&#39;</span><span class="p">,</span> <span class="n">sample_attribute</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;cell_type: &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;source_name:&#39;</span> <span class="ow">in</span> <span class="n">sample_attribute</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;source_name: \w+&#39;</span><span class="p">,</span> <span class="n">sample_attribute</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;source_name: &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#pass</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="get_tissue_type"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.get_tissue_type">[docs]</a><span class="k">def</span> <span class="nf">get_tissue_type</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">):</span>
+    <span class="n">sample_attribute</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;tissue: &#39;</span> <span class="ow">in</span> <span class="n">sample_attribute</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;tissue: \w+&#39;</span><span class="p">,</span> <span class="n">sample_attribute</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;tissue: &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="get_strain_type"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.get_strain_type">[docs]</a><span class="k">def</span> <span class="nf">get_strain_type</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">):</span>
+    <span class="n">sample_attribute</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;strain: &#39;</span> <span class="ow">in</span> <span class="n">sample_attribute</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;strain: \w+&#39;</span><span class="p">,</span> <span class="n">sample_attribute</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;strain: &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sample_attribute</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="summary_starlogs_over_runs"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.summary_starlogs_over_runs">[docs]</a><span class="k">def</span> <span class="nf">summary_starlogs_over_runs</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">list_of_srr</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="n">files_not_found</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">list_of_srr</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">run</span> <span class="o">+</span> <span class="s1">&#39;.tsv&#39;</span><span class="p">)):</span>
+            <span class="n">files_not_found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">temp_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">run</span> <span class="o">+</span> <span class="s1">&#39;.tsv&#39;</span><span class="p">))</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">temp_df</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">files_not_found</span></div>
+
+
+<div class="viewcode-block" id="get_enrichment_cds_stats"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.get_enrichment_cds_stats">[docs]</a><span class="k">def</span> <span class="nf">get_enrichment_cds_stats</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">pickle_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span>
+    <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">median</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">stddev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">minx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">maxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">minx</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">median</span><span class="p">,</span> <span class="n">stddev</span></div>
+
+
+<div class="viewcode-block" id="get_fragment_enrichment_score"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.get_fragment_enrichment_score">[docs]</a><span class="k">def</span> <span class="nf">get_fragment_enrichment_score</span><span class="p">(</span><span class="n">txt_file</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">txt_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">enrichment</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;\(&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;\)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">enrichment</span><span class="p">,</span> <span class="n">pval</span> <span class="o">=</span> <span class="n">enrichment</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;nan&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">enrichment</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">enrichment</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;Enrichment: &#39;</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span>
+            <span class="n">pval</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;pval: &#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">1</span></div>
+
+
+<span class="n">re_ribo_root_dir</span> <span class="o">=</span> <span class="s1">&#39;/staging/as/skchoudh/SRA_datasets/&#39;</span>
+<span class="n">samples_to_process_dir</span> <span class="o">=</span> <span class="s1">&#39;/staging/as/skchoudh/re-ribo-datasets/&#39;</span>
+<span class="n">re_ribo_config_dir</span> <span class="o">=</span> <span class="s1">&#39;/home/cmb-panasas2/skchoudh/github_projects/re-ribo-smk/snakemake/configs&#39;</span>
+<span class="n">re_ribo_analysis_dir</span> <span class="o">=</span> <span class="s1">&#39;/staging/as/skchoudh/re-ribo-analysis/&#39;</span>
+<span class="n">riboraptor_annotation_dir</span> <span class="o">=</span> <span class="s1">&#39;/home/cmb-panasas2/skchoudh/github_projects/riboraptor/riboraptor/annotation/&#39;</span>
+
+<span class="n">genome_annotation_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hg38&#39;</span><span class="p">:</span> <span class="s1">&#39;v25&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mm10&#39;</span><span class="p">:</span> <span class="s1">&#39;vM11&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mg1655&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sacCerR64&#39;</span><span class="p">:</span> <span class="s1">&#39;v91&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MG1655&#39;</span><span class="p">:</span> <span class="s1">&#39;ASM584v2.38&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BDGP6&#39;</span><span class="p">:</span> <span class="s1">&#39;v91&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GRCz10&#39;</span><span class="p">:</span> <span class="s1">&#39;v91&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panTro3&#39;</span><span class="p">:</span> <span class="s1">&#39;v94&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mmul8&#39;</span><span class="p">:</span> <span class="s1">&#39;v94&#39;</span>
+<span class="p">}</span>
+<span class="n">taxon_id_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">10090</span><span class="p">:</span> <span class="s1">&#39;mm10&#39;</span><span class="p">,</span>
+    <span class="mi">9606</span><span class="p">:</span> <span class="s1">&#39;hg38&#39;</span><span class="p">,</span>
+    <span class="mi">4932</span><span class="p">:</span> <span class="s1">&#39;sacCerR64&#39;</span><span class="p">,</span>
+    <span class="mi">511145</span><span class="p">:</span> <span class="s1">&#39;MG1655&#39;</span><span class="p">,</span>
+    <span class="mi">7227</span><span class="p">:</span> <span class="s1">&#39;BDGP6&#39;</span><span class="p">,</span>
+    <span class="mi">7955</span><span class="p">:</span> <span class="s1">&#39;GRCz10&#39;</span><span class="p">,</span>
+    <span class="mi">9598</span><span class="p">:</span> <span class="s1">&#39;panTro3&#39;</span><span class="p">,</span>
+    <span class="mi">9544</span><span class="p">:</span> <span class="s1">&#39;Mmul8&#39;</span>
+<span class="p">}</span>
+
+<span class="n">genome_fasta_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hg38&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.fa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mm10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.fa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sacCerR64&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MG1655&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/fasta/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.toplevel.fa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BDGP6&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.fa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GRCz10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.fa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panTro3&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/panTro3/fasta/Pan_troglodytes.Pan_tro_3.0.dna.toplevel.fa&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mmul8&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/Mmul8/fasta/Macaca_mulatta.Mmul_8.0.1.dna.toplevel.fa&#39;</span>
+<span class="p">}</span>
+
+<span class="n">chrom_sizes_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hg38&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/hg38/fasta/hg38.chrom.sizes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mm10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/mm10/fasta/mm10.chrom.sizes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sacCerR64&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/sacCerR64/fasta/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.sizes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MG1655&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/fasta/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.dna.toplevel.sizes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BDGP6&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/fasta/Drosophila_melanogaster.BDGP6.dna.toplevel.sizes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GRCz10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/GRCz10/fasta/Danio_rerio.GRCz10.dna.toplevel.sizes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panTro3&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/panTro3/fasta/Pan_troglodytes.Pan_tro_3.0.dna.toplevel.sizes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mmul8&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/Mmul8/fasta/Macaca_mulatta.Mmul_8.0.1.dna.toplevel.sizes&#39;</span>
+<span class="p">}</span>
+
+<span class="n">star_index_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hg38&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/hg38/star_annotated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mm10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/mm10/star_annotated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sacCerR64&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/sacCerR64/star_annotated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MG1655&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/star_annotated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BDGP6&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/star_annotated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GRCz10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/GRCz10/star_annotated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panTro3&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/panTro3/star_annotated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mmul8&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/Mmul8/star_annotated&#39;</span>
+<span class="p">}</span>
+
+<span class="n">gtf_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hg38&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/hg38/annotation/gencode.v25.annotation.gtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;mm10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/mm10/annotation/gencode.vM11.annotation.gtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sacCerR64&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/sacCerR64/annotation/Saccharomyces_cerevisiae.R64-1-1.91.gtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MG1655&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/escherichia_coli_str_k_12_substr_mg1655/annotation/Escherichia_coli_str_k_12_substr_mg1655.ASM584v2.38.gtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BDGP6&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/drosophila_melanogaster_BDGP6/annotation/Drosophila_melanogaster.BDGP6.91.gtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GRCz10&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/GRCz10/annotation/Danio_rerio.GRCz10.91.gtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Mmul8&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/Mmul8/annotation/Macaca_mulatta.Mmul_8.0.1.94.gtf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;panTro3&#39;</span><span class="p">:</span>
+    <span class="s1">&#39;/home/cmb-panasas2/skchoudh/genomes/panTro3/annotation/Pan_troglodytes.Pan_tro_3.0.94.gtf&#39;</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="filter_single_end_samples"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.filter_single_end_samples">[docs]</a><span class="k">def</span> <span class="nf">filter_single_end_samples</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Filter single end samples from a dataframe</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df: DataFrame</span>
+<span class="sd">        Dataframe as obtained from SRAb.sra_convert()</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df: DataFrame</span>
+<span class="sd">        DataFrame with only single end samples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;library_strategy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;PAIRED&#39;</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="copy_sra_data"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.copy_sra_data">[docs]</a><span class="k">def</span> <span class="nf">copy_sra_data</span><span class="p">(</span><span class="n">df</span><span class="p">,</span>
+                  <span class="n">sra_source_dir</span><span class="o">=</span><span class="s1">&#39;/staging/as/skchoudh/SRA_datasets/&#39;</span><span class="p">,</span>
+                  <span class="n">sra_dest_dir</span><span class="o">=</span><span class="s1">&#39;/staging/as/skchoudh/re-ribo-datasets/&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Copy SRA data to a new location retaining only single ended samples.&quot;&quot;&quot;</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">filter_single_end_samples</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">study_accession</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Multiple SRPs found&#39;</span>
+    <span class="n">srp</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">study_accession</span><span class="o">.</span><span class="n">unique</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">df_grouped</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;taxon_id&#39;</span><span class="p">])</span>
+    <span class="n">srp_source_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sra_source_dir</span><span class="p">,</span> <span class="n">srp</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">taxon_id</span><span class="p">,</span> <span class="n">df_group</span> <span class="ow">in</span> <span class="n">df_grouped</span><span class="p">:</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">taxon_id_map</span><span class="p">[</span><span class="n">taxon_id</span><span class="p">]</span>
+        <span class="n">species_dest_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sra_dest_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="n">srp_dest_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_dest_dir</span><span class="p">,</span> <span class="n">srp</span><span class="p">)</span>
+        <span class="n">mkdir_p</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">species_dest_dir</span><span class="p">,</span> <span class="n">srp</span><span class="p">))</span>
+        <span class="n">source_loc</span> <span class="o">=</span> <span class="n">srp_source_dir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">df_group</span><span class="p">[</span>
+            <span class="s1">&#39;experiment_accession&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
+                <span class="n">df_group</span><span class="p">[</span><span class="s1">&#39;run_accession&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.sra&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+        <span class="n">dest_loc</span> <span class="o">=</span> <span class="n">srp_dest_dir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">df_group</span><span class="p">[</span>
+            <span class="s1">&#39;experiment_accession&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
+                <span class="n">df_group</span><span class="p">[</span><span class="s1">&#39;run_accession&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.sra&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">source_loc</span><span class="p">))</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">dest</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">source_loc</span><span class="p">,</span> <span class="n">dest_loc</span><span class="p">):</span>
+                <span class="n">mkdir_p</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">dest</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+                    <span class="n">symlink_force</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">dest</span><span class="p">)</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="write_config"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.write_config">[docs]</a><span class="k">def</span> <span class="nf">write_config</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">srp</span><span class="p">):</span>
+    <span class="n">rawdata_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">samples_to_process_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">srp</span><span class="p">)</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">re_ribo_analysis_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">srp</span><span class="p">)</span>
+    <span class="n">gene_bed</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">riboraptor_annotation_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                            <span class="n">genome_annotation_map</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="s1">&#39;gene.bed.gz&#39;</span><span class="p">)</span>
+    <span class="n">utr5_bed</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">riboraptor_annotation_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                            <span class="n">genome_annotation_map</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="s1">&#39;utr5.bed.gz&#39;</span><span class="p">)</span>
+    <span class="n">utr3_bed</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">riboraptor_annotation_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                            <span class="n">genome_annotation_map</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="s1">&#39;utr3.bed.gz&#39;</span><span class="p">)</span>
+    <span class="n">intron_bed</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">riboraptor_annotation_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                              <span class="n">genome_annotation_map</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="s1">&#39;intron.bed.gz&#39;</span><span class="p">)</span>
+    <span class="n">start_codon_bed</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">riboraptor_annotation_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                                   <span class="n">genome_annotation_map</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
+                                   <span class="s1">&#39;start_codon.bed.gz&#39;</span><span class="p">)</span>
+    <span class="n">stop_codon_bed</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">riboraptor_annotation_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                                  <span class="n">genome_annotation_map</span><span class="p">[</span><span class="n">species</span><span class="p">],</span>
+                                  <span class="s1">&#39;stop_codon.bed.gz&#39;</span><span class="p">)</span>
+    <span class="n">cds_bed</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">riboraptor_annotation_dir</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span>
+                           <span class="n">genome_annotation_map</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="s1">&#39;cds.bed.gz&#39;</span><span class="p">)</span>
+    <span class="n">genome_fasta</span> <span class="o">=</span> <span class="n">genome_fasta_map</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
+    <span class="n">gtf</span> <span class="o">=</span> <span class="n">gtf_map</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
+    <span class="n">chrom_sizes</span> <span class="o">=</span> <span class="n">chrom_sizes_map</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
+    <span class="n">star_index</span> <span class="o">=</span> <span class="n">star_index_map</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
+    <span class="n">to_write</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    RAWDATA_DIR = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    OUT_DIR = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    GENOME_FASTA = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    CHROM_SIZES = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    STAR_INDEX = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    GTF = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    GENE_BED = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    STAR_CODON_BED = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    STOP_CODON_BED = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    CDS_BED = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    UTR5_BED = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    UTR3_BED = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    INTRON_BED = &#39;</span><span class="si">{}</span><span class="s2">&#39;</span>
+<span class="s2">    ORIENTATIONS = [&#39;5prime&#39;, &#39;3prime&#39;]</span>
+<span class="s2">    STRANDS = [&#39;pos&#39;, &#39;neg&#39;, &#39;combined&#39;]</span>
+<span class="s2">    FRAGMENT_LENGTHS =  range(18, 39)</span>
+<span class="s2">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rawdata_dir</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">genome_fasta</span><span class="p">,</span> <span class="n">chrom_sizes</span><span class="p">,</span> <span class="n">star_index</span><span class="p">,</span>
+               <span class="n">gtf</span><span class="p">,</span> <span class="n">gene_bed</span><span class="p">,</span> <span class="n">start_codon_bed</span><span class="p">,</span> <span class="n">stop_codon_bed</span><span class="p">,</span> <span class="n">cds_bed</span><span class="p">,</span>
+               <span class="n">utr5_bed</span><span class="p">,</span> <span class="n">utr3_bed</span><span class="p">,</span> <span class="n">intron_bed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dedent</span><span class="p">(</span><span class="n">to_write</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="create_config_file"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.utils.create_config_file">[docs]</a><span class="k">def</span> <span class="nf">create_config_file</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+    <span class="n">df_grouped</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;taxon_id&#39;</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">taxon_id</span><span class="p">,</span> <span class="n">df_group</span> <span class="ow">in</span> <span class="n">df_grouped</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">df_group</span><span class="p">[</span><span class="s1">&#39;study_accession&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Multiple SRPs found&#39;</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="n">taxon_id_map</span><span class="p">[</span><span class="n">taxon_id</span><span class="p">]</span>
+        <span class="n">srp</span> <span class="o">=</span> <span class="n">df_group</span><span class="p">[</span><span class="s1">&#39;study_accession&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">re_ribo_config_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.py&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">species</span><span class="p">,</span> <span class="n">srp</span><span class="p">)),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+
+            <span class="n">config</span> <span class="o">=</span> <span class="n">write_config</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">srp</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Wrote </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">re_ribo_config_dir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.py&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">species</span><span class="p">,</span> <span class="n">srp</span><span class="p">))))</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

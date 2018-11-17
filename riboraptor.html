@@ -1,0 +1,3005 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>riboraptor package &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="History" href="history.html" />
+    <link rel="prev" title="riboraptor" href="modules.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="history.html" title="History"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="riboraptor"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">riboraptor</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmd-manual.html">Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-usage.html">API Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scores.html">Scores</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">riboraptor</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">riboraptor package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.cli">riboraptor.cli module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.coherence">riboraptor.coherence module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.count">riboraptor.count module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.download">riboraptor.download module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.dtw">riboraptor.dtw module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.fasta">riboraptor.fasta module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.genome">riboraptor.genome module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.hdf_parser">riboraptor.hdf_parser module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.helpers">riboraptor.helpers module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.infer_protocol">riboraptor.infer_protocol module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.interval">riboraptor.interval module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.kmer">riboraptor.kmer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.normalization">riboraptor.normalization module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.parallel">riboraptor.parallel module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.plotting">riboraptor.plotting module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.sequence">riboraptor.sequence module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.sradb">riboraptor.sradb module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.statistics">riboraptor.statistics module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.tracks">riboraptor.tracks module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.utils">riboraptor.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor.wig">riboraptor.wig module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-riboraptor">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="modules.html"
+                        title="previous chapter">riboraptor</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="history.html"
+                        title="next chapter">History</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/riboraptor.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+                <li><a href="modules.html">riboraptor</a></li>
+              
+              <li>riboraptor package</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="riboraptor-package">
+<h1>riboraptor package<a class="headerlink" href="#riboraptor-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-riboraptor.cli">
+<span id="riboraptor-cli-module"></span><h2>riboraptor.cli module<a class="headerlink" href="#module-riboraptor.cli" title="Permalink to this headline">¶</a></h2>
+<p>Command line interface for riboraptor</p>
+</div>
+<div class="section" id="module-riboraptor.coherence">
+<span id="riboraptor-coherence-module"></span><h2>riboraptor.coherence module<a class="headerlink" href="#module-riboraptor.coherence" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.coherence.coherence">
+<code class="descclassname">riboraptor.coherence.</code><code class="descname">coherence</code><span class="sig-paren">(</span><em>original_values, frames=[0]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/coherence.html#coherence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.coherence.coherence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate coherence and an idea ribo-seq signal</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>values</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array like</span></dt>
+<dd><p class="first last">List of values</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>periodicity</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Periodicity score calculated as
+coherence between input and idea 1-0-0 signal</p>
+</dd>
+<dt><strong>f: array like</strong></dt>
+<dd><p class="first last">List of frequencies</p>
+</dd>
+<dt><strong>Cxy: array like</strong></dt>
+<dd><p class="first last">List of coherence at the above frequencies</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.coherence.coherence_ft">
+<code class="descclassname">riboraptor.coherence.</code><code class="descname">coherence_ft</code><span class="sig-paren">(</span><em>values</em>, <em>nperseg=30</em>, <em>noverlap=15</em>, <em>window='flattop'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/coherence.html#coherence_ft"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.coherence.coherence_ft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate coherence and an idea ribo-seq signal based on Fourier transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>values</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array like</span></dt>
+<dd><p class="first last">List of values</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>periodicity</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Periodicity score calculated as
+coherence between input and idea 1-0-0 signal</p>
+</dd>
+<dt><strong>window: str or tuple</strong></dt>
+<dd><p class="first last">See scipy.signal.get_window</p>
+</dd>
+<dt><strong>f: array like</strong></dt>
+<dd><p class="first last">List of frequencies</p>
+</dd>
+<dt><strong>Cxy: array like</strong></dt>
+<dd><p class="first last">List of coherence at the above frequencies</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.coherence.get_periodicity">
+<code class="descclassname">riboraptor.coherence.</code><code class="descname">get_periodicity</code><span class="sig-paren">(</span><em>values</em>, <em>input_is_stream=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/coherence.html#get_periodicity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.coherence.get_periodicity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate periodicty wrt 1-0-0 signal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>values</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array like</span></dt>
+<dd><p class="first last">List of values</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>periodicity</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Periodicity calculated as cross
+correlation between input and idea 1-0-0 signal</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.coherence.naive_periodicity">
+<code class="descclassname">riboraptor.coherence.</code><code class="descname">naive_periodicity</code><span class="sig-paren">(</span><em>values</em>, <em>identify_peak=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/coherence.html#naive_periodicity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.coherence.naive_periodicity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate periodicity in a naive manner</p>
+<p>Take ratio of frame1 over avg(frame2+frame3) counts. By default
+the first value is treated as the first frame as well</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>values</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
+<dd><p class="first last">Metagene profile</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>periodicity</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Periodicity</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.count">
+<span id="riboraptor-count-module"></span><h2>riboraptor.count module<a class="headerlink" href="#module-riboraptor.count" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for read counting operations.</p>
+<dl class="class">
+<dt id="riboraptor.count.OrderedCounter">
+<em class="property">class </em><code class="descclassname">riboraptor.count.</code><code class="descname">OrderedCounter</code><span class="sig-paren">(</span><em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#OrderedCounter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.OrderedCounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.Counter</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></p>
+<p>Counter that remembers the order elements are first encountered</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.bam_to_bedgraph">
+<code class="descclassname">riboraptor.count.</code><code class="descname">bam_to_bedgraph</code><span class="sig-paren">(</span><em>bam</em>, <em>strand='both'</em>, <em>end_type='5prime'</em>, <em>saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#bam_to_bedgraph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.bam_to_bedgraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create bigwig from bam.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bam</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to bam file</p>
+</dd>
+<dt><strong>strand</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Use reads mapping to ‘+/-/both’ strands</p>
+</dd>
+<dt><strong>end_type</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Use only end_type=5prime(5’) or “3prime(3’)”</p>
+</dd>
+<dt><strong>saveto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Path to write bedgraph</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>genome_cov</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Bedgraph output</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.bedgraph_to_bigwig">
+<code class="descclassname">riboraptor.count.</code><code class="descname">bedgraph_to_bigwig</code><span class="sig-paren">(</span><em>bedgraph</em>, <em>sizes</em>, <em>saveto</em>, <em>input_is_stream=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#bedgraph_to_bigwig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.bedgraph_to_bigwig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert bedgraph to bigwig.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bedgraph</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to bedgraph file</p>
+</dd>
+<dt><strong>sizes</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to genome chromosome sizes file
+or genome name</p>
+</dd>
+<dt><strong>saveto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to write bigwig file</p>
+</dd>
+<dt><strong>input_is_stream</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if input is sent through stdin</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.count_uniq_mapping_reads">
+<code class="descclassname">riboraptor.count.</code><code class="descname">count_uniq_mapping_reads</code><span class="sig-paren">(</span><em>bam</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#count_uniq_mapping_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.count_uniq_mapping_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count number of mapped reads.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bam: str</strong></dt>
+<dd><p class="first last">Path to bam file</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>n_mapped: int</strong></dt>
+<dd><p class="first last">Count of uniquely mapped reads</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.export_gene_coverages">
+<code class="descclassname">riboraptor.count.</code><code class="descname">export_gene_coverages</code><span class="sig-paren">(</span><em>bed</em>, <em>bw</em>, <em>saveto</em>, <em>offset_5p=0</em>, <em>offset_3p=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#export_gene_coverages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.export_gene_coverages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export all gene coverages.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bed: str</strong></dt>
+<dd><p class="first last">Path to CDS or 5’UTR or 3’UTR bed</p>
+</dd>
+<dt><strong>bw: str</strong></dt>
+<dd><p class="first last">Path to bigwig to fetch the scores from</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to write output tsv file</p>
+</dd>
+<dt><strong>offset_5p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count upstream (5’)</p>
+</dd>
+<dt><strong>offset_3p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count downstream (3’)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>gene_profiles: file</strong></dt>
+<dd><p class="first">with the following format:
+gene1        5poffset1       3poffset1       cnt1_1 cnt1_2 cnt1_3 …</p>
+<p class="last">gene2        5poffset2       3poffset2       cnt2_1 cnt2_2 cnt2_3 …</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.export_metagene_coverage">
+<code class="descclassname">riboraptor.count.</code><code class="descname">export_metagene_coverage</code><span class="sig-paren">(</span><em>bed</em>, <em>bw</em>, <em>max_positions=None</em>, <em>saveto=None</em>, <em>offset_5p=0</em>, <em>offset_3p=0</em>, <em>orientation='5prime'</em>, <em>n_jobs=16</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#export_metagene_coverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.export_metagene_coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export metagene coverage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bed: str</strong></dt>
+<dd><p class="first last">Path to CDS or 5’UTR or 3’UTR bed</p>
+</dd>
+<dt><strong>bw: str</strong></dt>
+<dd><p class="first last">Path to bigwig to fetch the scores from</p>
+</dd>
+<dt><strong>max_positions: int</strong></dt>
+<dd><p class="first last">Number of positions to consider while
+calculating the normalized coverage
+Higher values lead to slower implementation</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to write output tsv file</p>
+</dd>
+<dt><strong>offset_5p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count upstream (5’)</p>
+</dd>
+<dt><strong>offset_3p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count downstream (3’)</p>
+</dd>
+<dt><strong>orientation: string</strong></dt>
+<dd><p class="first last">[‘5prime’, ‘3prime’] indicating the end of read
+being tracked</p>
+</dd>
+<dt><strong>n_jobs: int</strong></dt>
+<dd><p class="first last">Number of paralle threads to open
+Better to do on a multi-cpu machine, but also works decently on
+a single core machine</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>metagene_coverage: series</strong></dt>
+<dd><p class="first last">Metagene coverage</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.export_read_counts">
+<code class="descclassname">riboraptor.count.</code><code class="descname">export_read_counts</code><span class="sig-paren">(</span><em>gene_coverages</em>, <em>saveto</em>, <em>keep_offsets=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#export_read_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.export_read_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>export read counts from gene coverages file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>gene_coverages: string</strong></dt>
+<dd><p class="first last">Path to gene coverages.tsv</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to save output tsv
+gene_name   count   length</p>
+</dd>
+<dt><strong>keep_offsets: bool</strong></dt>
+<dd><p class="first last">whether to keep the 5’ and 3’ offsets in gene coverages
+default is False</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.export_read_length">
+<code class="descclassname">riboraptor.count.</code><code class="descname">export_read_length</code><span class="sig-paren">(</span><em>bam</em>, <em>saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#export_read_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.export_read_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count read lengths.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bam: str</strong></dt>
+<dd><p class="first last">Path to bam file</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to write output tsv file</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>lengths: counter</strong></dt>
+<dd><p class="first last">Counter of read length and counts</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.extract_uniq_mapping_reads">
+<code class="descclassname">riboraptor.count.</code><code class="descname">extract_uniq_mapping_reads</code><span class="sig-paren">(</span><em>inbam</em>, <em>outbam</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#extract_uniq_mapping_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.extract_uniq_mapping_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract only uniquely mapping reads from a bam.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>inbam: string</strong></dt>
+<dd><p class="first last">Path to input bam file</p>
+</dd>
+<dt><strong>outbam: string</strong></dt>
+<dd><p class="first last">Path to write unique reads bam to</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.gene_coverage">
+<code class="descclassname">riboraptor.count.</code><code class="descname">gene_coverage</code><span class="sig-paren">(</span><em>gene_group</em>, <em>bw</em>, <em>offset_5p=0</em>, <em>offset_3p=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#gene_coverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.gene_coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get gene coverage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>gene_group: DataFrame</strong></dt>
+<dd><p class="first last">gene group from bed file</p>
+</dd>
+<dt><strong>bw: str</strong></dt>
+<dd><p class="first last">Path to bigwig to fetch the scores from</p>
+</dd>
+<dt><strong>offset_5p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count upstream (5’)</p>
+</dd>
+<dt><strong>offset_3p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count downstream (3’)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>coverage_combined: series</strong></dt>
+<dd><p class="first last">Series with index as position and value as coverage</p>
+</dd>
+<dt><strong>gene_offset_5p: Gene wise 5 prime offset</strong></dt>
+<dd><p class="first last">This might be different from <cite>offset_5p</cite> in cases where
+<cite>offset_5p</cite> leads to a negative coordinate</p>
+</dd>
+<dt><strong>gene_offset_3p: Gene wise 3 prime offset</strong></dt>
+<dd><p class="first last">This might be different from <cite>offset_3p</cite> in cases where
+<cite>offset_3p</cite> leads to position beyond chromsome length</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.get_bam_coverage">
+<code class="descclassname">riboraptor.count.</code><code class="descname">get_bam_coverage</code><span class="sig-paren">(</span><em>bam</em>, <em>bed</em>, <em>outprefix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#get_bam_coverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.get_bam_coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get coverage from bam</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bam: string</strong></dt>
+<dd><p class="first last">Path to bam file</p>
+</dd>
+<dt><strong>bed: string</strong></dt>
+<dd><p class="first last">Path to genes.bed or cds.bed file required for inferring protocol of bam</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>coverage: dict(dict)</strong></dt>
+<dd><p class="first last">dict with keys as chrom:position with query lengths as keys</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.get_bam_coverage_on_bed">
+<code class="descclassname">riboraptor.count.</code><code class="descname">get_bam_coverage_on_bed</code><span class="sig-paren">(</span><em>bam</em>, <em>bed</em>, <em>protocol='forward'</em>, <em>orientation='5prime'</em>, <em>max_positions=1000</em>, <em>offset=60</em>, <em>saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#get_bam_coverage_on_bed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.get_bam_coverage_on_bed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get bam coverage over start_codon/stop_codon coordinates</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.get_region_sizes">
+<code class="descclassname">riboraptor.count.</code><code class="descname">get_region_sizes</code><span class="sig-paren">(</span><em>bed</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#get_region_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.get_region_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get collapsed lengths of gene in bed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bed: str</strong></dt>
+<dd><p class="first last">Path to bed file</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>region_sizes: dict</strong></dt>
+<dd><p class="first last">Region sizes with gene names as key
+and value as size of this named region</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.mapping_reads_summary">
+<code class="descclassname">riboraptor.count.</code><code class="descname">mapping_reads_summary</code><span class="sig-paren">(</span><em>bam</em>, <em>saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#mapping_reads_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.mapping_reads_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count number of mapped reads.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bam: str</strong></dt>
+<dd><p class="first last">Path to bam file</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to write output tsv</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>counts</strong> <span class="classifier-delimiter">:</span> <span class="classifier">counter</span></dt>
+<dd><p class="first last">Counter with keys as number of times read maps
+and values as number of reads of that type</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.merge_gene_coverages">
+<code class="descclassname">riboraptor.count.</code><code class="descname">merge_gene_coverages</code><span class="sig-paren">(</span><em>gene_coverages</em>, <em>max_positions=None</em>, <em>saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#merge_gene_coverages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.merge_gene_coverages" title="Permalink to this definition">¶</a></dt>
+<dd><p>merge gene coverages to generate metagene coverage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>gene_coverages: string</strong></dt>
+<dd><p class="first last">Path to gene coverages.tsv</p>
+</dd>
+<dt><strong>max_positions: int</strong></dt>
+<dd><p class="first last">Number of positions to consider while
+calculating the normalized coverage</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to save output tsv</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>metagene_coverage</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
+<dd><p class="first last">Metagene coverage</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.merge_read_counts">
+<code class="descclassname">riboraptor.count.</code><code class="descname">merge_read_counts</code><span class="sig-paren">(</span><em>read_counts</em>, <em>saveto</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#merge_read_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.merge_read_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>merge read counts tsv files to one count table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>read_counts: str</strong></dt>
+<dd><p class="first last">Path to file which contains paths of all read counts
+tsv file you want to merge
+format:
+sample1 path1
+sample2 path2</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to save output tsv</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.count.read_enrichment">
+<code class="descclassname">riboraptor.count.</code><code class="descname">read_enrichment</code><span class="sig-paren">(</span><em>read_lengths</em>, <em>min_length=28</em>, <em>max_length=32</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/count.html#read_enrichment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.count.read_enrichment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate read enrichment for a certain range of lengths</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>read_lengths: str</strong></dt>
+<dd><p class="first last">Path to read length tsv</p>
+</dd>
+<dt><strong>min_length: int</strong></dt>
+<dd><p class="first last">The low end of the range</p>
+</dd>
+<dt><strong>max_length: int</strong></dt>
+<dd><p class="first last">The high end of the range</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ratio: float</strong></dt>
+<dd><p class="first last">Enrichment in this range (Scale 0-1)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.download">
+<span id="riboraptor-download-module"></span><h2>riboraptor.download module<a class="headerlink" href="#module-riboraptor.download" title="Permalink to this headline">¶</a></h2>
+<p>Utilities to download data from NCBI SRA</p>
+<dl class="function">
+<dt id="riboraptor.download.run_download_sra_script">
+<code class="descclassname">riboraptor.download.</code><code class="descname">run_download_sra_script</code><span class="sig-paren">(</span><em>download_root_location=None</em>, <em>ascp_key_path=None</em>, <em>srp_id_file=None</em>, <em>srp_id_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/download.html#run_download_sra_script"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.download.run_download_sra_script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download data from SRA.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>download_root_location</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Path to download SRA files</p>
+</dd>
+<dt><strong>ascp_key_path</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Location for aspera private keypp</p>
+</dd>
+<dt><strong>srp_id_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">List of SRP ids for download</p>
+</dd>
+<dt><strong>srp_id_file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">File containing list of SRP Ids, one per line</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.dtw">
+<span id="riboraptor-dtw-module"></span><h2>riboraptor.dtw module<a class="headerlink" href="#module-riboraptor.dtw" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.dtw.dtw">
+<code class="descclassname">riboraptor.dtw.</code><code class="descname">dtw</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em>, <em>metric='euclidean'</em>, <em>ddtw=False</em>, <em>ddtw_order=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/dtw.html#dtw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.dtw.dtw" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>X</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">M x D matrix</p>
+</dd>
+<dt><strong>Y</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">N x D matrix</p>
+</dd>
+<dt><strong>metric</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">The distance metric to use.
+Can be :
+‘braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, ‘correlation’,
+‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’, ‘kulsinski’,
+‘mahalanobis’, ‘matching’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’,
+‘seuclidean’, ‘sokalmichener’, ‘sokalsneath’, ‘sqeuclidean’,
+‘wminkowski’, ‘yule’.
+See: <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html</a></p>
+</dd>
+<dt><strong>ddtw</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">Should use derivative DTW where the distance matrix is created
+using the derivate values at each point rather than the point themselves</p>
+</dd>
+<dt><strong>ddtw_order</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int [1,2]</span></dt>
+<dd><p class="first last">First order uses one difference method
+Second order uses np.gradient for an approximation upto second order</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>total_cost</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Total (minimum) cost of warping</p>
+</dd>
+<dt><strong>pointwise_cost</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">M x N matrix with cost at each (i, j)</p>
+</dd>
+<dt><strong>accumulated_cost</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">M x N matrix with (minimum) cost accumulated till (i,j)
+having started from (0, 0)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.dtw.get_path">
+<code class="descclassname">riboraptor.dtw.</code><code class="descname">get_path</code><span class="sig-paren">(</span><em>D</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/dtw.html#get_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.dtw.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Traceback path of minimum cost</p>
+<p>Given accumulated cost matrix D,
+trace back the minimum cost path</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>D</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">M x N matrix as obtained from <cite>accumulated_cost</cite> using:
+total_cost, pointwise_cost, accumulated_cost = dtw(X, Y, metric=’euclidean’)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>traceback_x, traceback_x</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">M x 1 and N x 1 array containing  indices of movement
+starting from (0, 0) going to (M-1, N-1)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.dtw.plot_warped_timeseries">
+<code class="descclassname">riboraptor.dtw.</code><code class="descname">plot_warped_timeseries</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>pointwise_cost</em>, <em>accumulated_cost</em>, <em>path</em>, <em>colormap=&lt;Mock name='mock.pyplot.cm.Blues' id='140237965673304'&gt;</em>, <em>linecolor='#D55E00'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/dtw.html#plot_warped_timeseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.dtw.plot_warped_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.fasta">
+<span id="riboraptor-fasta-module"></span><h2>riboraptor.fasta module<a class="headerlink" href="#module-riboraptor.fasta" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="riboraptor.fasta.FastaReader">
+<em class="property">class </em><code class="descclassname">riboraptor.fasta.</code><code class="descname">FastaReader</code><span class="sig-paren">(</span><em>fasta_location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/fasta.html#FastaReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.fasta.FastaReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for reading and querying fasta file.</p>
+<dl class="attribute">
+<dt id="riboraptor.fasta.FastaReader.chromosomes">
+<code class="descname">chromosomes</code><a class="headerlink" href="#riboraptor.fasta.FastaReader.chromosomes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of chromsome and their sizes
+as in the fasta file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chroms</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Dictionary with {“chr”: “Length”} format</p>
+</dd>
+<dt><strong>.. currentmodule:: .FastaReader</strong></dt>
+<dd></dd>
+<dt><strong>.. autosummary::</strong></dt>
+<dd><p class="first last">.FastaReader</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.fasta.FastaReader.complement">
+<code class="descname">complement</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/fasta.html#FastaReader.complement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.fasta.FastaReader.complement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.fasta.FastaReader.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>intervals</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/fasta.html#FastaReader.query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.fasta.FastaReader.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query regions for sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>intervals: list of Interval</strong></dt>
+<dd><p class="first last">The intervals for fasta is one-based and full-closed</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>sequences: list(str)</strong></dt>
+<dd><p class="first last">An array containing scores for each Interval
+This function is agnostic of the strand information,
+the position in the scores is corresponding to the interval</p>
+</dd>
+<dt><strong>.. currentmodule:: .FastaReader</strong></dt>
+<dd></dd>
+<dt><strong>.. autosummary::</strong></dt>
+<dd><p class="first last">.FastaReader</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.fasta.FastaReader.reverse_complement">
+<code class="descname">reverse_complement</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/fasta.html#FastaReader.reverse_complement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.fasta.FastaReader.reverse_complement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.genome">
+<span id="riboraptor-genome-module"></span><h2>riboraptor.genome module<a class="headerlink" href="#module-riboraptor.genome" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-riboraptor.hdf_parser">
+<span id="riboraptor-hdf-parser-module"></span><h2>riboraptor.hdf_parser module<a class="headerlink" href="#module-riboraptor.hdf_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="riboraptor.hdf_parser.HDFParser">
+<em class="property">class </em><code class="descclassname">riboraptor.hdf_parser.</code><code class="descname">HDFParser</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#HDFParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.HDFParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="riboraptor.hdf_parser.HDFParser.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#HDFParser.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.HDFParser.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.hdf_parser.HDFParser.get_coverage">
+<code class="descname">get_coverage</code><span class="sig-paren">(</span><em>region=(None</em>, <em>None</em>, <em>None</em>, <em>None)</em>, <em>fragment_length=None</em>, <em>orientation='5prime'</em>, <em>outprefix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#HDFParser.get_coverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.HDFParser.get_coverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get coverage for a selected region.</p>
+<p>Since the region is user provided, we assume the user is aware if it is strand
+specfic or not</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.hdf_parser.HDFParser.get_query_alignment_length_dist">
+<code class="descname">get_query_alignment_length_dist</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#HDFParser.get_query_alignment_length_dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.HDFParser.get_query_alignment_length_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.hdf_parser.HDFParser.get_read_length_dist">
+<code class="descname">get_read_length_dist</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#HDFParser.get_read_length_dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.HDFParser.get_read_length_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.hdf_parser.create_metagene_from_multi_bigwig">
+<code class="descclassname">riboraptor.hdf_parser.</code><code class="descname">create_metagene_from_multi_bigwig</code><span class="sig-paren">(</span><em>bed</em>, <em>bigwigs</em>, <em>max_positions=1000</em>, <em>offset_5p=0</em>, <em>offset_3p=0</em>, <em>n_jobs=16</em>, <em>saveto=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#create_metagene_from_multi_bigwig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.create_metagene_from_multi_bigwig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collapse multiple bigwigs to get bigwig.</p>
+<p>Test case -&gt; we should be able to get the same coverage file as from export_metagene coverage
+if everything above this works okay.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.hdf_parser.hdf_to_bigwig">
+<code class="descclassname">riboraptor.hdf_parser.</code><code class="descname">hdf_to_bigwig</code><span class="sig-paren">(</span><em>hdf</em>, <em>prefixdir</em>, <em>read_lengths_to_use='all'</em>, <em>output_normalized=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#hdf_to_bigwig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.hdf_to_bigwig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create fragment and strand specific bigwigs from hdf</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>hdf: string</strong></dt>
+<dd><p class="first last">Path to hdf file</p>
+</dd>
+<dt><strong>prefix: string</strong></dt>
+<dd><p class="first last">Prefix to store output files</p>
+</dd>
+<dt><strong>read_lengths_to_use: list</strong></dt>
+<dd><p class="first last">Create bigwig only from these fragment lengths</p>
+</dd>
+<dt><strong>TODO: one fix for this would be to create separate nonoverlapping bigwigs</strong></dt>
+<dd></dd>
+<dt><strong>and then merge them with bigWigCat (one more dependency)</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.hdf_parser.merge_bigwigs">
+<code class="descclassname">riboraptor.hdf_parser.</code><code class="descname">merge_bigwigs</code><span class="sig-paren">(</span><em>bigwigs</em>, <em>chrom_sizes</em>, <em>saveto</em>, <em>scale=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#merge_bigwigs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.merge_bigwigs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge multiple bigwigs into one.</p>
+<p>Note: This seems impossible doing it through pybigWig way
+and hence the dependency on ucsc-bigWigMerge</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bigwigs: list</strong></dt>
+<dd><p class="first last">List of path to bigwigs</p>
+</dd>
+<dt><strong>chrom_size: string</strong></dt>
+<dd><p class="first last">Path to chromsome.sizes file</p>
+</dd>
+<dt><strong>saveto: string</strong></dt>
+<dd><p class="first last">Path for outputting bigwig</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.hdf_parser.normalize_bw_hdf">
+<code class="descclassname">riboraptor.hdf_parser.</code><code class="descname">normalize_bw_hdf</code><span class="sig-paren">(</span><em>bw</em>, <em>hdf</em>, <em>read_length</em>, <em>outbw</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#normalize_bw_hdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.normalize_bw_hdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize a fragment specific bigwig to RPM for that fragment length</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bw: string</strong></dt>
+<dd><p class="first last">Path to bigwig file</p>
+</dd>
+<dt><strong>hdf: string</strong></dt>
+<dd><p class="first last">Path to hdf file (used for fetching total counts for that read type)</p>
+</dd>
+<dt><strong>read_length: int</strong></dt>
+<dd><p class="first last">Fragment length</p>
+</dd>
+<dt><strong>outbw: string</strong></dt>
+<dd><p class="first last">Path to output bigwig</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.hdf_parser.tsv_to_bigwig">
+<code class="descclassname">riboraptor.hdf_parser.</code><code class="descname">tsv_to_bigwig</code><span class="sig-paren">(</span><em>df</em>, <em>chrom_lengths</em>, <em>prefix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/hdf_parser.html#tsv_to_bigwig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.hdf_parser.tsv_to_bigwig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert tsv (created by bam-coverage) to bigwig</p>
+<p>We create multiple bigwigs, each separately for fragment length,
+and the strand.</p>
+<p>This will output the following files, where N represents the fragment length</p>
+<p>N.5prime.pos.bw
+N.3prime.pos.bw</p>
+<p>N.5prime.neg.bw
+N.3prime.neg.bw</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df: string or pd.DataFrame</strong></dt>
+<dd><p class="first last">Path to bam-coverage outputted tsvi</p>
+</dd>
+<dt><strong>chrom_lengths: list of tuples</strong></dt>
+<dd><dl class="first last docutils">
+<dt>A list of tuples with chromsome name and size</dt>
+<dd><p class="first last">[(‘chr1’, 10000), [‘chr2’, 5000]]</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>prefix: string</strong></dt>
+<dd><p class="first last">Path to store the final tsv</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.helpers">
+<span id="riboraptor-helpers-module"></span><h2>riboraptor.helpers module<a class="headerlink" href="#module-riboraptor.helpers" title="Permalink to this headline">¶</a></h2>
+<p>All functions that are not so useful, but still useful.</p>
+<dl class="function">
+<dt id="riboraptor.helpers.bwshift">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">bwshift</code><span class="sig-paren">(</span><em>bw</em>, <em>shift_by</em>, <em>out_bw</em>, <em>chunk_size=20000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#bwshift"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.bwshift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a bigwig shift all the values by this
+Shifting by 10:
+variableStep chrom=chr span=1
+1   1
+2   2
+3   5
+4   6
+5   5
+6   3
+7   3
+8   5
+9   5
+10  5
+11  6
+12  6
+13  0
+14  2
+15  3
+16  3
+17  10
+18  4
+19  4
+20  2
+21  2
+22  2
+23  1</p>
+<p>shifted by 10
+variableStep chrom=chr span=1
+1   6
+2   6
+3   0
+4   2
+5   3
+6   3
+7   10
+8   4
+9   4
+10  2
+11  2
+12  2
+13  1</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.bwsum">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">bwsum</code><span class="sig-paren">(</span><em>bw</em>, <em>chunk_size=5000</em>, <em>scale_to=1000000.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#bwsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.bwsum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.check_file_exists">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">check_file_exists</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#check_file_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.check_file_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if file exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>filepath</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to file</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.codon_to_anticodon">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">codon_to_anticodon</code><span class="sig-paren">(</span><em>codon</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#codon_to_anticodon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.codon_to_anticodon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Codon to anticodon.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>codon</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Input codon</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.complementary_strand">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">complementary_strand</code><span class="sig-paren">(</span><em>strand</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#complementary_strand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.complementary_strand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get complementary strand</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>strand: string</strong></dt>
+<dd><p class="first last">+/-</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>rs: string</strong></dt>
+<dd><p class="first last">-/+</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.counts_to_tpm">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">counts_to_tpm</code><span class="sig-paren">(</span><em>counts</em>, <em>sizes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#counts_to_tpm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.counts_to_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Counts to TPM</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>counts: array like</strong></dt>
+<dd><p class="first last">Series/array of counts</p>
+</dd>
+<dt><strong>sizes: array like</strong></dt>
+<dd><p class="first last">Series/array of region sizes</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.create_bam_index">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">create_bam_index</code><span class="sig-paren">(</span><em>bam</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#create_bam_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.create_bam_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create bam index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bam</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to bam file</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.create_ideal_periodic_signal">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">create_ideal_periodic_signal</code><span class="sig-paren">(</span><em>signal_length</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#create_ideal_periodic_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.create_ideal_periodic_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create ideal ribo-seq signal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>signal_length</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Length of signal to create</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>signal</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">1-0-0 signal</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.featurecounts_to_tpm">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">featurecounts_to_tpm</code><span class="sig-paren">(</span><em>fc_f</em>, <em>outfile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#featurecounts_to_tpm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.featurecounts_to_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert htseq-counts file to tpm</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>fc_f: string</strong></dt>
+<dd><p class="first last">Path to htseq-count output</p>
+</dd>
+<dt><strong>outfile: string</strong></dt>
+<dd><p class="first last">Path to output file with tpm values</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.find_first_non_none">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">find_first_non_none</code><span class="sig-paren">(</span><em>positions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#find_first_non_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.find_first_non_none" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of positions, find the index and value of first non-none element.</p>
+<p>This method is specifically designed for pysam, which has a weird way of returning
+the reference positions. If they are mismatched/softmasked it returns None
+when fetched using get_reference_positions.</p>
+<p>query_alignment_start and query_alignment_end give you indexes of position in the read
+which technically align, but are not softmasked i.e. it is set to None even if the position does not align</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>positions: list of int</strong></dt>
+<dd><p class="first last">Positions as returned by pysam.fetch.get_reference_positions</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.find_last_non_none">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">find_last_non_none</code><span class="sig-paren">(</span><em>positions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#find_last_non_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.find_last_non_none" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of positions, find the index and value of last non-none element.</p>
+<p>This function is similar to the <cite>find_first_non_none</cite> function, but does it for the reversed
+list. It is specifically useful for reverse strand cases</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>positions: list of int</strong></dt>
+<dd><p class="first last">Positions as returned by pysam.fetch.get_reference_positions</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.get_region_sizes">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">get_region_sizes</code><span class="sig-paren">(</span><em>region_bed</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#get_region_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.get_region_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get summed up size of a CDS/UTR region from bed file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>region_bed: string</strong></dt>
+<dd><p class="first last">Input bed file</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>region_sizes: pd.Series</strong></dt>
+<dd><p class="first last">Series with region name as index and size as key</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.get_strandedness">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">get_strandedness</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#get_strandedness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.get_strandedness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse output of infer_experiment.py from RSeqC to get strandedness.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>filepath</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to infer_experiment.py output</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>strandedness</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">reverse or forward or none</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.htseq_to_tpm">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">htseq_to_tpm</code><span class="sig-paren">(</span><em>htseq_f</em>, <em>outfile</em>, <em>cds_bed_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#htseq_to_tpm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.htseq_to_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert htseq-counts file to tpm</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>htseq_f: string</strong></dt>
+<dd><p class="first last">Path to htseq-count output</p>
+</dd>
+<dt><strong>outfile: string</strong></dt>
+<dd><p class="first last">Path to output file with tpm values</p>
+</dd>
+<dt><strong>cds_bed_f: string</strong></dt>
+<dd><p class="first last">Path to CDS/genesize bed file</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.identify_peaks">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">identify_peaks</code><span class="sig-paren">(</span><em>coverage</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#identify_peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.identify_peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given coverage array, find the site of maximum density</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.is_read_uniq_mapping">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">is_read_uniq_mapping</code><span class="sig-paren">(</span><em>read</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#is_read_uniq_mapping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.is_read_uniq_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if read is uniquely mappable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>read</strong> <span class="classifier-delimiter">:</span> <span class="classifier">pysam.Alignment.fetch object</span></dt>
+<dd></dd>
+<dt><strong>Most reliable: [‘NH’] tag</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.list_to_ranges">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">list_to_ranges</code><span class="sig-paren">(</span><em>list_of_int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#list_to_ranges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.list_to_ranges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a list to a list of range object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>list_of_int: list</strong></dt>
+<dd><p class="first last">List of integers to be squeezed into range</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>list_of_range: list</strong></dt>
+<dd><p class="first last">List of range objects</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.load_pickle">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">load_pickle</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#load_pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.load_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read pickled files easy in Python 2/3</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.merge_intervals">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">merge_intervals</code><span class="sig-paren">(</span><em>intervals</em>, <em>chromosome_lengths=None</em>, <em>offset_5p=0</em>, <em>offset_3p=0</em>, <em>zero_based=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#merge_intervals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.merge_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collapse intervals into non overlapping manner</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>intervals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of Interval</span></dt>
+<dd></dd>
+<dt><strong>chromosome_lengths</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">A map of each chromosome’e length
+Only used with offset_3p, offset_5p&gt;0</p>
+</dd>
+<dt><strong>offset_5p</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int (positive)</span></dt>
+<dd><p class="first last">Number of bases to count upstream (5’)</p>
+</dd>
+<dt><strong>offset_3p</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int (positive)</span></dt>
+<dd><p class="first last">Number of bases to count downstream (3’)</p>
+</dd>
+<dt><strong>zero_based: bool</strong></dt>
+<dd><p class="first last">Indicate if the intervals are zero-based
+True means zero-based half open
+False means one-based full closed</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>interval_combined</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of Interval sorted by the start</span></dt>
+<dd><p class="first last">A merged version of intervals
+This is useful when the annotations are overlapping.
+Example:
+chr1 310 320 gene1 +
+chr1 319 324 gene1 +
+Returns:
+chr1 310 324 gene1 +</p>
+</dd>
+<dt><strong>gene_offset_5p: Gene wise 5 prime offset</strong></dt>
+<dd><p class="first last">This might be different from <cite>offset_5p</cite> in cases where
+<cite>offset_5p</cite> leads to a negative coordinate</p>
+</dd>
+<dt><strong>gene_offset_3p: Gene wise 3 prime offset</strong></dt>
+<dd><p class="first last">This might be different from <cite>offset_3p</cite> in cases where
+<cite>offset_3p</cite> leads to position beyond chromsome length</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.millify">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">millify</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#millify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.millify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert integer to human readable format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>n</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>millidx</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Formatted integer</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.mkdir_p">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">mkdir_p</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#mkdir_p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.mkdir_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python version mkdir -p</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>path</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.order_dataframe">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">order_dataframe</code><span class="sig-paren">(</span><em>df</em>, <em>columns</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#order_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.order_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Order a dataframe</p>
+<p>Order a dataframe by moving the <cite>columns</cite> in the front</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df: Dataframe</strong></dt>
+<dd><p class="first last">Dataframe</p>
+</dd>
+<dt><strong>columns: list</strong></dt>
+<dd><p class="first last">List of columns that need to be put in front</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.pad_five_prime_or_truncate">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">pad_five_prime_or_truncate</code><span class="sig-paren">(</span><em>some_list</em>, <em>offset_5p</em>, <em>target_len</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#pad_five_prime_or_truncate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.pad_five_prime_or_truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pad first the 5prime end and then the 3prime end or truncate</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>some_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Input list</p>
+</dd>
+<dt><strong>offset_5p</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">5’ offset</p>
+</dd>
+<dt><strong>target_length</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Final length of list</p>
+</dd>
+<dt><strong>If being extended, returns list padded with NAs.</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.pad_or_truncate">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">pad_or_truncate</code><span class="sig-paren">(</span><em>some_list</em>, <em>target_len</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#pad_or_truncate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.pad_or_truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pad or truncate a list upto given target length</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>some_list</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">Input list</p>
+</dd>
+<dt><strong>target_length</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Final length of list</p>
+</dd>
+<dt><strong>If being extended, returns list padded with NAs.</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.parse_star_logs">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">parse_star_logs</code><span class="sig-paren">(</span><em>infile</em>, <em>outfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#parse_star_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.parse_star_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse star logs into a dict</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>infile</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to starlogs.final.out file</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>star_info</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Dict with necessary records parsed</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.path_leaf">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">path_leaf</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#path_leaf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.path_leaf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get path’s tail from a filepath</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.r2">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">r2</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#r2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.r2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate pearson correlation between two vectors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>x</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">Input</p>
+</dd>
+<dt><strong>y</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">Input</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.read_bed_as_intervaltree">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">read_bed_as_intervaltree</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#read_bed_as_intervaltree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.read_bed_as_intervaltree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read bed as interval tree</p>
+<p>Useful for reading start/stop codon beds</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>filepath: string</strong></dt>
+<dd><p class="first last">Location to bed</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>bedint_tree: dict</strong></dt>
+<dd><p class="first last">dict with keys as gene name and strand as intervaltree</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.read_chrom_sizes">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">read_chrom_sizes</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#read_chrom_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.read_chrom_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read chr.sizes file sorted by chromosome name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>filepath: string</strong></dt>
+<dd><p class="first last">Location to chr.sizes</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chrom_lengths: list of tuple</strong></dt>
+<dd><p class="first last">A list of tuples with chromsome name and their size</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.read_enrichment">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">read_enrichment</code><span class="sig-paren">(</span><em>read_lengths</em>, <em>enrichment_range=range(28</em>, <em>33)</em>, <em>input_is_stream=False</em>, <em>input_is_file=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#read_enrichment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.read_enrichment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate read enrichment for a certain range of lengths</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>read_lengths: Counter</strong></dt>
+<dd><p class="first last">A counter with read lengths and their counts</p>
+</dd>
+<dt><strong>enrichment_range: range or str</strong></dt>
+<dd><p class="first last">Range of reads to concentrate upon
+(28-32 or range(28,33))</p>
+</dd>
+<dt><strong>input_is_stream: bool</strong></dt>
+<dd><p class="first last">True if input is sent through stdin</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ratio: float</strong></dt>
+<dd><p class="first last">Enrichment in this range (Scale 0-1)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.read_htseq">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">read_htseq</code><span class="sig-paren">(</span><em>htseq_f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#read_htseq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.read_htseq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read HTSeq file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>htseq_f: str</strong></dt>
+<dd><p class="first last">Path to htseq counts file</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>htseq_df: dataframe</strong></dt>
+<dd><p class="first last">HTseq counts as in a dataframe</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.read_refseq_bed">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">read_refseq_bed</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#read_refseq_bed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.read_refseq_bed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read refseq bed12 from UCSC.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>filepath: string</strong></dt>
+<dd><p class="first last">Location to bed12</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>refseq: dict</strong></dt>
+<dd><p class="first last">dict with keys as gene name and values as intervaltree</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.round_to_nearest">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">round_to_nearest</code><span class="sig-paren">(</span><em>x</em>, <em>base=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#round_to_nearest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.round_to_nearest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Round to nearest base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>x</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Input</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>v</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Output</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.scale_bigwig">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">scale_bigwig</code><span class="sig-paren">(</span><em>inbigwig</em>, <em>chrom_sizes</em>, <em>outbigwig</em>, <em>scale_factor=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#scale_bigwig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.scale_bigwig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale a bigwig by certain factor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>inbigwig: string</strong></dt>
+<dd><p class="first last">Path to input bigwig</p>
+</dd>
+<dt><strong>chrom_sizes: string</strong></dt>
+<dd><p class="first last">Path to chrom.sizes file</p>
+</dd>
+<dt><strong>outbigwig: string</strong></dt>
+<dd><p class="first last">Path to output bigwig</p>
+</dd>
+<dt><strong>scale_factor: float</strong></dt>
+<dd><p class="first last">Scale by value</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.set_xrotation">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">set_xrotation</code><span class="sig-paren">(</span><em>ax</em>, <em>degrees</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#set_xrotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.set_xrotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate labels on x-axis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">matplotlib.Axes</span></dt>
+<dd><p class="first last">Axes object</p>
+</dd>
+<dt><strong>degrees</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Rotation degrees</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.summarize_counters">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">summarize_counters</code><span class="sig-paren">(</span><em>samplewise_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#summarize_counters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.summarize_counters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summarize gene counts for a collection of samples.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>samplewise_dict</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">A dictionary with key as sample name and value
+as another dictionary of counts for each gene</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>totals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">A dictionary with key as sample name and value as total gene count</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.summary_stats_two_arrays_welch">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">summary_stats_two_arrays_welch</code><span class="sig-paren">(</span><em>old_mean_array</em>, <em>new_array</em>, <em>old_var_array=None</em>, <em>old_n_counter=None</em>, <em>carried_forward_observations=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#summary_stats_two_arrays_welch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.summary_stats_two_arrays_welch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Average two arrays using welch’s method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>old_mean_array</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
+<dd><p class="first last">Series of previous means with index as positions</p>
+</dd>
+<dt><strong>old_var_array</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
+<dd><p class="first last">Series of previous variances with index as positions</p>
+</dd>
+<dt><strong>new_array</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array like</span></dt>
+<dd><p class="first last">Series of new observations
+(Does noes
+Ciunts of number of positions at a certain index</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>m</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array like</span></dt>
+<dd><p class="first last">Column wise Mean array</p>
+</dd>
+<dt><strong>var</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array like</span></dt>
+<dd><p class="first last">Column wise variance</p>
+</dd>
+<dt><strong>Consider an example: [1,2,3], [1,2,3,4], [1,2,3,4,5]</strong></dt>
+<dd></dd>
+<dt><strong>old = [1,2,3]</strong></dt>
+<dd></dd>
+<dt><strong>new = [1,2,3,4]</strong></dt>
+<dd></dd>
+<dt><strong>counter = [1,1,1]</strong></dt>
+<dd></dd>
+<dt><strong>mean = [1,2,3,4] Var =[na, na, na, na], carried_fowrad = [[1,1], [2,2], [3,3], [4]]</strong></dt>
+<dd></dd>
+<dt><strong>old = [1,2,3,4]</strong></dt>
+<dd></dd>
+<dt><strong>new = [1,2,3,4,5]</strong></dt>
+<dd></dd>
+<dt><strong>couter = [2,2,2,1]</strong></dt>
+<dd></dd>
+<dt><strong>mean = [1,2,3,4,5]</strong></dt>
+<dd></dd>
+<dt><strong>var = [0,0,0, na, na]</strong></dt>
+<dd></dd>
+<dt><strong>carried_forward = [[], [], [], [4,4], [5]]</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.symlink_force">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">symlink_force</code><span class="sig-paren">(</span><em>source</em>, <em>destination</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#symlink_force"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.symlink_force" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create forcelink forcefully</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>source: string</strong></dt>
+<dd><p class="first last">Location to source file</p>
+</dd>
+<dt><strong>destination: string</strong></dt>
+<dd><p class="first last">Location to target</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.helpers.yield_intervals">
+<code class="descclassname">riboraptor.helpers.</code><code class="descname">yield_intervals</code><span class="sig-paren">(</span><em>chrom_size</em>, <em>chunk_size=20000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/helpers.html#yield_intervals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.helpers.yield_intervals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.infer_protocol">
+<span id="riboraptor-infer-protocol-module"></span><h2>riboraptor.infer_protocol module<a class="headerlink" href="#module-riboraptor.infer_protocol" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.infer_protocol.infer_protocol">
+<code class="descclassname">riboraptor.infer_protocol.</code><code class="descname">infer_protocol</code><span class="sig-paren">(</span><em>bam</em>, <em>bed</em>, <em>n_reads=500000</em>, <em>drop_probability=0.2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/infer_protocol.html#infer_protocol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.infer_protocol.infer_protocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Infer strandedness protocol given a bam file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bam: string</strong></dt>
+<dd><p class="first last">Path to bam file</p>
+</dd>
+<dt><strong>bed: string</strong></dt>
+<dd><p class="first last">Path to gene bed file</p>
+</dd>
+<dt><strong>n_reads: int</strong></dt>
+<dd><p class="first last">Number of reads to use (downsampled)</p>
+</dd>
+<dt><strong>drop_probability: float [0-1]</strong></dt>
+<dd><p class="first last">Reads are randomly droppped with this probability to
+simulate sampling</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>protocol: string</strong></dt>
+<dd><p class="first last">unstranded/forward/reverse</p>
+</dd>
+<dt><strong>forward_mapped_reads: float</strong></dt>
+<dd><p class="first last">Proportion of reads of type + mapping to + (++) or - mapping to - (–)</p>
+</dd>
+<dt><strong>reverse_mapped_reads: float</strong></dt>
+<dd><p class="first last">Proportion of reads of type + mapping to - (+-) or - mapping to + (-+)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.interval">
+<span id="riboraptor-interval-module"></span><h2>riboraptor.interval module<a class="headerlink" href="#module-riboraptor.interval" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="riboraptor.interval.Interval">
+<em class="property">class </em><code class="descclassname">riboraptor.interval.</code><code class="descname">Interval</code><span class="sig-paren">(</span><em>chrom=None</em>, <em>start=0</em>, <em>end=0</em>, <em>strand=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/interval.html#Interval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.interval.Interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for bed interval</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.kmer">
+<span id="riboraptor-kmer-module"></span><h2>riboraptor.kmer module<a class="headerlink" href="#module-riboraptor.kmer" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.kmer.fastq_kmer_histogram">
+<code class="descclassname">riboraptor.kmer.</code><code class="descname">fastq_kmer_histogram</code><span class="sig-paren">(</span><em>fastq_file</em>, <em>kmer_length=range(5</em>, <em>31)</em>, <em>five_prime=False</em>, <em>max_seq=1000000</em>, <em>offset=0</em>, <em>drop_probability=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/kmer.html#fastq_kmer_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.kmer.fastq_kmer_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a histogram of kmers from a fastq  file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>fastq_file: string</strong></dt>
+<dd><p class="first last">Location of .fastq or .fastq.gz</p>
+</dd>
+<dt><strong>kmer_length: range</strong></dt>
+<dd><p class="first last">Range of kmer to consider</p>
+</dd>
+<dt><strong>five_prime: bool</strong></dt>
+<dd><p class="first last">Should consider sequences from 5’ end?
+Default: False (uses sequence from 3’ end)</p>
+</dd>
+<dt><strong>max_seq: int</strong></dt>
+<dd><p class="first last">Maximum number of sequences to consider</p>
+</dd>
+<dt><strong>offset: int</strong></dt>
+<dd><p class="first last">Offset to ignore at the 5’ end or 3’end
+Example: If the offset is 3, the first 3 bases will be skipped
+and kmers will start only from the 4th position
+For 3’end if the offset is 3, the last 3 bases will be skipped</p>
+</dd>
+<dt><strong>drop_probability: float [0-1]</strong></dt>
+<dd><p class="first last">Reads are randomly droppped with this probability to
+simulate sampling</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd></dd>
+<dt><strong>——-</strong></dt>
+<dd></dd>
+<dt><strong>kmers: Series</strong></dt>
+<dd><p class="first last">Sorted series with most frequent kmer</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.normalization">
+<span id="riboraptor-normalization-module"></span><h2>riboraptor.normalization module<a class="headerlink" href="#module-riboraptor.normalization" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.normalization.deseq2_normalization">
+<code class="descclassname">riboraptor.normalization.</code><code class="descname">deseq2_normalization</code><span class="sig-paren">(</span><em>list_of_profiles</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/normalization.html#deseq2_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.normalization.deseq2_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform DESeq2 like normalization position specific scores</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>list_of_profiles: array-like</strong></dt>
+<dd><p class="first last">array of profiles across samples for one gene</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>normalized_profiles: array-like</strong></dt>
+<dd><p class="first last">array of profiles across samples</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.parallel">
+<span id="riboraptor-parallel-module"></span><h2>riboraptor.parallel module<a class="headerlink" href="#module-riboraptor.parallel" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.parallel.ParallelExecutor">
+<code class="descclassname">riboraptor.parallel.</code><code class="descname">ParallelExecutor</code><span class="sig-paren">(</span><em>use_bar='tqdm'</em>, <em>**joblib_args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/parallel.html#ParallelExecutor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.parallel.ParallelExecutor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.parallel.func">
+<code class="descclassname">riboraptor.parallel.</code><code class="descname">func</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/parallel.html#func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.parallel.func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.parallel.text_progessbar">
+<code class="descclassname">riboraptor.parallel.</code><code class="descname">text_progessbar</code><span class="sig-paren">(</span><em>seq</em>, <em>total=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/parallel.html#text_progessbar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.parallel.text_progessbar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.plotting">
+<span id="riboraptor-plotting-module"></span><h2>riboraptor.plotting module<a class="headerlink" href="#module-riboraptor.plotting" title="Permalink to this headline">¶</a></h2>
+<p>Plotting methods.</p>
+<dl class="function">
+<dt id="riboraptor.plotting.create_wavelet">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">create_wavelet</code><span class="sig-paren">(</span><em>data</em>, <em>ax</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#create_wavelet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.create_wavelet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.plotting.plot_featurewise_barplot">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">plot_featurewise_barplot</code><span class="sig-paren">(</span><em>utr5_counts</em>, <em>cds_counts</em>, <em>utr3_counts</em>, <em>ax=None</em>, <em>saveto=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#plot_featurewise_barplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.plot_featurewise_barplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot barplots for 5’UTR/CDS/3’UTR counts.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>utr5_counts</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or dict</span></dt>
+<dd><p class="first last">Total number of reads in 5’UTR region
+or alternatively a dictionary/series with
+genes as key and 5’UTR counts as values</p>
+</dd>
+<dt><strong>cds_counts</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or dict</span></dt>
+<dd><p class="first last">Total number of reads in CDs region
+or alternatively a dictionary/series with
+genes as key and CDS counts as values</p>
+</dd>
+<dt><strong>utr3_counts</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int or dict</span></dt>
+<dd><p class="first last">Total number of reads in 3’UTR region
+or alternatively a dictionary/series with
+genes as key and 3’UTR counts as values</p>
+</dd>
+<dt><strong>saveto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to save output file to (&lt;filename&gt;.png/&lt;filename&gt;.pdf)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.plotting.plot_framewise_counts">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">plot_framewise_counts</code><span class="sig-paren">(</span><em>counts</em>, <em>frames_to_plot='all'</em>, <em>ax=None</em>, <em>title=None</em>, <em>millify_labels=False</em>, <em>position_range=None</em>, <em>saveto=None</em>, <em>ascii=False</em>, <em>input_is_stream=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#plot_framewise_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.plot_framewise_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot framewise distribution of reads.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>counts</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series</span></dt>
+<dd><p class="first last">A series with position as index and value as counts</p>
+</dd>
+<dt><strong>frames_to_plot</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str or range</span></dt>
+<dd><p class="first last">A comma seaprated list of frames to highlight or a range</p>
+</dd>
+<dt><strong>ax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">matplotlib.Axes</span></dt>
+<dd><p class="first last">Default none</p>
+</dd>
+<dt><strong>saveto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to save output file to (&lt;filename&gt;.png/&lt;filename&gt;.pdf)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.plotting.plot_periodicity_df">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">plot_periodicity_df</code><span class="sig-paren">(</span><em>df</em>, <em>saveto</em>, <em>cbar=False</em>, <em>figsize=(8</em>, <em>8)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#plot_periodicity_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.plot_periodicity_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot periodicty values across fragment lengths as a matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df: string</strong></dt>
+<dd><p class="first last">Path to dataframe containing fragment length specific periodicities</p>
+</dd>
+<dt><strong>saveto: string</strong></dt>
+<dd><p class="first last">Path to output plot file</p>
+</dd>
+<dt><strong>cbar: bool</strong></dt>
+<dd><p class="first last">Whether to plot cbar or not</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.plotting.plot_read_counts">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">plot_read_counts</code><span class="sig-paren">(</span><em>counts</em>, <em>ax=None</em>, <em>marker=None</em>, <em>color='royalblue'</em>, <em>title=None</em>, <em>label=None</em>, <em>millify_labels=False</em>, <em>identify_peak=True</em>, <em>saveto=None</em>, <em>position_range=None</em>, <em>ascii=False</em>, <em>input_is_stream=False</em>, <em>ylabel='Normalized RPF density'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#plot_read_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.plot_read_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot RPF density aro und start/stop codons.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>counts</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Series/Counter</span></dt>
+<dd><p class="first last">A series with coordinates as index and counts as values</p>
+</dd>
+<dt><strong>ax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">matplotlib.Axes</span></dt>
+<dd><p class="first last">Axis to create object on</p>
+</dd>
+<dt><strong>marker</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">‘o’/’x’</p>
+</dd>
+<dt><strong>color</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Line color</p>
+</dd>
+<dt><strong>label</strong> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">Label (useful only if plotting multiple objects on same axes)</p>
+</dd>
+<dt><strong>millify_labels</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if labels should be formatted to
+read millions/trillions etc</p>
+</dd>
+<dt><strong>saveto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to save output file to (&lt;filename&gt;.png/&lt;filename&gt;.pdf)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.plotting.plot_read_length_dist">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">plot_read_length_dist</code><span class="sig-paren">(</span><em>read_lengths</em>, <em>ax=None</em>, <em>millify_labels=True</em>, <em>input_is_stream=False</em>, <em>title=None</em>, <em>saveto=None</em>, <em>ascii=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#plot_read_length_dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.plot_read_length_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot read length distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>read_lengths</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd><p class="first last">Array of read lengths</p>
+</dd>
+<dt><strong>ax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">matplotlib.Axes</span></dt>
+<dd><p class="first last">Axis object</p>
+</dd>
+<dt><strong>millify_labels</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if labels should be formatted to
+read millions/trillions etc</p>
+</dd>
+<dt><strong>input_is_stream</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">True if input is sent through stdin</p>
+</dd>
+<dt><strong>saveto</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Path to save output file to (&lt;filename&gt;.png/&lt;filename&gt;.pdf)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.plotting.setup_axis">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">setup_axis</code><span class="sig-paren">(</span><em>ax</em>, <em>axis='x'</em>, <em>majorticks=5</em>, <em>minorticks=1</em>, <em>xrotation=45</em>, <em>yrotation=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#setup_axis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.setup_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup axes defaults</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">matplotlib.Axes</span></dt>
+<dd></dd>
+<dt><strong>axis</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Setup ‘x’ or ‘y’ axis</p>
+</dd>
+<dt><strong>majorticks</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Length of interval between two major ticks</p>
+</dd>
+<dt><strong>minorticks</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Length of interval between two major ticks</p>
+</dd>
+<dt><strong>xrotation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Rotate x axis labels by xrotation degrees</p>
+</dd>
+<dt><strong>yrotation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Rotate x axis labels by xrotation degrees</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.plotting.setup_plot">
+<code class="descclassname">riboraptor.plotting.</code><code class="descname">setup_plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/plotting.html#setup_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.plotting.setup_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup plotting defaults</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.sequence">
+<span id="riboraptor-sequence-module"></span><h2>riboraptor.sequence module<a class="headerlink" href="#module-riboraptor.sequence" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for extracting sequence from fasta.</p>
+<dl class="function">
+<dt id="riboraptor.sequence.export_gene_sequences">
+<code class="descclassname">riboraptor.sequence.</code><code class="descname">export_gene_sequences</code><span class="sig-paren">(</span><em>bed</em>, <em>fasta</em>, <em>saveto=None</em>, <em>offset_5p=0</em>, <em>offset_3p=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sequence.html#export_gene_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sequence.export_gene_sequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export all gene sequences.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>bed: str</strong></dt>
+<dd><p class="first last">Path to CDS or 5’UTR or 3’UTR bed</p>
+</dd>
+<dt><strong>fasta: str</strong></dt>
+<dd><p class="first last">Path to fasta to fetch the sequences from</p>
+</dd>
+<dt><strong>saveto: str</strong></dt>
+<dd><p class="first last">Path to write output tsv file</p>
+</dd>
+<dt><strong>offset_5p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count upstream (5’)</p>
+</dd>
+<dt><strong>offset_3p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count downstream (3’)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>gene_profiles: file</strong></dt>
+<dd><p class="first">with the following format:
+gene1        5poffset1       3poffset1       sequence</p>
+<p class="last">gene2        5poffset2       3poffset2       sequence</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.sequence.gene_sequence">
+<code class="descclassname">riboraptor.sequence.</code><code class="descname">gene_sequence</code><span class="sig-paren">(</span><em>gene_group</em>, <em>fasta</em>, <em>offset_5p=0</em>, <em>offset_3p=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sequence.html#gene_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sequence.gene_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract seq genewise given coordinates in bed file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>gene_group: DataFrame</strong></dt>
+<dd><p class="first last">gene group from bed file</p>
+</dd>
+<dt><strong>fasta  str</strong></dt>
+<dd><p class="first last">Path to fasta file</p>
+</dd>
+<dt><strong>offset_5p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count upstream (5’)</p>
+</dd>
+<dt><strong>offset_3p: int (positive)</strong></dt>
+<dd><p class="first last">Number of bases to count downstream (3’)</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>sequence: str</strong></dt>
+<dd><p class="first last">sequence of the gene</p>
+</dd>
+<dt><strong>gene_offset_5p: Gene wise 5 prime offset</strong></dt>
+<dd><p class="first last">This might be different from <cite>offset_5p</cite> in cases where
+<cite>offset_5p</cite> leads to a negative coordinate</p>
+</dd>
+<dt><strong>gene_offset_3p: Gene wise 3 prime offset</strong></dt>
+<dd><p class="first last">This might be different from <cite>offset_3p</cite> in cases where
+<cite>offset_3p</cite> leads to position beyond chromsome length</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.sradb">
+<span id="riboraptor-sradb-module"></span><h2>riboraptor.sradb module<a class="headerlink" href="#module-riboraptor.sradb" title="Permalink to this headline">¶</a></h2>
+<p>Helper functions for parsing SRAmetadb.sqlite file</p>
+<dl class="class">
+<dt id="riboraptor.sradb.SRAdb">
+<em class="property">class </em><code class="descclassname">riboraptor.sradb.</code><code class="descname">SRAdb</code><span class="sig-paren">(</span><em>sqlite_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.convert_gse_to_srp">
+<code class="descname">convert_gse_to_srp</code><span class="sig-paren">(</span><em>gse</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.convert_gse_to_srp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.convert_gse_to_srp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert GSE to SRP id.
+Requires input db to be GEOmetadb.sqlite</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.desc_table">
+<code class="descname">desc_table</code><span class="sig-paren">(</span><em>table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.desc_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.desc_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.get_query">
+<code class="descname">get_query</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.get_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.get_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.get_row_count">
+<code class="descname">get_row_count</code><span class="sig-paren">(</span><em>table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.get_row_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.get_row_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get row counts for a table</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.get_table_counts">
+<code class="descname">get_table_counts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.get_table_counts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.get_table_counts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.list_fields">
+<code class="descname">list_fields</code><span class="sig-paren">(</span><em>table</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.list_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.list_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all fields in a given table</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.list_tables">
+<code class="descname">list_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.list_tables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.list_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all tables in the sqlite</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.open">
+<code class="descname">open</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.open" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.search_experiment">
+<code class="descname">search_experiment</code><span class="sig-paren">(</span><em>srx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.search_experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.search_experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for a SRX/GSM id in the experiments</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.sradb.SRAdb.sra_convert">
+<code class="descname">sra_convert</code><span class="sig-paren">(</span><em>acc, out_type=['study_accession', 'experiment_accession', 'experiment_title', 'run_accession', 'taxon_id', 'library_selection', 'library_layout', 'library_strategy', 'library_source', 'library_name', 'bases', 'spots', 'adapter_spec']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/sradb.html#SRAdb.sra_convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.sradb.SRAdb.sra_convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.statistics">
+<span id="riboraptor-statistics-module"></span><h2>riboraptor.statistics module<a class="headerlink" href="#module-riboraptor.statistics" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.statistics.KDE">
+<code class="descclassname">riboraptor.statistics.</code><code class="descname">KDE</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/statistics.html#KDE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.statistics.KDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Univariate Kernel Density Estimation.</p>
+<p>Wrapper utility around statsmodels for quick KDE
+TODO: scikit-learn has a faster implementation (?)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>values</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array like</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>support</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd></dd>
+<dt><strong>cdf</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.statistics.KS_test">
+<code class="descclassname">riboraptor.statistics.</code><code class="descname">KS_test</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/statistics.html#KS_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.statistics.KS_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform KS test between a and b values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>a, b</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array-like</span></dt>
+<dd><p class="first last">Input</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>D</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">KS D statistic</p>
+</dd>
+<dt><strong>effect_size</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">maximum difference at point of D-statistic</p>
+</dd>
+<dt><strong>cdf_a, cdf_b</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">CDF of a, b</p>
+</dd>
+<dt><strong>Note:    By default this method does testing for alternative=lesser implying</strong></dt>
+<dd></dd>
+<dt><strong>that the test will reject H0 when the CDf of b is ‘above’ a</strong></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.statistics.calculate_cdf">
+<code class="descclassname">riboraptor.statistics.</code><code class="descname">calculate_cdf</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/statistics.html#calculate_cdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.statistics.calculate_cdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate CDF given data points</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>data</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array-like</span></dt>
+<dd><p class="first last">Input values</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>cdf</strong> <span class="classifier-delimiter">:</span> <span class="classifier">series</span></dt>
+<dd><p class="first last">Cumulative distribution funvtion calculated at indexed points</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.statistics.coherence_pvalue">
+<code class="descclassname">riboraptor.statistics.</code><code class="descname">coherence_pvalue</code><span class="sig-paren">(</span><em>x</em>, <em>N</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/statistics.html#coherence_pvalue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.statistics.coherence_pvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate p-value for coherence score</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>x: float [0-1]</strong></dt>
+<dd><p class="first last">Coherence value</p>
+</dd>
+<dt><strong>N: int</strong></dt>
+<dd><p class="first last">Total number of windows</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>pval: float</strong></dt>
+<dd><p class="first last">p-value</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.statistics.series_cdf">
+<code class="descclassname">riboraptor.statistics.</code><code class="descname">series_cdf</code><span class="sig-paren">(</span><em>series</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/statistics.html#series_cdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.statistics.series_cdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate cdf of series preserving the index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>series</strong> <span class="classifier-delimiter">:</span> <span class="classifier">series like</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>cdf</strong> <span class="classifier-delimiter">:</span> <span class="classifier">series</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.tracks">
+<span id="riboraptor-tracks-module"></span><h2>riboraptor.tracks module<a class="headerlink" href="#module-riboraptor.tracks" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.tracks.create_trackdb">
+<code class="descclassname">riboraptor.tracks.</code><code class="descname">create_trackdb</code><span class="sig-paren">(</span><em>bwdir</em>, <em>srp</em>, <em>orientation='5prime'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/tracks.html#create_trackdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.tracks.create_trackdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create track file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.tracks.get_bigwigtrack_text">
+<code class="descclassname">riboraptor.tracks.</code><code class="descname">get_bigwigtrack_text</code><span class="sig-paren">(</span><em>track_name</em>, <em>parent</em>, <em>big_data_url</em>, <em>negate_values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/tracks.html#get_bigwigtrack_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.tracks.get_bigwigtrack_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create bigwig track text</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.tracks.get_compositetrack_text">
+<code class="descclassname">riboraptor.tracks.</code><code class="descname">get_compositetrack_text</code><span class="sig-paren">(</span><em>track_name</em>, <em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/tracks.html#get_compositetrack_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.tracks.get_compositetrack_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create composite track text</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.tracks.get_multiwigtrack_text">
+<code class="descclassname">riboraptor.tracks.</code><code class="descname">get_multiwigtrack_text</code><span class="sig-paren">(</span><em>track_name</em>, <em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/tracks.html#get_multiwigtrack_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.tracks.get_multiwigtrack_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a multiWig track.</p>
+<p>Example
+track myMultiWig
+container multiWig
+aggregate transparentOverlay
+showSubtrackColorOnUi on
+type bigWig 0 1000
+viewLimits 0:10
+maxHeighPixels 100:32:8</p>
+<blockquote>
+<div><p>track myFirstOverlaySig
+parent myMultiWig
+color 255,128,128
+type bigWig 0 1139</p>
+<p>track myFirstBigWig
+parent myMultiWig
+color 120,235,204</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.tracks.get_supertrack_text">
+<code class="descclassname">riboraptor.tracks.</code><code class="descname">get_supertrack_text</code><span class="sig-paren">(</span><em>track_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/tracks.html#get_supertrack_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.tracks.get_supertrack_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.utils">
+<span id="riboraptor-utils-module"></span><h2>riboraptor.utils module<a class="headerlink" href="#module-riboraptor.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="riboraptor.utils.copy_sra_data">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">copy_sra_data</code><span class="sig-paren">(</span><em>df</em>, <em>sra_source_dir='/staging/as/skchoudh/SRA_datasets/'</em>, <em>sra_dest_dir='/staging/as/skchoudh/re-ribo-datasets/'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#copy_sra_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.copy_sra_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy SRA data to a new location retaining only single ended samples.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.create_config_file">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">create_config_file</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#create_config_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.create_config_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.determine_cell_type">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">determine_cell_type</code><span class="sig-paren">(</span><em>sample_attribute</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#determine_cell_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.determine_cell_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.filter_single_end_samples">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">filter_single_end_samples</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#filter_single_end_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.filter_single_end_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter single end samples from a dataframe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>df: DataFrame</strong></dt>
+<dd><p class="first last">Dataframe as obtained from SRAb.sra_convert()</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>df: DataFrame</strong></dt>
+<dd><p class="first last">DataFrame with only single end samples</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.get_cell_line_or_tissue">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">get_cell_line_or_tissue</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#get_cell_line_or_tissue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.get_cell_line_or_tissue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.get_enrichment_cds_stats">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">get_enrichment_cds_stats</code><span class="sig-paren">(</span><em>pickle_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#get_enrichment_cds_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.get_enrichment_cds_stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.get_fragment_enrichment_score">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">get_fragment_enrichment_score</code><span class="sig-paren">(</span><em>txt_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#get_fragment_enrichment_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.get_fragment_enrichment_score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.get_strain_type">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">get_strain_type</code><span class="sig-paren">(</span><em>sample_attribute</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#get_strain_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.get_strain_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.get_tissue_type">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">get_tissue_type</code><span class="sig-paren">(</span><em>sample_attribute</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#get_tissue_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.get_tissue_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.load_tpm">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">load_tpm</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#load_tpm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.load_tpm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.summary_starlogs_over_runs">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">summary_starlogs_over_runs</code><span class="sig-paren">(</span><em>directory</em>, <em>list_of_srr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#summary_starlogs_over_runs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.summary_starlogs_over_runs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="riboraptor.utils.write_config">
+<code class="descclassname">riboraptor.utils.</code><code class="descname">write_config</code><span class="sig-paren">(</span><em>species</em>, <em>srp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/utils.html#write_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.utils.write_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor.wig">
+<span id="riboraptor-wig-module"></span><h2>riboraptor.wig module<a class="headerlink" href="#module-riboraptor.wig" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="riboraptor.wig.WigReader">
+<em class="property">class </em><code class="descclassname">riboraptor.wig.</code><code class="descname">WigReader</code><span class="sig-paren">(</span><em>wig_location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/wig.html#WigReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.wig.WigReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for reading and querying wigfiles.</p>
+<dl class="attribute">
+<dt id="riboraptor.wig.WigReader.chromosomes">
+<code class="descname">chromosomes</code><a class="headerlink" href="#riboraptor.wig.WigReader.chromosomes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of chromsome and their sizes
+as in the wig file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>chroms</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Dictionary with {“chr”: “Length”} format</p>
+</dd>
+<dt><strong>.. currentmodule:: .WigReader</strong></dt>
+<dd></dd>
+<dt><strong>.. autosummary::</strong></dt>
+<dd><p class="first last">.WigReader</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.wig.WigReader.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/wig.html#WigReader.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.wig.WigReader.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="riboraptor.wig.WigReader.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>intervals</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/riboraptor/wig.html#WigReader.query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#riboraptor.wig.WigReader.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query regions for scores.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>intervals</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list of Interval</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>scores</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array of array</span></dt>
+<dd><p class="first last">A numpy array containing scores for each Interval
+This function is agnostic of the strand information,
+the position in the scores is corresponding to the interval</p>
+</dd>
+<dt><strong>.. currentmodule:: .WigReader</strong></dt>
+<dd></dd>
+<dt><strong>.. autosummary::</strong></dt>
+<dd><p class="first last">.WigReader</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-riboraptor">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-riboraptor" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+            
+  <div class="footer-relations">
+    
+      <div class="pull-left">
+        <a class="btn btn-default" href="modules.html" title="previous chapter (use the left arrow)">riboraptor</a>
+      </div>
+    
+      <div class="pull-right">
+        <a class="btn btn-default" href="history.html" title="next chapter (use the right arrow)">History</a>
+      </div>
+    </div>
+    <div class="clearer"></div>
+  
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="history.html" title="History"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="riboraptor"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >riboraptor</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

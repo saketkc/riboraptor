@@ -1,0 +1,314 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="../../_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="../../_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>riboraptor.dtw &#8212; riboraptor 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  
+   
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Contents</h2>
+    <div class="sidebar-localtoc">
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../example_workflow.html">Example Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cmd-manual.html">Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-usage.html">API Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../scores.html">Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">riboraptor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Credits</a></li>
+</ul>
+
+    </div>
+  </div>
+</div>
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="../../search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="../../index.html">Docs</a></li>
+              
+                <li><a href="../index.html">Module code</a></li>
+              
+              <li>riboraptor.dtw</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <h1>Source code for riboraptor.dtw</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="p">(</span><span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="k">import</span> <span class="n">NullFormatter</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="k">import</span> <span class="n">CBB_PALETTE</span>
+
+
+<div class="viewcode-block" id="dtw"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.dtw.dtw">[docs]</a><span class="k">def</span> <span class="nf">dtw</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="n">ddtw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ddtw_order</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : array_like</span>
+<span class="sd">        M x D matrix</span>
+<span class="sd">    Y : array_like</span>
+<span class="sd">        N x D matrix</span>
+<span class="sd">    metric : string</span>
+<span class="sd">             The distance metric to use.</span>
+<span class="sd">             Can be :</span>
+<span class="sd">             &#39;braycurtis&#39;, &#39;canberra&#39;, &#39;chebyshev&#39;, &#39;cityblock&#39;, &#39;correlation&#39;,</span>
+<span class="sd">             &#39;cosine&#39;, &#39;dice&#39;, &#39;euclidean&#39;, &#39;hamming&#39;, &#39;jaccard&#39;, &#39;kulsinski&#39;,</span>
+<span class="sd">             &#39;mahalanobis&#39;, &#39;matching&#39;, &#39;minkowski&#39;, &#39;rogerstanimoto&#39;, &#39;russellrao&#39;,</span>
+<span class="sd">             &#39;seuclidean&#39;, &#39;sokalmichener&#39;, &#39;sokalsneath&#39;, &#39;sqeuclidean&#39;,</span>
+<span class="sd">             &#39;wminkowski&#39;, &#39;yule&#39;.</span>
+<span class="sd">             See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html</span>
+<span class="sd">    ddtw : bool</span>
+<span class="sd">           Should use derivative DTW where the distance matrix is created</span>
+<span class="sd">           using the derivate values at each point rather than the point themselves</span>
+<span class="sd">    ddtw_order : int [1,2]</span>
+<span class="sd">                 First order uses one difference method</span>
+<span class="sd">                 Second order uses np.gradient for an approximation upto second order</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    total_cost : float</span>
+<span class="sd">                 Total (minimum) cost of warping</span>
+<span class="sd">    pointwise_cost :  array_like</span>
+<span class="sd">                      M x N matrix with cost at each (i, j)</span>
+<span class="sd">    accumulated_cost : array_like</span>
+<span class="sd">                       M x N matrix with (minimum) cost accumulated till (i,j)</span>
+<span class="sd">                       having started from (0, 0)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Reshape to N x 1 form</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="c1"># m = X length</span>
+    <span class="c1"># n = Y length</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">D</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">D</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ddtw</span><span class="p">:</span>
+        <span class="n">D</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ddtw_order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">X_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">Y_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="c1"># shape will be M-1 x D</span>
+            <span class="n">X_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># shape will be M-1 x D</span>
+            <span class="n">Y_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">X_mod</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">m</span> <span class="o">-</span>
+                  <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">X_diff</span><span class="p">[:</span><span class="n">m</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">X_diff</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">Y_mod</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span> <span class="o">-</span>
+                  <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">Y_diff</span><span class="p">[:</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Y_diff</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">X_mod</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">X_mod</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">X_mod</span><span class="p">[</span><span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">X_mod</span><span class="p">[</span><span class="n">m</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+
+            <span class="n">Y_mod</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">Y_mod</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">Y_mod</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">Y_mod</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">elif</span> <span class="n">ddtw_order</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">X_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">Y_mod</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">(</span><span class="s1">&#39;Not implemented order </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ddtw_order</span><span class="p">))</span>
+        <span class="n">D</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">X_mod</span><span class="p">,</span> <span class="n">Y_mod</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+    <span class="n">pointwise_cost</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">cost</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">D</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">D</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="n">D</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+    <span class="n">accumulated_cost</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">total_cost</span> <span class="o">=</span> <span class="n">D</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">]</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">D</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">total_cost</span><span class="p">,</span> <span class="n">pointwise_cost</span><span class="p">,</span> <span class="n">accumulated_cost</span></div>
+
+
+<div class="viewcode-block" id="get_path"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.dtw.get_path">[docs]</a><span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="n">D</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Traceback path of minimum cost</span>
+
+<span class="sd">    Given accumulated cost matrix D,</span>
+<span class="sd">    trace back the minimum cost path</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+
+<span class="sd">    D : array_like</span>
+<span class="sd">        M x N matrix as obtained from `accumulated_cost` using:</span>
+<span class="sd">        total_cost, pointwise_cost, accumulated_cost = dtw(X, Y, metric=&#39;euclidean&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    traceback_x, traceback_x : array_like</span>
+<span class="sd">                               M x 1 and N x 1 array containing  indices of movement</span>
+<span class="sd">                               starting from (0, 0) going to (M-1, N-1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">shape</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="c1"># Starting point is the end point</span>
+    <span class="n">traceback_x</span><span class="p">,</span> <span class="n">traceback_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="p">[</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">m</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">min_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">([</span><span class="n">D</span><span class="p">[</span><span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">D</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">D</span><span class="p">[</span><span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="n">min_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># move diagonally</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">min_idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># move vertically</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># move horizontally</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">traceback_x</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+        <span class="n">traceback_y</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="c1"># End point is the starting point</span>
+    <span class="n">traceback_x</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">traceback_y</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">traceback_x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">traceback_y</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">traceback_x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">traceback_y</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_warped_timeseries"><a class="viewcode-back" href="../../riboraptor.html#riboraptor.dtw.plot_warped_timeseries">[docs]</a><span class="k">def</span> <span class="nf">plot_warped_timeseries</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
+                           <span class="n">y</span><span class="p">,</span>
+                           <span class="n">pointwise_cost</span><span class="p">,</span>
+                           <span class="n">accumulated_cost</span><span class="p">,</span>
+                           <span class="n">path</span><span class="p">,</span>
+                           <span class="n">colormap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">Blues</span><span class="p">,</span>
+                           <span class="n">linecolor</span><span class="o">=</span><span class="n">CBB_PALETTE</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+    <span class="n">nullfmt</span> <span class="o">=</span> <span class="n">NullFormatter</span><span class="p">()</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.65</span>
+    <span class="n">bottom</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.65</span>
+    <span class="n">bottom_h</span> <span class="o">=</span> <span class="n">left_h</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="n">width</span> <span class="o">+</span> <span class="mf">0.02</span>
+    <span class="n">rect_heatmap</span> <span class="o">=</span> <span class="p">[</span><span class="n">left</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
+    <span class="n">rect_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">left</span><span class="p">,</span> <span class="n">bottom_h</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]</span>
+    <span class="n">rect_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">left_h</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">height</span><span class="p">]</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+    <span class="n">axHeatmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">rect_heatmap</span><span class="p">)</span>
+    <span class="n">axX</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">rect_x</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">axHeatmap</span><span class="p">)</span>
+    <span class="n">axY</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">rect_y</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">axHeatmap</span><span class="p">)</span>
+
+    <span class="c1"># no labels</span>
+    <span class="n">axX</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">nullfmt</span><span class="p">)</span>
+    <span class="n">axY</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">nullfmt</span><span class="p">)</span>
+
+    <span class="n">axY</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span> <span class="n">color</span><span class="o">=</span><span class="n">CBB_PALETTE</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">axX</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="n">CBB_PALETTE</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">axHeatmap</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+        <span class="n">accumulated_cost</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+        <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span>
+        <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+    <span class="n">axHeatmap</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;-x&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">linecolor</span><span class="p">)</span>
+    <span class="c1">#axHeatmap.xlim((-0.5, accumulated_cost.shape[0]-0.5))</span>
+    <span class="c1">#axHeatmap.ylim((-0.5, accumulated_cost.shape[1]-0.5))</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+</pre></div>
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">riboraptor 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="../../_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2018, Saket Choudhary. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>
