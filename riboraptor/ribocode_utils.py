@@ -12,6 +12,23 @@ from scipy.stats import find_repeats, distributions, ttest_1samp
 WilcoxonResult = namedtuple('WilcoxonResult', ('statistic', 'pvalue'))
 
 
+def extract_frame(orf_psite_array):
+    """
+    extract frame0 , frame1, frame2 vector
+    """
+    if orf_psite_array.size % 3 != 0:
+        shiftn = orf_psite_array.size % 3
+        orf_psite_array2 = orf_psite_array[:-shiftn]
+        f0 = orf_psite_array2[0:orf_psite_array2.size:3]
+        f1 = orf_psite_array2[1:orf_psite_array2.size:3]
+        f2 = orf_psite_array2[2:orf_psite_array2.size:3]
+    else:
+        f0 = orf_psite_array[0:orf_psite_array.size:3]
+        f1 = orf_psite_array[1:orf_psite_array.size:3]
+        f2 = orf_psite_array[2:orf_psite_array.size:3]
+    return f0, f1, f2
+
+
 def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
     """
     data if x is larger than y, single-sided.
@@ -96,3 +113,14 @@ def combine_pvals(pvalues, method="stouffer"):
         comb_pv = stats.combine_pvalues(pvalues, method=method)[1]
 
     return comb_pv
+
+
+def test_frame(f0, f1, f2):
+    """
+    data if f0>f1, f0>f2
+    """
+
+    pv1 = wilcoxon_greater(f0, f1)
+    pv2 = wilcoxon_greater(f0, f2)
+    pv = combine_pvals(np.array([pv1.pvalue, pv2.pvalue]))
+    return pv1, pv2, pv

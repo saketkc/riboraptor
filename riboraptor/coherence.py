@@ -129,8 +129,8 @@ def coherence(original_values, frames=[0]):
     if not isinstance(original_values, list):
         original_values = list(original_values)
     coh, pval, valid = 0.0, 1.0, -1
-    final_individual_angles =  []
-    final_angle =  np.nan
+    final_individual_angles = []
+    final_angle = np.nan
     final_coherence_raw = np.nan
     final_unit_vector_real = []
     final_unit_vector_imag = []
@@ -152,8 +152,8 @@ def coherence(original_values, frames=[0]):
             norm = np.sqrt(real**2 + imag**2)
             if norm == 0:
                 norm = 1
-            unit_vectors_real += [real/norm]
-            unit_vectors_imag  += [imag/norm]
+            unit_vectors_real += [real / norm]
+            unit_vectors_imag += [imag / norm]
             normalized_values += [
                 values[i] / norm, values[i + 1] / norm, values[i + 2] / norm
             ]
@@ -173,9 +173,11 @@ def coherence(original_values, frames=[0]):
             nperseg=3,
             noverlap=0)
 
-        coherence_raw = np.nanmean(unit_vectors_real)**2 + np.nanmean(unit_vectors_imag)**2
+        coherence_raw = np.nanmean(unit_vectors_real)**2 + np.nanmean(
+            unit_vectors_imag)**2
         individual_angles = np.arctan2(unit_vectors_imag, unit_vectors_real)
-        combine_angle = np.arctan2(np.sum(unit_vectors_imag), np.sum(unit_vectors_real))
+        combine_angle = np.arctan2(
+            np.sum(unit_vectors_imag), np.sum(unit_vectors_real))
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
             periodicity_pval = coherence_pvalue(periodicity_score, length // 3)
@@ -184,7 +186,7 @@ def coherence(original_values, frames=[0]):
             periodicity_pval = 1.0
 
         if coherence_raw > coh:
-            final_individual_angles =  individual_angles
+            final_individual_angles = individual_angles
             final_angle = combine_angle
             final_coherence_raw = coherence_raw
             final_unit_vector_real = unit_vectors_real
