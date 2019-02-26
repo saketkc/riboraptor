@@ -1,10 +1,6 @@
 """Utilities for extracting sequence from fasta.
 """
 
-
-
-
-
 import warnings
 import os
 import re

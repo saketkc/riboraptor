@@ -1,6 +1,5 @@
 """Plotting methods."""
 
-
 from collections import Counter
 from itertools import cycle
 from itertools import islice

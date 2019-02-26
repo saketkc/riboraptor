@@ -1052,12 +1052,14 @@ def get_region_sizes(region_bed):
         ## Get rid of trailing dots
         gene_name = re.sub(r"\.[0-9]+", "", gene_name)
         # Collect all intervals at once
-        intervals = list(zip(
-            gene_group["chrom"],
-            gene_group["start"],
-            gene_group["end"],
-            gene_group["strand"],
-        ))
+        intervals = list(
+            zip(
+                gene_group["chrom"],
+                gene_group["start"],
+                gene_group["end"],
+                gene_group["strand"],
+            )
+        )
         for interval in intervals:
             if gene_name not in region_sizes:
                 # End is always 1-based so does not require +1

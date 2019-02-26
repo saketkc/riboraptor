@@ -16,13 +16,15 @@ def text_progessbar(seq, total=None):
         time_diff = time.time() - tick
         avg_speed = time_diff / step
         total_str = "of %n" % total if total else ""
-        print((
-            "step",
-            step,
-            "%.2f" % time_diff,
-            "avg: %.2f iter/sec" % avg_speed,
-            total_str,
-        ))
+        print(
+            (
+                "step",
+                step,
+                "%.2f" % time_diff,
+                "avg: %.2f iter/sec" % avg_speed,
+                total_str,
+            )
+        )
         step += 1
         yield next(seq)
 

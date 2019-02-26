@@ -1,10 +1,6 @@
 """Command line interface for riboraptor
 """
 
-
-
-
-
 import os
 import sys
 from textwrap import dedent

@@ -1,8 +1,3 @@
-
-
-
-
-
 from collections import Counter
 from collections import defaultdict
 from collections import OrderedDict
@@ -632,7 +627,9 @@ class HDFParser(object):
                 # This chromosome does not exist in the
                 # key value store
                 # So should returns zeros all way
-                coverage = pd.Series([0] * (stop - start), index=list(range(start, stop)))
+                coverage = pd.Series(
+                    [0] * (stop - start), index=list(range(start, stop))
+                )
 
             else:
                 chrom_obj = root_obj[chrom_name]
@@ -642,7 +639,9 @@ class HDFParser(object):
                 # print(counts_series)
                 coverage = counts_series.get(list(range(start, stop)))
                 if coverage is None:
-                    coverage = pd.Series([0] * (stop - start), index=list(range(start, stop)))
+                    coverage = pd.Series(
+                        [0] * (stop - start), index=list(range(start, stop))
+                    )
                 coverage = coverage.fillna(0)
             # Mean is taken by summing the rows
             coverage_mean = coverage.mean(axis=0, skipna=True)
@@ -688,9 +687,7 @@ class HDFParser(object):
         return pd.Series(read_counts, index=read_lengths).sort_index()
 
     def get_query_alignment_length_dist(self):
-        read_lengths = list(
-            [int(x) for x in self.h5py_obj["query_alignment_lengths"]]
-        )
+        read_lengths = list([int(x) for x in self.h5py_obj["query_alignment_lengths"]])
         read_counts = list(self.h5py_obj["query_alignment_lengths_counts"])
         return pd.Series(read_counts, index=read_lengths).sort_index()
 

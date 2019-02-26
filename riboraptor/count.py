@@ -1,10 +1,6 @@
 """Utilities for read counting operations.
 """
 
-
-
-
-
 import warnings
 
 from collections import defaultdict

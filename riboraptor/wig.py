@@ -1,7 +1,3 @@
-
-
-
-
 import warnings
 import os
 

@@ -1,8 +1,3 @@
-
-
-
-
-
 import pysam
 from .helpers import is_read_uniq_mapping, create_bam_index
 from .helpers import read_refseq_bed, read_bed_as_intervaltree

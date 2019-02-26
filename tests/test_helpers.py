@@ -1,5 +1,3 @@
-
-
 import pytest
 import numpy as np
 import pyBigWig
@@ -22,7 +20,8 @@ def test_scale_bigwig():
     bw1 = WigReader(bw)
     bw2 = WigReader(scaled_bw)
     region = [Interval("chrY", 10197344, 10197345)]
-    np.testing.assert_array_almost_equal(bw1.query(region) * 0.1, bw2.query(region))
+    np.testing.assert_array_almost_equal(
+        bw1.query(region) * 0.1, bw2.query(region))
 
 
 def test_merge_intervals():
@@ -50,7 +49,8 @@ def test_merge_intervals():
 
     # test more tricky intervals
     intervals = [
-        Interval("chr1", x[0], x[1], "-") for x in [(260, 400), (200, 300), (280, 300)]
+        Interval("chr1", x[0], x[1], "-")
+        for x in [(260, 400), (200, 300), (280, 300)]
     ]
     intervals_combined = merge_intervals(intervals, chromosome_lengths, 30, 30)
     assert intervals_combined == ([Interval("chr1", 170, 430, "-")], 30, 30)
@@ -58,8 +58,7 @@ def test_merge_intervals():
     # test intervals near the end of chrom for neg strand
     chr1_length = chromosome_lengths["chr1"]
     intervals = [
-        Interval("chr1", x[0], x[1], "-")
-        for x in [
+        Interval("chr1", x[0], x[1], "-") for x in [
             (chr1_length - 10, chr1_length - 2),
             (260, 400),
             (200, 300),
@@ -79,8 +78,7 @@ def test_merge_intervals():
     # test intervals near the end of chrom for pos strand
     chr1_length = chromosome_lengths["chr1"]
     intervals = [
-        Interval("chr1", x[0], x[1], "+")
-        for x in [
+        Interval("chr1", x[0], x[1], "+") for x in [
             (chr1_length - 10, chr1_length - 2),
             (260, 400),
             (200, 300),
@@ -101,9 +99,11 @@ def test_merge_intervals():
     chr1_length = chromosome_lengths["chr1"]
     intervals = [
         Interval("chr1", x[0], x[1], "+")
-        for x in [(chr1_length - 10, chr1_length - 2), (260, 400), (5, 300), (280, 300)]
+        for x in [(chr1_length - 10,
+                   chr1_length - 2), (260, 400), (5, 300), (280, 300)]
     ]
-    intervals_combined = merge_intervals(intervals, chromosome_lengths, 10, 30, False)
+    intervals_combined = merge_intervals(intervals, chromosome_lengths, 10, 30,
+                                         False)
     assert intervals_combined == (
         [
             Interval("chr1", 1, 400, "+"),
@@ -117,8 +117,7 @@ def test_merge_intervals():
 def test_refseq_read():
     refseq = read_refseq_bed("tests/data/hg38_v24_refseq.bed12")
     assert list(sorted(refseq.keys())) == list(
-        sorted(["chr1", "chr22_KI270734v1_random", "chr22_KI270733v1_random"])
-    )
+        sorted(["chr1", "chr22_KI270734v1_random", "chr22_KI270733v1_random"]))
 
 
 def test_read_enrichment():
@@ -133,8 +132,6 @@ def test_bwshift():
     bw2 = pyBigWig.open("tests/data/chr1.shifted_pos10.bw", "r")
     bw3 = pyBigWig.open("tests/data/chr1.shifted_neg10.bw", "r")
     np.testing.assert_array_almost_equal(
-        bw1.values("chr1", 0, 23)[10:20], bw2.values("chr1", 0, 10)
-    )
+        bw1.values("chr1", 0, 23)[10:20], bw2.values("chr1", 0, 10))
     np.testing.assert_array_almost_equal(
-        bw1.values("chr1", 0, 23)[0:10], bw3.values("chr1", 10, 20)
-    )
+        bw1.values("chr1", 0, 23)[0:10], bw3.values("chr1", 10, 20))

@@ -1,5 +1,3 @@
-
-
 import pytest
 import pybedtools
 
@@ -24,7 +22,8 @@ def test_interval():
 def test_wig():
     bw = WigReader("tests/data/SRX2536403_subsampled.unique.bigWig")
     intervals = [
-        Interval("chr1", x[0], x[1], "-") for x in [(999594, 999595), (999597, 999598)]
+        Interval("chr1", x[0], x[1], "-")
+        for x in [(999594, 999595), (999597, 999598)]
     ]
     coverages = bw.query(intervals)
     assert coverages[0] == [1] and coverages[1] == [1]
@@ -34,7 +33,9 @@ def test_fasta():
     fasta = FastaReader("tests/data/hg38.fa")
     chrom_length = fasta.chromosomes["chr1"]
     assert chrom_length == 89950
-    sequences = fasta.query([Interval("chr1", 89948, 89950), Interval("chr1", 99, 100)])
+    sequences = fasta.query(
+        [Interval("chr1", 89948, 89950),
+         Interval("chr1", 99, 100)])
     assert sequences == ["TTA", "AC"]
 
     assert fasta.complement("TCGA") == "AGCT"
