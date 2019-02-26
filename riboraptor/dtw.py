@@ -1,5 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -8,7 +7,7 @@ from matplotlib.ticker import NullFormatter
 from .helpers import CBB_PALETTE
 
 
-def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
+def dtw(X, Y, metric="euclidean", ddtw=False, ddtw_order=1):
     """
 
     Parameters
@@ -71,11 +70,9 @@ def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
             # shape will be M-1 x D
             Y_diff = np.diff(Y, axis=0)
 
-            X_mod[1:m -
-                  1, :] = 0.5 * (X_diff[:m - 2, :] + 0.5 * X_diff[1:m - 1])
+            X_mod[1 : m - 1, :] = 0.5 * (X_diff[: m - 2, :] + 0.5 * X_diff[1 : m - 1])
 
-            Y_mod[1:n -
-                  1, :] = 0.5 * (Y_diff[:n - 2, :] + 0.5 * Y_diff[1:n - 1])
+            Y_mod[1 : n - 1, :] = 0.5 * (Y_diff[: n - 2, :] + 0.5 * Y_diff[1 : n - 1])
 
             X_mod[0, :] = X_mod[1, :]
             X_mod[m - 1, :] = X_mod[m - 2, :]
@@ -86,7 +83,7 @@ def dtw(X, Y, metric='euclidean', ddtw=False, ddtw_order=1):
             X_mod = np.gradient(X, axis=0)
             Y_mod = np.gradient(Y, axis=0)
         else:
-            raise NotImplemented('Not implemented order {}'.format(ddtw_order))
+            raise NotImplemented("Not implemented order {}".format(ddtw_order))
         D[1:, 1:] = cdist(X_mod, Y_mod, metric)
     pointwise_cost = D[1:, 1:].copy()
     for i in range(0, m):
@@ -123,7 +120,7 @@ def get_path(D):
     n = n - 1
     # Starting point is the end point
     traceback_x, traceback_y = [m], [n]
-    while (m > 0 and n > 0):
+    while m > 0 and n > 0:
         min_idx = np.argmin([D[m - 1, n - 1], D[m, n - 1], D[m - 1, n]])
         if min_idx == 0:
             # move diagonally
@@ -144,13 +141,15 @@ def get_path(D):
     return np.array(traceback_x), np.array(traceback_y)
 
 
-def plot_warped_timeseries(x,
-                           y,
-                           pointwise_cost,
-                           accumulated_cost,
-                           path,
-                           colormap=plt.cm.Blues,
-                           linecolor=CBB_PALETTE[-2]):
+def plot_warped_timeseries(
+    x,
+    y,
+    pointwise_cost,
+    accumulated_cost,
+    path,
+    colormap=plt.cm.Blues,
+    linecolor=CBB_PALETTE[-2],
+):
     nullfmt = NullFormatter()
     left, width = 0.1, 0.65
     bottom, height = 0.1, 0.65
@@ -172,11 +171,9 @@ def plot_warped_timeseries(x,
     axY.plot(list(y), range(0, len(y)), color=CBB_PALETTE[2])
     axX.plot(list(x), color=CBB_PALETTE[1])
     axHeatmap.imshow(
-        accumulated_cost.T,
-        origin='lower',
-        cmap=colormap,
-        interpolation='nearest')
-    axHeatmap.plot(path[0], path[1], '-x', color=linecolor)
-    #axHeatmap.xlim((-0.5, accumulated_cost.shape[0]-0.5))
-    #axHeatmap.ylim((-0.5, accumulated_cost.shape[1]-0.5))
+        accumulated_cost.T, origin="lower", cmap=colormap, interpolation="nearest"
+    )
+    axHeatmap.plot(path[0], path[1], "-x", color=linecolor)
+    # axHeatmap.xlim((-0.5, accumulated_cost.shape[0]-0.5))
+    # axHeatmap.ylim((-0.5, accumulated_cost.shape[1]-0.5))
     return fig

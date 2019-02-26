@@ -1,14 +1,17 @@
 import os
 from snakemake.shell import shell
-if snakemake.wildcards.orientation == '5prime':
-    RANGE = '-60:100'
+
+if snakemake.wildcards.orientation == "5prime":
+    RANGE = "-60:100"
 else:
-    RANGE = '-100:60'
+    RANGE = "-100:60"
 if os.stat(str(snakemake.input)).st_size:
-    shell(r'''riboraptor plot-metagene \
+    shell(
+        r"""riboraptor plot-metagene \
             --counts {snakemake.input} \
             --saveto {snakemake.output} \
-            --positions {RANGE}''')
+            --positions {RANGE}"""
+    )
 else:
     # Just touch the file
-    shell(r'''touch {snakemake.output}''')
+    shell(r"""touch {snakemake.output}""")

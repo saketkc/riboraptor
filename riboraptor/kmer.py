@@ -6,12 +6,14 @@ import pandas as pd
 import numpy as np
 
 
-def fastq_kmer_histogram(fastq_file,
-                         kmer_length=range(5, 31),
-                         five_prime=False,
-                         max_seq=1000000,
-                         offset=0,
-                         drop_probability=0):
+def fastq_kmer_histogram(
+    fastq_file,
+    kmer_length=range(5, 31),
+    five_prime=False,
+    max_seq=1000000,
+    offset=0,
+    drop_probability=0,
+):
     """Get a histogram of kmers from a fastq  file
 
     Parameters
@@ -41,11 +43,11 @@ def fastq_kmer_histogram(fastq_file,
     """
     cur_count = 0
     should_continue = True
-    if '.gz' in fastq_file:
+    if ".gz" in fastq_file:
         # Open as a gzip file
-        handle = gzip.open(fastq_file, 'rt')
+        handle = gzip.open(fastq_file, "rt")
     else:
-        handle = open(fastq_file, 'r')
+        handle = open(fastq_file, "r")
     histogram = {k: Counter() for k in kmer_length}
 
     with tqdm(total=max_seq) as pbar:
@@ -54,7 +56,8 @@ def fastq_kmer_histogram(fastq_file,
                 break
             if drop_probability > 0:
                 should_drop = np.random.choice(
-                    [1, 0], p=[drop_probability, 1 - drop_probability])
+                    [1, 0], p=[drop_probability, 1 - drop_probability]
+                )
                 if should_drop:
                     continue
 
@@ -64,9 +67,9 @@ def fastq_kmer_histogram(fastq_file,
                     if not offset:
                         k_seq = seq[-k:]
                     else:
-                        k_seq = seq[-k - offset:-offset]
+                        k_seq = seq[-k - offset : -offset]
                 else:
-                    k_seq = seq[offset:k + offset]
+                    k_seq = seq[offset : k + offset]
                 histogram[k][k_seq] += 1
                 if cur_count >= max_seq:
                     should_continue = False

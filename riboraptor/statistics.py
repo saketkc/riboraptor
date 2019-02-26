@@ -1,5 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import pandas as pd
 from scipy.stats.mstats import ks_2samp
@@ -26,6 +25,7 @@ def KDE(values):
 
     """
     import statsmodels.api as sm
+
     density = sm.nonparametric.KDEUnivariate(values)
     density.fit()
     return density.support, density.cdf
@@ -102,7 +102,7 @@ def KS_test(a, b):
 
     cdf_a = series_cdf(a)
     cdf_b = series_cdf(b)
-    effect_size, p = ks_2samp(a, b, alternative='greater')
+    effect_size, p = ks_2samp(a, b, alternative="greater")
     D = cdf_a.subtract(cdf_b).abs().idxmax()
     return D, effect_size, p, cdf_a, cdf_b
 
@@ -123,5 +123,5 @@ def coherence_pvalue(x, N):
           p-value
     """
     df, nc = 2, 2.0 / (N - 1)
-    x = 2 * N**2 * x / (N - 1)
+    x = 2 * N ** 2 * x / (N - 1)
     return stats.ncx2.sf(x, df, nc)

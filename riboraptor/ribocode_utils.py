@@ -2,14 +2,15 @@
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
+
 # -*- coding:UTF-8 -*-
-__author__ = 'Zhengtao Xiao'
+__author__ = "Zhengtao Xiao"
 from collections import namedtuple
 import numpy as np
 from scipy import stats
 from scipy.stats import find_repeats, distributions, ttest_1samp
 
-WilcoxonResult = namedtuple('WilcoxonResult', ('statistic', 'pvalue'))
+WilcoxonResult = namedtuple("WilcoxonResult", ("statistic", "pvalue"))
 
 
 def extract_frame(orf_psite_array):
@@ -19,13 +20,13 @@ def extract_frame(orf_psite_array):
     if orf_psite_array.size % 3 != 0:
         shiftn = orf_psite_array.size % 3
         orf_psite_array2 = orf_psite_array[:-shiftn]
-        f0 = orf_psite_array2[0:orf_psite_array2.size:3]
-        f1 = orf_psite_array2[1:orf_psite_array2.size:3]
-        f2 = orf_psite_array2[2:orf_psite_array2.size:3]
+        f0 = orf_psite_array2[0 : orf_psite_array2.size : 3]
+        f1 = orf_psite_array2[1 : orf_psite_array2.size : 3]
+        f2 = orf_psite_array2[2 : orf_psite_array2.size : 3]
     else:
-        f0 = orf_psite_array[0:orf_psite_array.size:3]
-        f1 = orf_psite_array[1:orf_psite_array.size:3]
-        f2 = orf_psite_array[2:orf_psite_array.size:3]
+        f0 = orf_psite_array[0 : orf_psite_array.size : 3]
+        f1 = orf_psite_array[1 : orf_psite_array.size : 3]
+        f2 = orf_psite_array[2 : orf_psite_array.size : 3]
     return f0, f1, f2
 
 
@@ -40,7 +41,7 @@ def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
     shamelessly stolen from scipy
     """
     if len(x) < 10 and not (np.allclose(x, x[0]) and np.allclose(y, y[0])):
-        #sample size too small, using the ttest
+        # sample size too small, using the ttest
         t_statistic, t_pvalue = ttest_1samp(x - y, popmean=0)
         if np.mean(x - y) > 0:
             t_pvalue /= 2.0
@@ -49,16 +50,17 @@ def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
         return WilcoxonResult(t_statistic, t_pvalue)
 
     if zero_method not in ["wilcox", "pratt", "zsplit"]:
-        raise ValueError("Zero method should be either 'wilcox' "
-                         "or 'pratt' or 'zsplit'")
+        raise ValueError(
+            "Zero method should be either 'wilcox' " "or 'pratt' or 'zsplit'"
+        )
     if y is None:
         d = np.asarray(x)
     else:
         x, y = map(np.asarray, (x, y))
         if len(x) != len(y):
-            raise ValueError('Unequal N in wilcoxon.  Aborting.')
+            raise ValueError("Unequal N in wilcoxon.  Aborting.")
         d = x - y
-        d[(d == 0) & (x + y != 0)] = -1  #penalty for equal value
+        d[(d == 0) & (x + y != 0)] = -1  # penalty for equal value
 
     if zero_method == "wilcox":
         # Keep all non-zero differences
@@ -74,12 +76,12 @@ def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
 
     if zero_method == "zsplit":
         r_zero = np.sum((d == 0) * r, axis=0)
-        r_plus += r_zero / 2.
-        r_minus += r_zero / 2.
+        r_plus += r_zero / 2.0
+        r_minus += r_zero / 2.0
 
     T = min(r_plus, r_minus)
-    mn = count * (count + 1.) * 0.25
-    se = count * (count + 1.) * (2. * count + 1.)
+    mn = count * (count + 1.0) * 0.25
+    se = count * (count + 1.0) * (2.0 * count + 1.0)
 
     if zero_method == "pratt":
         r = r[d != 0]

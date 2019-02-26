@@ -1,6 +1,5 @@
 """All functions that are not so useful, but still useful."""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 from collections import Counter
 from collections import OrderedDict
 from collections import defaultdict
@@ -33,8 +32,14 @@ from .interval import Interval
 __SAM_NOT_UNIQ_FLAGS__ = [4, 20, 256, 272, 2048]
 
 CBB_PALETTE = [
-    "#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
-    "#D55E00", "#CC79A7"
+    "#000000",
+    "#E69F00",
+    "#56B4E9",
+    "#009E73",
+    "#F0E442",
+    "#0072B2",
+    "#D55E00",
+    "#CC79A7",
 ]
 
 
@@ -51,7 +56,7 @@ def order_dataframe(df, columns):
              List of columns that need to be put in front
     """
     if isinstance(columns, six.string_types):
-        columns = [columns]  #let the command take a string or list
+        columns = [columns]  # let the command take a string or list
     remaining_columns = [w for w in df.columns if w not in columns]
     df = df[columns + remaining_columns]
     return df
@@ -62,8 +67,8 @@ def _fix_bed_coltype(bed):
 
     This is necessary since the chromosome numbers are often interpreted as int
     """
-    bed['chrom'] = bed['chrom'].astype(str)
-    bed['name'] = bed['name'].astype(str)
+    bed["chrom"] = bed["chrom"].astype(str)
+    bed["name"] = bed["name"].astype(str)
     return bed
 
 
@@ -98,8 +103,7 @@ def list_to_ranges(list_of_int):
 
     """
     sorted_list = sorted(set(list_of_int))
-    for key, group in itertools.groupby(
-            enumerate(sorted_list), lambda x: x[1] - x[0]):
+    for key, group in itertools.groupby(enumerate(sorted_list), lambda x: x[1] - x[0]):
         group = list(group)
         yield group[0][1], group[-1][1]
 
@@ -142,17 +146,18 @@ def millify(n):
               Formatted integer
     """
     if n is None or np.isnan(n):
-        return 'NaN'
-    millnames = ['', ' K', ' M', ' B', ' T']
+        return "NaN"
+    millnames = ["", " K", " M", " B", " T"]
     # Source: http://stackoverflow.com/a/3155023/756986
     n = float(n)
     millidx = max(
         0,
         min(
-            len(millnames) - 1,
-            int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))))
+            len(millnames) - 1, int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))
+        ),
+    )
 
-    return '{:.1f}{}'.format(n / 10**(3 * millidx), millnames[millidx])
+    return "{:.1f}{}".format(n / 10 ** (3 * millidx), millnames[millidx])
 
 
 def mkdir_p(path):
@@ -195,7 +200,7 @@ def symlink_force(source, destination):
 
 
 def r2(x, y):
-    '''Calculate pearson correlation between two vectors.
+    """Calculate pearson correlation between two vectors.
 
     Parameters
     ----------
@@ -203,12 +208,12 @@ def r2(x, y):
         Input
     y : array_like
         Input
-    '''
-    return stats.pearsonr(x, y)[0]**2
+    """
+    return stats.pearsonr(x, y)[0] ** 2
 
 
 def round_to_nearest(x, base=5):
-    '''Round to nearest base.
+    """Round to nearest base.
 
     Parameters
     ----------
@@ -219,7 +224,7 @@ def round_to_nearest(x, base=5):
     -------
     v : int
         Output
-    '''
+    """
     return int(base * round(float(x) / base))
 
 
@@ -237,11 +242,13 @@ def set_xrotation(ax, degrees):
         i.set_rotation(degrees)
 
 
-def summary_stats_two_arrays_welch(old_mean_array,
-                                   new_array,
-                                   old_var_array=None,
-                                   old_n_counter=None,
-                                   carried_forward_observations=None):
+def summary_stats_two_arrays_welch(
+    old_mean_array,
+    new_array,
+    old_var_array=None,
+    old_n_counter=None,
+    carried_forward_observations=None,
+):
     """Average two arrays using welch's method
 
     Parameters
@@ -288,15 +295,17 @@ def summary_stats_two_arrays_welch(old_mean_array,
     if old_n_counter is None:
         # Initlaized from current series
         old_n_counter = pd.Series(
-            np.zeros(len(old_mean_array)) + 1, index=old_mean_array.index)
+            np.zeros(len(old_mean_array)) + 1, index=old_mean_array.index
+        )
     if old_var_array is None:
         # Initlaized from current series
         old_var_array = pd.Series(
-            np.zeros(len(old_mean_array)) + np.nan, index=old_mean_array.index)
+            np.zeros(len(old_mean_array)) + np.nan, index=old_mean_array.index
+        )
     # Update positions counts based on new_array
     new_n_counter = old_n_counter.add(
-        pd.Series(np.zeros(len(new_array)) + 1, index=new_array.index),
-        fill_value=0)
+        pd.Series(np.zeros(len(new_array)) + 1, index=new_array.index), fill_value=0
+    )
     if len_old > len_new:
         len_diff = len_old - len_new
         # Pad the incoming array
@@ -305,7 +314,8 @@ def summary_stats_two_arrays_welch(old_mean_array,
         new_index = np.arange(max_index + 1, max_index + 1 + len_diff)
         new_array = new_array.append(
             pd.Series(np.zeros(len_diff) + np.nan, index=new_index),
-            verify_integrity=True)
+            verify_integrity=True,
+        )
     elif len_old < len_new:
         len_diff = len_new - len_old
         # Pad the old array
@@ -316,11 +326,12 @@ def summary_stats_two_arrays_welch(old_mean_array,
             new_index = np.arange(max_index + 1, max_index + 1 + len_diff)
             old_mean_array = old_mean_array.append(
                 pd.Series(np.zeros(len_diff) + np.nan, index=new_index),
-                verify_integrity=True)
+                verify_integrity=True,
+            )
 
     if not (old_mean_array.index == new_array.index).all():
-        print('old array index: {}'.format(old_mean_array))
-        print('new array index: {}'.format(new_array))
+        print("old array index: {}".format(old_mean_array))
+        print("new array index: {}".format(new_array))
     positions_with_less_than3_obs = defaultdict(list)
     for index, counts in six.iteritems(new_n_counter):
         # Which positions has <3 counts for calculating variance
@@ -362,10 +373,10 @@ def summary_stats_two_arrays_welch(old_mean_array,
                 new_mean_array[index] = old_mean_array[index]
             else:
                 new_mean_array[index] = new_array[index]
-    #print(delta)
-    #print(new_n_counter)
-    #print(delta_normalized)
-    #print(new_mean_array)
+    # print(delta)
+    # print(new_n_counter)
+    # print(delta_normalized)
+    # print(new_mean_array)
     # mean_difference_current = x_n - mean(x_n)
     # mean_difference_previous = x_n - mean(x_{n-1})
 
@@ -433,52 +444,59 @@ def parse_star_logs(infile, outfile=None):
                 Dict with necessary records parsed
     """
     ANNOTATIONS = [
-        'total_reads', 'uniquely_mapped', 'uniquely_mapped_percent',
-        'multi_mapped_percent', 'unmapped_percent', 'multi_mapped'
+        "total_reads",
+        "uniquely_mapped",
+        "uniquely_mapped_percent",
+        "multi_mapped_percent",
+        "unmapped_percent",
+        "multi_mapped",
     ]
     star_info = OrderedDict()
     with open(infile) as fh:
         for line in fh:
             line = line.strip()
-            if line.startswith('Number of input reads'):
-                star_info[ANNOTATIONS[0]] = int(line.strip().split('\t')[1])
-            elif line.startswith('Uniquely mapped reads number'):
-                star_info[ANNOTATIONS[1]] = int(line.strip().split('\t')[1])
-            elif line.startswith('Uniquely mapped reads %'):
+            if line.startswith("Number of input reads"):
+                star_info[ANNOTATIONS[0]] = int(line.strip().split("\t")[1])
+            elif line.startswith("Uniquely mapped reads number"):
+                star_info[ANNOTATIONS[1]] = int(line.strip().split("\t")[1])
+            elif line.startswith("Uniquely mapped reads %"):
                 star_info[ANNOTATIONS[2]] = round(
-                    float(line.strip('%').split('\t')[1]), 2)
-            elif line.startswith('Number of reads mapped to multiple loci'):
-                star_info[ANNOTATIONS[5]] = int(line.strip().split('\t')[1])
-            elif line.startswith('Number of reads mapped to too many loci'):
-                star_info[ANNOTATIONS[5]] += int(line.strip().split('\t')[1])
-            elif line.startswith('% of reads mapped to multiple loci'):
+                    float(line.strip("%").split("\t")[1]), 2
+                )
+            elif line.startswith("Number of reads mapped to multiple loci"):
+                star_info[ANNOTATIONS[5]] = int(line.strip().split("\t")[1])
+            elif line.startswith("Number of reads mapped to too many loci"):
+                star_info[ANNOTATIONS[5]] += int(line.strip().split("\t")[1])
+            elif line.startswith("% of reads mapped to multiple loci"):
                 star_info[ANNOTATIONS[3]] = round(
-                    float(line.strip('%').split('\t')[1]), 2)
-            elif line.startswith('% of reads mapped to too many loci'):
+                    float(line.strip("%").split("\t")[1]), 2
+                )
+            elif line.startswith("% of reads mapped to too many loci"):
                 star_info[ANNOTATIONS[3]] += round(
-                    float(line.strip('%').split('\t')[1]), 2)
-            elif line.startswith('% of reads unmapped: too many mismatches'):
+                    float(line.strip("%").split("\t")[1]), 2
+                )
+            elif line.startswith("% of reads unmapped: too many mismatches"):
                 star_info[ANNOTATIONS[4]] = round(
-                    float(line.strip('%').split('\t')[1]), 2)
-            elif line.startswith('% of reads unmapped: too short'):
+                    float(line.strip("%").split("\t")[1]), 2
+                )
+            elif line.startswith("% of reads unmapped: too short"):
                 star_info[ANNOTATIONS[4]] += round(
-                    float(line.strip('%').split('\t')[1]), 2)
-            elif line.startswith('% of reads unmapped: other'):
+                    float(line.strip("%").split("\t")[1]), 2
+                )
+            elif line.startswith("% of reads unmapped: other"):
                 star_info[ANNOTATIONS[4]] += round(
-                    float(line.strip('%').split('\t')[1]), 2)
+                    float(line.strip("%").split("\t")[1]), 2
+                )
 
-    star_info = {
-        key: round(star_info[key], 2)
-        for key in list(star_info.keys())
-    }
+    star_info = {key: round(star_info[key], 2) for key in list(star_info.keys())}
     if outfile is None:
         return star_info
     filename = path_leaf(infile)
-    filename = filename.strip('Log.final.out')
-    counts_df = pd.DataFrame.from_dict(star_info, orient='index').T
+    filename = filename.strip("Log.final.out")
+    counts_df = pd.DataFrame.from_dict(star_info, orient="index").T
     counts_df.index = [filename]
     if outfile:
-        counts_df.to_csv(outfile, sep=str('\t'), index=True, header=True)
+        counts_df.to_csv(outfile, sep=str("\t"), index=True, header=True)
     return counts_df
 
 
@@ -497,17 +515,17 @@ def get_strandedness(filepath):
     """
     with open(filepath) as f:
         data = f.read()
-    splitted = [x.strip() for x in data.split('\n') if len(x.strip()) >= 1]
-    assert splitted[0] == 'This is SingleEnd Data'
+    splitted = [x.strip() for x in data.split("\n") if len(x.strip()) >= 1]
+    assert splitted[0] == "This is SingleEnd Data"
     fwd_percentage = None
     rev_percentage = None
     for line in splitted[1:]:
-        if 'Fraction of reads failed to determine:' in line:
+        if "Fraction of reads failed to determine:" in line:
             continue
         elif 'Fraction of reads explained by "++,--":' in line:
-            fwd_percentage = float(line.split(':')[1])
+            fwd_percentage = float(line.split(":")[1])
         elif 'Fraction of reads explained by "+-,-+":' in line:
-            rev_percentage = float(line.split(':')[1])
+            rev_percentage = float(line.split(":")[1])
 
     assert rev_percentage is not None
     assert fwd_percentage is not None
@@ -515,21 +533,21 @@ def get_strandedness(filepath):
     ratio = fwd_percentage / rev_percentage
 
     if np.isclose([ratio], [1]):
-        return 'none'
+        return "none"
     elif ratio >= 0.5:
-        return 'forward'
+        return "forward"
     else:
-        return 'reverse'
+        return "reverse"
 
 
 def load_pickle(filepath):
     """Read pickled files easy in Python 2/3"""
-    if '.tsv' in filepath:
+    if ".tsv" in filepath:
         raise IndexError
     if sys.version_info > (3, 0):
-        pickled = pickle.load(open(filepath, 'rb'), encoding='latin1')
+        pickled = pickle.load(open(filepath, "rb"), encoding="latin1")
     else:
-        pickled = pickle.load(open(filepath, 'rb'))
+        pickled = pickle.load(open(filepath, "rb"))
     return pickled
 
 
@@ -575,15 +593,13 @@ def codon_to_anticodon(codon):
     codon : string
             Input codon
     """
-    pairs = {'A': 'T', 'C': 'G', 'T': 'A', 'G': 'C', 'N': 'N'}
-    return ''.join(pairs[c] for c in codon)[::-1]
+    pairs = {"A": "T", "C": "G", "T": "A", "G": "C", "N": "N"}
+    return "".join(pairs[c] for c in codon)[::-1]
 
 
-def merge_intervals(intervals,
-                    chromosome_lengths=None,
-                    offset_5p=0,
-                    offset_3p=0,
-                    zero_based=True):
+def merge_intervals(
+    intervals, chromosome_lengths=None, offset_5p=0, offset_3p=0, zero_based=True
+):
     """Collapse intervals into non overlapping manner
 
     Parameters
@@ -626,10 +642,10 @@ def merge_intervals(intervals,
     strands = list(set([i.strand for i in intervals]))
 
     if len(chroms) != 1:
-        sys.stderr.write('Error: chromosomes should be unique')
+        sys.stderr.write("Error: chromosomes should be unique")
         return ([], offset_5p, offset_3p)
     if len(strands) != 1:
-        sys.stderr.write('Error: strands should be unique')
+        sys.stderr.write("Error: strands should be unique")
         return ([], offset_5p, offset_3p)
 
     chrom = chroms[0]
@@ -651,8 +667,7 @@ def merge_intervals(intervals,
         if str(chrom) in chromosome_lengths:
             chrom_length = chromosome_lengths[str(chrom)]
         else:
-            warnings.warn('Chromosome {} does not exist'.format(chrom),
-                          UserWarning)
+            warnings.warn("Chromosome {} does not exist".format(chrom), UserWarning)
             chrom_length = np.inf
     else:
         chrom_length = np.inf
@@ -663,7 +678,7 @@ def merge_intervals(intervals,
         lower_bound = 1
     upper_bound = chrom_length
 
-    if strand == '+':
+    if strand == "+":
         if first_interval.start - offset_5p >= lower_bound:
             first_interval.start -= offset_5p
             gene_offset_5p = offset_5p
@@ -693,8 +708,7 @@ def merge_intervals(intervals,
             first_interval.start = lower_bound
 
     # Merge overlapping intervals
-    to_merge = Interval(chrom, first_interval.start, first_interval.end,
-                        strand)
+    to_merge = Interval(chrom, first_interval.start, first_interval.end, strand)
     intervals_combined = []
     for i in intervals:
         if i.start <= to_merge.end:
@@ -724,8 +738,7 @@ def summarize_counters(samplewise_dict):
     """
     totals = {}
     for key, sample_dict in six.iteritems(samplewise_dict):
-        totals[key] = np.nansum(
-            [np.nansum(d) for d in list(sample_dict.values)])
+        totals[key] = np.nansum([np.nansum(d) for d in list(sample_dict.values)])
     return totals
 
 
@@ -743,12 +756,12 @@ def complementary_strand(strand):
         -/+
 
     """
-    if strand == '+':
-        return '-'
-    elif strand == '-':
-        return '+'
+    if strand == "+":
+        return "-"
+    elif strand == "-":
+        return "+"
     else:
-        raise ValueError('Not a valid strand: {}'.format(strand))
+        raise ValueError("Not a valid strand: {}".format(strand))
 
 
 def read_refseq_bed(filepath):
@@ -766,12 +779,12 @@ def read_refseq_bed(filepath):
 
     """
     refseq = defaultdict(IntervalTree)
-    with open(filepath, 'r') as fh:
+    with open(filepath, "r") as fh:
         for line in fh:
             line = line.strip()
-            if line.startswith(('#', 'track', 'browser')):
+            if line.startswith(("#", "track", "browser")):
                 continue
-            fields = line.split('\t')
+            fields = line.split("\t")
             chrom, tx_start, tx_end, name, score, strand = fields[:6]
             tx_start = int(tx_start)
             tx_end = int(tx_end)
@@ -796,13 +809,13 @@ def read_bed_as_intervaltree(filepath):
 
     """
     bed_df = pybedtools.BedTool(filepath).sort().to_dataframe()
-    bed_df['chrom'] = bed_df['chrom'].astype(str)
-    bed_df['name'] = bed_df['name'].astype(str)
-    bed_grouped = bed_df.groupby('chrom')
+    bed_df["chrom"] = bed_df["chrom"].astype(str)
+    bed_df["name"] = bed_df["name"].astype(str)
+    bed_grouped = bed_df.groupby("chrom")
 
     bedint_tree = defaultdict(IntervalTree)
     for chrom, df in bed_grouped:
-        df_list = zip(df['start'], df['end'], df['strand'])
+        df_list = zip(df["start"], df["end"], df["strand"])
         for start, end, strand in df_list:
             bedint_tree[chrom].insert(start, end, strand)
     return bedint_tree
@@ -823,9 +836,9 @@ def read_chrom_sizes(filepath):
     """
 
     chrom_lengths = []
-    with open(filepath, 'r') as fh:
+    with open(filepath, "r") as fh:
         for line in fh:
-            chrom, size = line.strip().split('\t')
+            chrom, size = line.strip().split("\t")
             chrom_lengths.append((chrom, int(size)))
         chrom_lengths = list(sorted(chrom_lengths, key=lambda x: x[0]))
 
@@ -840,7 +853,7 @@ def create_bam_index(bam):
     """
     if isinstance(bam, pysam.AlignmentFile):
         bam = bam.filename
-    if not os.path.exists('{}.bai'.format(bam)):
+    if not os.path.exists("{}.bai".format(bam)):
         pysam.index(bam)
 
 
@@ -859,7 +872,7 @@ def is_read_uniq_mapping(read):
         return False
     tags = dict(read.get_tags())
     try:
-        nh_count = tags['NH']
+        nh_count = tags["NH"]
     except KeyError:
         # Reliable in case of STAR
         if read.mapping_quality == 255:
@@ -870,7 +883,7 @@ def is_read_uniq_mapping(read):
         if read.flag in __SAM_NOT_UNIQ_FLAGS__:
             return False
         else:
-            raise RuntimeError('Malformed BAM?')
+            raise RuntimeError("Malformed BAM?")
     if nh_count == 1:
         return True
     return False
@@ -963,7 +976,7 @@ def scale_bigwig(inbigwig, chrom_sizes, outbigwig, scale_factor=1):
     scale_factor: float
                   Scale by value
     """
-    wigfile = os.path.abspath('{}.wig'.format(outbigwig))
+    wigfile = os.path.abspath("{}.wig".format(outbigwig))
     chrom_sizes = os.path.abspath(chrom_sizes)
     inbigwig = os.path.abspath(inbigwig)
     outbigwig = os.path.abspath(outbigwig)
@@ -971,46 +984,51 @@ def scale_bigwig(inbigwig, chrom_sizes, outbigwig, scale_factor=1):
         # wiggletools errors if the file already exists
         os.remove(wigfile)
 
-    cmds = [
-        'wiggletools', 'write', wigfile, 'scale',
-        str(scale_factor), inbigwig
-    ]
+    cmds = ["wiggletools", "write", wigfile, "scale", str(scale_factor), inbigwig]
     try:
         p = subprocess.Popen(
             cmds,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True)
+            universal_newlines=True,
+        )
         stdout, stderr = p.communicate()
         rc = p.returncode
         if rc != 0:
             raise RuntimeError(
-                'Error running wiggletools.\nstdout : {} \n stderr : {}'.
-                format(stdout, stderr))
+                "Error running wiggletools.\nstdout : {} \n stderr : {}".format(
+                    stdout, stderr
+                )
+            )
     except FileNotFoundError:
-        raise FileNotFoundError("wiggletool not found on the path."
-                                "Use `conda install wiggletools`")
+        raise FileNotFoundError(
+            "wiggletool not found on the path." "Use `conda install wiggletools`"
+        )
 
-    cmds = ['wigToBigWig', wigfile, chrom_sizes, outbigwig]
+    cmds = ["wigToBigWig", wigfile, chrom_sizes, outbigwig]
     try:
         p = subprocess.Popen(
             cmds,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True)
+            universal_newlines=True,
+        )
         stdout, stderr = p.communicate()
         rc = p.returncode
         if rc != 0:
             raise RuntimeError(
-                'Error running wigToBigWig.\nstdout : {} \n stderr : {}'.
-                format(stdout, stderr))
+                "Error running wigToBigWig.\nstdout : {} \n stderr : {}".format(
+                    stdout, stderr
+                )
+            )
         os.remove(wigfile)
     except FileNotFoundError:
         raise FileNotFoundError(
             "wigToBigwig not found on the path. This is an external "
             "tool from UCSC which can be downloaded from "
             "http://hgdownload.soe.ucsc.edu/admin/exe/. Alternatatively, use "
-            "`conda install ucsc-wigtobigwig`")
+            "`conda install ucsc-wigtobigwig`"
+        )
 
 
 def get_region_sizes(region_bed):
@@ -1028,14 +1046,18 @@ def get_region_sizes(region_bed):
     """
     if isinstance(region_bed, six.string_types):
         region_bed = pybedtools.BedTool(region_bed).to_dataframe()
-    region_bed_grouped = region_bed.groupby('name')
+    region_bed_grouped = region_bed.groupby("name")
     region_sizes = {}
     for gene_name, gene_group in region_bed_grouped:
         ## Get rid of trailing dots
-        gene_name = re.sub(r'\.[0-9]+', '', gene_name)
+        gene_name = re.sub(r"\.[0-9]+", "", gene_name)
         # Collect all intervals at once
-        intervals = zip(gene_group['chrom'], gene_group['start'],
-                        gene_group['end'], gene_group['strand'])
+        intervals = zip(
+            gene_group["chrom"],
+            gene_group["start"],
+            gene_group["end"],
+            gene_group["strand"],
+        )
         for interval in intervals:
             if gene_name not in region_sizes:
                 # End is always 1-based so does not require +1
@@ -1059,17 +1081,17 @@ def htseq_to_tpm(htseq_f, outfile, cds_bed_f):
     """
     cds_bed = pybedtools.BedTool(cds_bed_f).to_dataframe()
     cds_bed_sizes = get_region_sizes(cds_bed)
-    htseq = pd.read_table(htseq_f, names=['name', 'counts']).set_index('name')
+    htseq = pd.read_table(htseq_f, names=["name", "counts"]).set_index("name")
     htseq = htseq.iloc[:-5]
-    if (htseq.shape[0] <= 10):
-        print('Empty dataframe for : {}\n'.format(htseq_f))
+    if htseq.shape[0] <= 10:
+        print("Empty dataframe for : {}\n".format(htseq_f))
         return None
-    rate = np.log(htseq['counts']).subtract(np.log(cds_bed_sizes))
+    rate = np.log(htseq["counts"]).subtract(np.log(cds_bed_sizes))
     denom = np.log(np.sum(np.exp(rate)))
     tpm = np.exp(rate - denom + np.log(1e6))
-    tpm = pd.DataFrame(tpm, columns=['tpm'])
-    tpm = tpm.sort_values(by=['tpm'], ascending=False)
-    tpm.to_csv(outfile, sep='\t', index=True, header=False)
+    tpm = pd.DataFrame(tpm, columns=["tpm"])
+    tpm = tpm.sort_values(by=["tpm"], ascending=False)
+    tpm.to_csv(outfile, sep="\t", index=True, header=False)
 
 
 def counts_to_tpm(counts, sizes):
@@ -1100,11 +1122,12 @@ def featurecounts_to_tpm(fc_f, outfile):
     """
     feature_counts = pd.read_table(fc_f, skiprows=[0])
     feature_counts = feature_counts.drop(
-        columns=['Geneid', 'Chr', 'Start', 'End', 'Strand'])
-    lengths = feature_counts['Length']
-    feature_counts = feature_counts.drop(columns=['Length'])
+        columns=["Geneid", "Chr", "Start", "End", "Strand"]
+    )
+    lengths = feature_counts["Length"]
+    feature_counts = feature_counts.drop(columns=["Length"])
     tpm = feature_counts.apply(lambda x: counts_to_tpm(x, lengths), axis=0)
-    tpm.to_csv(outfile, sep='\t', index=False, header=True)
+    tpm.to_csv(outfile, sep="\t", index=False, header=True)
 
 
 def read_htseq(htseq_f):
@@ -1120,18 +1143,20 @@ def read_htseq(htseq_f):
     htseq_df: dataframe
               HTseq counts as in a dataframe
     """
-    htseq = pd.read_table(htseq_f, names=['name', 'counts']).set_index('name')
+    htseq = pd.read_table(htseq_f, names=["name", "counts"]).set_index("name")
     htseq = htseq.iloc[:-5]
-    if (htseq.shape[0] <= 10):
-        sys.stderr.write('Empty dataframe for : {}\n'.format(htseq_f))
+    if htseq.shape[0] <= 10:
+        sys.stderr.write("Empty dataframe for : {}\n".format(htseq_f))
         return None
     return htseq
 
 
-def read_enrichment(read_lengths,
-                    enrichment_range=range(28, 33),
-                    input_is_stream=False,
-                    input_is_file=True):
+def read_enrichment(
+    read_lengths,
+    enrichment_range=range(28, 33),
+    input_is_stream=False,
+    input_is_file=True,
+):
     """Calculate read enrichment for a certain range of lengths
 
     Parameters
@@ -1154,39 +1179,34 @@ def read_enrichment(read_lengths,
     elif input_is_file:
         read_lengths = os.path.abspath(read_lengths)
         if not check_file_exists(read_lengths):
-            raise RuntimeError('{} does not exist.'.format(read_lengths))
-        read_lengths = pd.read_table(read_lengths, sep='\t')
+            raise RuntimeError("{} does not exist.".format(read_lengths))
+        read_lengths = pd.read_table(read_lengths, sep="\t")
         read_lengths = pd.Series(
-            read_lengths['count'].tolist(),
-            index=read_lengths['read_length'].tolist()).add(
-                pd.Series(
-                    [0] * len(enrichment_range), index=list(enrichment_range)),
-                fill_value=0)
+            read_lengths["count"].tolist(), index=read_lengths["read_length"].tolist()
+        ).add(
+            pd.Series([0] * len(enrichment_range), index=list(enrichment_range)),
+            fill_value=0,
+        )
     elif input_is_stream:
         counter = {}
         for line in read_lengths:
-            splitted = list(map(lambda x: int(x), line.strip().split('\t')))
+            splitted = list(map(lambda x: int(x), line.strip().split("\t")))
             counter[splitted[0]] = splitted[1]
         read_lengths = Counter(counter)
     if isinstance(read_lengths, Counter):
         read_lengths = pd.Series(read_lengths)
         if isinstance(enrichment_range, six.string_types):
-            splitted = list(
-                map(lambda x: int(x),
-                    enrichment_range.strip().split('-')))
+            splitted = list(map(lambda x: int(x), enrichment_range.strip().split("-")))
         enrichment_range = range(splitted[0], splitted[1] + 1)
     rpf_signal = read_lengths.get(list(enrichment_range)).sum()
     total_signal = read_lengths.sum()
     read_lengths = read_lengths.sort_index()
-    array = [[x] * int(y)
-             for x, y in zip(read_lengths.index, read_lengths.values)]
-    mean_length, std_dev_length = stats.norm.fit(
-        np.concatenate(array).ravel().tolist())
+    array = [[x] * int(y) for x, y in zip(read_lengths.index, read_lengths.values)]
+    mean_length, std_dev_length = stats.norm.fit(np.concatenate(array).ravel().tolist())
 
     # mean_length_floor = np.floor(mean_length)
     # 1 - P(x1 < X <x2) = P(X<x1) + P(X>x2) = cdf(x1) + sf(x2)
-    cdf_min = stats.norm.cdf(
-        min(enrichment_range), mean_length, std_dev_length)
+    cdf_min = stats.norm.cdf(min(enrichment_range), mean_length, std_dev_length)
     sf_max = stats.norm.sf(max(enrichment_range), mean_length, std_dev_length)
     pvalue = cdf_min + sf_max
     ratio = rpf_signal / float(total_signal)
@@ -1240,7 +1260,7 @@ def bwshift(bw, shift_by, out_bw, chunk_size=20000):
     if isinstance(bw, six.string_types):
         bw = pyBigWig.open(bw)
     chrom_sizes = bw.chroms()
-    out_bw = pyBigWig.open(out_bw, 'w')
+    out_bw = pyBigWig.open(out_bw, "w")
     out_bw.addHeader(list(chrom_sizes.items()), maxZooms=0)
     for chrom, chrom_size in six.iteritems(chrom_sizes):
         for start, end in yield_intervals(chrom_size, chunk_size):
@@ -1253,37 +1273,40 @@ def bwshift(bw, shift_by, out_bw, chunk_size=20000):
             if shifted_start < 0 and shifted_end < chrom_size:
                 zero_padding = np.array([0.0] * np.abs(shifted_start))
                 shifted_values = np.concatenate(
-                    [zero_padding,
-                     bw.values(chrom, 0, shifted_end)])
+                    [zero_padding, bw.values(chrom, 0, shifted_end)]
+                )
             # Case2: shifted_start < 0 and shifted_end > chrom_end
             elif shifted_start < 0 and shifted_end >= chrom_size:
                 zero_padding_start = np.array([0.0] * shifted_start)
                 zero_padding_end = np.array([0.0] * (shifted_end - chrom_size))
-                shifted_values = np.concatenate([
-                    zero_padding_start,
-                    bw.values(chrom, shifted_start, chrom_size),
-                    zero_padding_end
-                ])
+                shifted_values = np.concatenate(
+                    [
+                        zero_padding_start,
+                        bw.values(chrom, shifted_start, chrom_size),
+                        zero_padding_end,
+                    ]
+                )
             # Case3: shifted_start > 0 and shifted_end > chrom_end
             elif shifted_start > 0 and shifted_end >= chrom_size:
                 zero_padding_end = np.array([0.0] * (shifted_end - chrom_size))
-                shifted_values = np.concatenate([
-                    bw.values(chrom, shifted_start, chrom_size),
-                    zero_padding_end
-                ])
+                shifted_values = np.concatenate(
+                    [bw.values(chrom, shifted_start, chrom_size), zero_padding_end]
+                )
             elif shifted_start > 0 and shifted_end < chrom_size:
                 shifted_values = bw.values(chrom, shifted_start, shifted_end)
             elif shifted_start >= chrom_size:
                 shifted_values = []
             else:
                 raise NotImplementedError(
-                    'Unhandled case: shifted_start = {} | shifted_end = {} | chrom_size = {}'
-                    .format(shifted_start, shifted_end, chrom_size))
+                    "Unhandled case: shifted_start = {} | shifted_end = {} | chrom_size = {}".format(
+                        shifted_start, shifted_end, chrom_size
+                    )
+                )
             assert end - start == len(
                 shifted_values
-            ), 'end = {} | shifted_end = {} | start={} | shifted_start ={} | values_len = {}'.format(
-                end, shifted_end, start, shifted_start, len(shifted_values))
+            ), "end = {} | shifted_end = {} | start={} | shifted_start ={} | values_len = {}".format(
+                end, shifted_end, start, shifted_start, len(shifted_values)
+            )
             starts = np.arange(start, end)
             ends = starts + 1
-            out_bw.addEntries([chrom] * (end - start), starts, ends,
-                              shifted_values)
+            out_bw.addEntries([chrom] * (end - start), starts, ends, shifted_values)

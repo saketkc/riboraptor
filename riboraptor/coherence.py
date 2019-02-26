@@ -1,5 +1,4 @@
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 import pickle
 import numpy as np
 import pandas as pd
@@ -16,13 +15,13 @@ def _shift_bit_length(x):
 
 def _padwithzeros(vector, pad_width, iaxis, kwargs):
     """Pad with zeros"""
-    vector[:pad_width[0]] = 0
-    vector[-pad_width[1]:] = 0
+    vector[: pad_width[0]] = 0
+    vector[-pad_width[1] :] = 0
     return vector
 
 
 def naive_periodicity(values, identify_peak=False):
-    '''Calculate periodicity in a naive manner
+    """Calculate periodicity in a naive manner
 
     Take ratio of frame1 over avg(frame2+frame3) counts. By default
     the first value is treated as the first frame as well
@@ -37,7 +36,7 @@ def naive_periodicity(values, identify_peak=False):
     periodicity : float
                   Periodicity
 
-    '''
+    """
     if identify_peak:
         peak_location = identify_peaks(values)
         min_index = min(values.index)
@@ -51,7 +50,7 @@ def naive_periodicity(values, identify_peak=False):
     frame1_total = 0
     frame2_total = 0
     frame3_total = 0
-    values = list(values)[0:len(values) - len(values) % 3]
+    values = list(values)[0 : len(values) - len(values) % 3]
     for i in range(0, len(values), 3):
         frame1_total += values[i]
     for i in range(1, len(values), 3):
@@ -61,7 +60,7 @@ def naive_periodicity(values, identify_peak=False):
     return frame1_total / (frame1_total + frame2_total + frame3_total)
 
 
-def coherence_ft(values, nperseg=30, noverlap=15, window='flattop'):
+def coherence_ft(values, nperseg=30, noverlap=15, window="flattop"):
     """Calculate coherence and an idea ribo-seq signal based on Fourier transform
 
     Parameters
@@ -89,18 +88,17 @@ def coherence_ft(values, nperseg=30, noverlap=15, window='flattop'):
     length = len(values)
     uniform_signal = [1, 0, 0] * (length // 3)
     mean_centered_values = values - np.nanmean(values)
-    normalized_values = mean_centered_values / \
-        np.max(np.abs(mean_centered_values))
+    normalized_values = mean_centered_values / np.max(np.abs(mean_centered_values))
 
     mean_centered_values = uniform_signal - np.nanmean(uniform_signal)
-    uniform_signal = mean_centered_values / \
-        np.max(np.abs(uniform_signal))
+    uniform_signal = mean_centered_values / np.max(np.abs(uniform_signal))
     f, Cxy = signal.coherence(
         normalized_values,
         uniform_signal,
         window=window,
         nperseg=nperseg,
-        noverlap=noverlap)
+        noverlap=noverlap,
+    )
     periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
     return periodicity_score, f, Cxy
 
@@ -145,17 +143,23 @@ def coherence(original_values, frames=[0]):
             if values[i] == values[i + 1] == values[i + 2] == 0:
                 i += 3
                 continue
-            real = values[i] + values[i + 1] * np.cos(
-                2 * np.pi / 3) + values[i + 2] * np.cos(4 * np.pi / 3)
-            imag = values[i + 1] * np.sin(
-                2 * np.pi / 3) + values[i + 2] * np.sin(4 * np.pi / 3)
-            norm = np.sqrt(real**2 + imag**2)
+            real = (
+                values[i]
+                + values[i + 1] * np.cos(2 * np.pi / 3)
+                + values[i + 2] * np.cos(4 * np.pi / 3)
+            )
+            imag = values[i + 1] * np.sin(2 * np.pi / 3) + values[i + 2] * np.sin(
+                4 * np.pi / 3
+            )
+            norm = np.sqrt(real ** 2 + imag ** 2)
             if norm == 0:
                 norm = 1
             unit_vectors_real += [real / norm]
             unit_vectors_imag += [imag / norm]
             normalized_values += [
-                values[i] / norm, values[i + 1] / norm, values[i + 2] / norm
+                values[i] / norm,
+                values[i + 1] / norm,
+                values[i + 2] / norm,
             ]
             i += 3
         unit_vectors_real = np.array(unit_vectors_real)
@@ -163,7 +167,16 @@ def coherence(original_values, frames=[0]):
 
         length = len(normalized_values) // 3 * 3
         if length == 0:
-            return coh, pval, valid, final_coherence_raw, final_angle, final_individual_angles, final_unit_vector_real, final_unit_vector_imag
+            return (
+                coh,
+                pval,
+                valid,
+                final_coherence_raw,
+                final_angle,
+                final_individual_angles,
+                final_unit_vector_real,
+                final_unit_vector_imag,
+            )
         normalized_values = normalized_values[:length]
         uniform_signal = [1, 0, 0] * (len(normalized_values) // 3)
         f, Cxy = signal.coherence(
@@ -171,13 +184,14 @@ def coherence(original_values, frames=[0]):
             uniform_signal,
             window=[1.0, 1.0, 1.0],
             nperseg=3,
-            noverlap=0)
+            noverlap=0,
+        )
 
-        coherence_raw = np.nanmean(unit_vectors_real)**2 + np.nanmean(
-            unit_vectors_imag)**2
+        coherence_raw = (
+            np.nanmean(unit_vectors_real) ** 2 + np.nanmean(unit_vectors_imag) ** 2
+        )
         individual_angles = np.arctan2(unit_vectors_imag, unit_vectors_real)
-        combine_angle = np.arctan2(
-            np.sum(unit_vectors_imag), np.sum(unit_vectors_real))
+        combine_angle = np.arctan2(np.sum(unit_vectors_imag), np.sum(unit_vectors_real))
         try:
             periodicity_score = Cxy[np.argwhere(np.isclose(f, 1 / 3.0))[0]][0]
             periodicity_pval = coherence_pvalue(periodicity_score, length // 3)
@@ -192,13 +206,22 @@ def coherence(original_values, frames=[0]):
             final_unit_vector_real = unit_vectors_real
             final_unit_vector_imag = unit_vectors_imag
 
-            #coh = periodicity_score
+            # coh = periodicity_score
             coh = coherence_raw
             pval = periodicity_pval
             valid = length
         if valid == -1:
             valid = length
-    return coh, pval, valid, final_coherence_raw, final_angle, final_individual_angles, final_unit_vector_real, final_unit_vector_imag
+    return (
+        coh,
+        pval,
+        valid,
+        final_coherence_raw,
+        final_angle,
+        final_individual_angles,
+        final_unit_vector_real,
+        final_unit_vector_imag,
+    )
 
 
 def get_periodicity(values, input_is_stream=False):
@@ -216,6 +239,7 @@ def get_periodicity(values, input_is_stream=False):
                   correlation between input and idea 1-0-0 signal
     """
     from mtspec import mtspec, mt_coherence
+
     tbp = 4
     kspec = 3
     nf = 30
@@ -228,20 +252,20 @@ def get_periodicity(values, input_is_stream=False):
         except KeyError:
             pass
     values = pd.Series(values)
-    values = values[0:max(values.index)]
+    values = values[0 : max(values.index)]
     length = len(values)
     next_pow2_length = _shift_bit_length(length)
-    values = np.lib.pad(values,
-                        (0, next_pow2_length - len(values) % next_pow2_length),
-                        _padwithzeros)
+    values = np.lib.pad(
+        values, (0, next_pow2_length - len(values) % next_pow2_length), _padwithzeros
+    )
     mean_centered_values = values - np.nanmean(values)
-    normalized_values = mean_centered_values / \
-        np.max(np.abs(mean_centered_values))
+    normalized_values = mean_centered_values / np.max(np.abs(mean_centered_values))
     uniform_signal = [1, -0.6, -0.4] * (next_pow2_length // 3)
     uniform_signal = np.lib.pad(
         uniform_signal,
         (0, next_pow2_length - len(uniform_signal) % next_pow2_length),
-        _padwithzeros)
+        _padwithzeros,
+    )
     out = mt_coherence(
         1,
         normalized_values,
@@ -253,19 +277,21 @@ def get_periodicity(values, input_is_stream=False):
         freq=True,
         phase=True,
         cohe=True,
-        iadapt=1)
+        iadapt=1,
+    )
     spec, freq, jackknife, fstatistics, _ = mtspec(
         data=values,
-        delta=1.,
+        delta=1.0,
         time_bandwidth=4,
         number_of_tapers=3,
         statistics=True,
         rshape=0,
-        fcrit=0.9)
+        fcrit=0.9,
+    )
     p = 99
     base_fstat = np.percentile(fstatistics, p)
     fstat = fstatistics[np.argmin(np.abs(freq - 1 / 3.0))]
-    p_value = 'p < 0.05'
+    p_value = "p < 0.05"
     if fstat < base_fstat:
-        p_value = 'p > 0.05'
-    return out['cohe'][np.argmin(np.abs(out['freq'] - 1 / 3.0))], p_value
+        p_value = "p > 0.05"
+    return out["cohe"][np.argmin(np.abs(out["freq"] - 1 / 3.0))], p_value

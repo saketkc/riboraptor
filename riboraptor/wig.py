@@ -24,8 +24,11 @@ class WigReader(object):
         try:
             self.wig = pyBigWig.open(self.wig_location)
         except Exception as e:
-            raise Exception('Error reading wig file {} : {}'.format(
-                os.path.abspath(self.wig_location), e))
+            raise Exception(
+                "Error reading wig file {} : {}".format(
+                    os.path.abspath(self.wig_location), e
+                )
+            )
 
     def close(self):
         self.wig.close()
@@ -54,19 +57,24 @@ class WigReader(object):
         for i in intervals:
             if i.chrom not in list(chrom_lengths.keys()):
                 warnings.warn(
-                    'Chromosome {} does not appear in the bigwig'.format(
-                        i.chrom), UserWarning)
+                    "Chromosome {} does not appear in the bigwig".format(i.chrom),
+                    UserWarning,
+                )
                 continue
 
             chrom_length = chrom_lengths[i.chrom]
             if i.start > chrom_length:
                 raise Exception(
-                    'Chromsome start point exceeds chromosome length: {}>{}'.
-                    format(i.start, chrom_length))
+                    "Chromsome start point exceeds chromosome length: {}>{}".format(
+                        i.start, chrom_length
+                    )
+                )
             elif i.end > chrom_length:
                 raise Exception(
-                    'Chromsome end point exceeds chromosome length: {}>{}'.
-                    format(i.end, chrom_length))
+                    "Chromsome end point exceeds chromosome length: {}>{}".format(
+                        i.end, chrom_length
+                    )
+                )
             score = self.wig.values(i.chrom, i.start, i.end)
             scores.append(score)
         return np.array(scores)

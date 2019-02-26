@@ -19,11 +19,13 @@ class FastaReader(object):
         """
         self.fasta_location = fasta_location
         try:
-            self.fasta = Fasta(
-                fasta_location, as_raw=True, sequence_always_upper=True)
+            self.fasta = Fasta(fasta_location, as_raw=True, sequence_always_upper=True)
         except Exception as e:
-            raise Exception('Error reading fasta file {} : {}'.format(
-                os.path.abspath(self.fasta_location), e))
+            raise Exception(
+                "Error reading fasta file {} : {}".format(
+                    os.path.abspath(self.fasta_location), e
+                )
+            )
 
     def query(self, intervals):
         """ Query regions for sequence.
@@ -50,19 +52,24 @@ class FastaReader(object):
         for i in intervals:
             if i.chrom not in list(chrom_lengths.keys()):
                 warnings.warn(
-                    'Chromosome {} does not appear in the fasta'.format(
-                        i.chrom), UserWarning)
+                    "Chromosome {} does not appear in the fasta".format(i.chrom),
+                    UserWarning,
+                )
                 continue
 
             chrom_length = chrom_lengths[i.chrom]
             if i.start > chrom_length:
                 raise Exception(
-                    'Chromsome start point exceeds chromosome length: {}>{}'.
-                    format(i.start, chrom_length))
+                    "Chromsome start point exceeds chromosome length: {}>{}".format(
+                        i.start, chrom_length
+                    )
+                )
             elif i.end > chrom_length:
                 raise Exception(
-                    'Chromsome end point exceeds chromosome length: {}>{}'.
-                    format(i.end, chrom_length))
+                    "Chromsome end point exceeds chromosome length: {}>{}".format(
+                        i.end, chrom_length
+                    )
+                )
             seq = self.fasta.get_seq(i.chrom, i.start, i.end)
             sequences.append(seq)
         return sequences

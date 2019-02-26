@@ -38,21 +38,22 @@ def infer_protocol(bam, bed, n_reads=500000, drop_probability=0.2):
     np.random.seed(42)
     iteration = 0
     create_bam_index(bam)
-    bam = pysam.AlignmentFile(bam, 'rb')
+    bam = pysam.AlignmentFile(bam, "rb")
     bed = read_bed_as_intervaltree(bed)
     strandedness = Counter()
     for read in bam.fetch():
         if drop_probability > 0:
             should_drop = np.random.choice(
-                [1, 0], p=[drop_probability, 1 - drop_probability])
+                [1, 0], p=[drop_probability, 1 - drop_probability]
+            )
             if should_drop:
                 continue
         if not is_read_uniq_mapping(read):
             continue
         if read.is_reverse:
-            mapped_strand = '-'
+            mapped_strand = "-"
         else:
-            mapped_strand = '+'
+            mapped_strand = "+"
         mapped_start = read.reference_start
         mapped_end = read.reference_end
         chrom = read.reference_name
@@ -62,26 +63,26 @@ def infer_protocol(bam, bed, n_reads=500000, drop_probability=0.2):
             # (those) that have a tx_start on opposite strands
             continue
         gene_strand = gene_strand[0]
-        strandedness['{}{}'.format(mapped_strand, gene_strand)] += 1
+        strandedness["{}{}".format(mapped_strand, gene_strand)] += 1
         iteration += 1
         if iteration >= n_reads:
             break
     ## Add pseudocounts
-    strandedness['++'] += 1
-    strandedness['--'] += 1
-    strandedness['+-'] += 1
-    strandedness['-+'] += 1
+    strandedness["++"] += 1
+    strandedness["--"] += 1
+    strandedness["+-"] += 1
+    strandedness["-+"] += 1
 
     total = sum(strandedness.values())
-    forward_mapped_reads = (strandedness['++'] + strandedness['--']) / total
-    reverse_mapped_reads = (strandedness['-+'] + strandedness['+-']) / total
+    forward_mapped_reads = (strandedness["++"] + strandedness["--"]) / total
+    reverse_mapped_reads = (strandedness["-+"] + strandedness["+-"]) / total
     ratio = forward_mapped_reads / reverse_mapped_reads
     # Prefer checking for unstrandedness
     # Check if the forward mapped reads - 0.5 is small,
     # this threhold is defined to be 0.1
     if np.isclose([np.abs(forward_mapped_reads - 0.5)], [0], atol=0.1):
-        return 'unstranded', forward_mapped_reads, reverse_mapped_reads, total
+        return "unstranded", forward_mapped_reads, reverse_mapped_reads, total
     elif forward_mapped_reads >= 0.5:
-        return 'forward', forward_mapped_reads, reverse_mapped_reads, total
+        return "forward", forward_mapped_reads, reverse_mapped_reads, total
     else:
-        return 'reverse', forward_mapped_reads, reverse_mapped_reads, total
+        return "reverse", forward_mapped_reads, reverse_mapped_reads, total

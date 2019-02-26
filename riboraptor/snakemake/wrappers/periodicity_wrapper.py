@@ -12,12 +12,12 @@ for f in snakemake.input:
     if not os.path.isfile(str(f)) or not os.stat(str(f)).st_size:
         continue
     counts = pd.read_table(f)
-    counts = pd.Series(
-        counts['count'].tolist(), index=counts['position'].tolist())
+    counts = pd.Series(counts["count"].tolist(), index=counts["position"].tolist())
     periodicity = naive_periodicity(counts)
     periodicities[int(fragment_length)].append(periodicity)
 
 df = pd.DataFrame.from_dict(
-    periodicities, orient='index', columns=[sample_name]).sort_index()
+    periodicities, orient="index", columns=[sample_name]
+).sort_index()
 mkdir_p(os.path.dirname(str(snakemake.output)))
-df.to_csv(str(snakemake.output), sep='\t', index=True, header=True)
+df.to_csv(str(snakemake.output), sep="\t", index=True, header=True)

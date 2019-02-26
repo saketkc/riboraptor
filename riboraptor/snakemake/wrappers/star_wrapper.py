@@ -9,14 +9,14 @@ from snakemake.shell import shell
 
 def total_genome_size(chrom_sizes_file):
     """Return sum total of chromosome sizes"""
-    df = pd.read_table(chrom_sizes_file, names=['chrom', 'sizes'])
-    total = df['sizes'].sum()
+    df = pd.read_table(chrom_sizes_file, names=["chrom", "sizes"])
+    total = df["sizes"].sum()
     return total
 
 
 def get_align_intro_params(intron_bed_file):
     df = pybedtools.BedTool(intron_bed_file).to_dataframe()
-    lengths = df['end'] - df['start']
+    lengths = df["end"] - df["start"]
 
     ## Based on small genomes. See https://groups.google.com/forum/#!topic/rna-star/hQeHTBbkc0c
     alignintronNmin = max(4, lengths.min())
@@ -29,12 +29,14 @@ TMP_DIR_SAMPLE = path_leaf(OUT_PREFIX)
 STAR_LOGS_DIR = os.path.dirname(snakemake.output.starlogs)
 
 ALIGN_INTRON_Nmin, ALIGN_INTRON_Nmax = get_align_intro_params(
-    snakemake.params.intron_bed)
+    snakemake.params.intron_bed
+)
 TOTAL_GENOME_SIZE = total_genome_size(snakemake.params.chrom_sizes)
 SA_INDEX_Nbases = int(np.floor(min(14, np.log2(TOTAL_GENOME_SIZE) / 2.0 - 1)))
 
 with tempfile.TemporaryDirectory(dir=snakemake.params.tmp_dir) as temp_dir:
-    shell(r'''
+    shell(
+        r"""
             STAR --runThreadN {snakemake.threads}\
                 --genomeDir {snakemake.input.index}\
                 --outFilterMismatchNmax 2\
@@ -56,4 +58,5 @@ with tempfile.TemporaryDirectory(dir=snakemake.params.tmp_dir) as temp_dir:
                 && mv {OUT_PREFIX}ReadsPerGene.out.tab {snakemake.output.counts}\
                 && mv {OUT_PREFIX}Log.final.out {OUT_PREFIX}Log.out {OUT_PREFIX}SJ.out.tab\
                 {OUT_PREFIX}Log.progress.out {STAR_LOGS_DIR}
-            ''')
+            """
+    )

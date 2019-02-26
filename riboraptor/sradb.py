@@ -3,6 +3,7 @@
 import re
 import sqlite3
 import pandas as pd
+
 """
 Tables
 
@@ -68,25 +69,38 @@ class SRAdb(object):
         self.open()
         self.cursor = self.db.cursor()
         self.valid_in_acc_type = [
-            'SRA', 'ERA', 'DRA', 'SRP', 'ERP', 'DRP', 'SRS', 'ERS', 'DRS',
-            'SRX', 'ERX', 'DRX', 'SRR', 'ERR', 'DRR'
+            "SRA",
+            "ERA",
+            "DRA",
+            "SRP",
+            "ERP",
+            "DRP",
+            "SRS",
+            "ERS",
+            "DRS",
+            "SRX",
+            "ERX",
+            "DRX",
+            "SRR",
+            "ERR",
+            "DRR",
         ]
         self.valid_in_type = {
-            'SRA': 'submission',
-            'ERA': 'submission',
-            'DRA': 'submission',
-            'SRP': 'study',
-            'ERP': 'study',
-            'DRP': 'study',
-            'SRS': 'sample',
-            'ERS': 'sample',
-            'DRS': 'sample',
-            'SRX': 'experiment',
-            'ERX': 'experiment',
-            'DRX': 'experiment',
-            'SRR': 'run',
-            'ERR': 'run',
-            'DRR': 'run'
+            "SRA": "submission",
+            "ERA": "submission",
+            "DRA": "submission",
+            "SRP": "study",
+            "ERP": "study",
+            "DRP": "study",
+            "SRS": "sample",
+            "ERS": "sample",
+            "DRS": "sample",
+            "SRX": "experiment",
+            "ERX": "experiment",
+            "DRX": "experiment",
+            "SRR": "run",
+            "ERR": "run",
+            "DRR": "run",
         }
 
     def open(self):
@@ -99,18 +113,20 @@ class SRAdb(object):
     def list_tables(self):
         """List all tables in the sqlite"""
         results = self.cursor.execute(
-            'SELECT name FROM sqlite_master WHERE type="table";').fetchall()
+            'SELECT name FROM sqlite_master WHERE type="table";'
+        ).fetchall()
         return _extract_first_field(results)
 
     def list_fields(self, table):
         "List all fields in a given table"
-        results = self.cursor.execute('SELECT * FROM {}'.format(table))
+        results = self.cursor.execute("SELECT * FROM {}".format(table))
         return _extract_first_field(results.description)
 
     def desc_table(self, table):
         results = self.cursor.execute(
-            'PRAGMA table_info("{}")'.format(table)).fetchall()
-        columns = ['cid', 'name', 'dtype', 'notnull', 'dflt_value', 'pk']
+            'PRAGMA table_info("{}")'.format(table)
+        ).fetchall()
+        columns = ["cid", "name", "dtype", "notnull", "dflt_value", "pk"]
         data = []
         for result in results:
             data.append(list(map(lambda x: str(x), result)))
@@ -126,65 +142,77 @@ class SRAdb(object):
     def get_row_count(self, table):
         """Get row counts for a table"""
         return self.cursor.execute(
-            'SELECT max(rowid) FROM {}'.format(table)).fetchone()[0]
+            "SELECT max(rowid) FROM {}".format(table)
+        ).fetchone()[0]
 
     def get_table_counts(self):
         tables = self.list_tables()
-        results = dict(
-            [(table, self.get_row_count(table)) for table in tables])
-        return pd.DataFrame.from_dict(
-            results, orient='index', columns=['count'])
+        results = dict([(table, self.get_row_count(table)) for table in tables])
+        return pd.DataFrame.from_dict(results, orient="index", columns=["count"])
 
-    def sra_convert(self,
-                    acc,
-                    out_type=[
-                        'study_accession',
-                        'experiment_accession',
-                        'experiment_title',
-                        'run_accession',
-                        'taxon_id',
-                        'library_selection',
-                        'library_layout',
-                        'library_strategy',
-                        'library_source',
-                        'library_name',
-                        'bases',
-                        'spots',
-                        'adapter_spec',
-                    ]):
-        in_acc_type = re.sub('\\d+$', '', acc).upper()
+    def sra_convert(
+        self,
+        acc,
+        out_type=[
+            "study_accession",
+            "experiment_accession",
+            "experiment_title",
+            "run_accession",
+            "taxon_id",
+            "library_selection",
+            "library_layout",
+            "library_strategy",
+            "library_source",
+            "library_name",
+            "bases",
+            "spots",
+            "adapter_spec",
+        ],
+    ):
+        in_acc_type = re.sub("\\d+$", "", acc).upper()
         if in_acc_type not in self.valid_in_acc_type:
-            raise ValueError('{} not a valid input type'.format(in_acc_type))
+            raise ValueError("{} not a valid input type".format(in_acc_type))
 
         in_type = self.valid_in_type[in_acc_type]
         out_type = [x for x in out_type if x != in_type]
 
-        select_type = [in_type + '_accession'] + out_type
-        select_type_sql = (',').join(select_type)
-        sql = "SELECT DISTINCT " + select_type_sql + " FROM sra_ft WHERE sra_ft MATCH '" + acc + "';"
+        select_type = [in_type + "_accession"] + out_type
+        select_type_sql = (",").join(select_type)
+        sql = (
+            "SELECT DISTINCT "
+            + select_type_sql
+            + " FROM sra_ft WHERE sra_ft MATCH '"
+            + acc
+            + "';"
+        )
         df = self.get_query(sql)
-        df['avg_read_length'] = df['bases'] / df['spots']
-        df['spots'] = df['spots'].astype(int)
-        df['bases'] = df['bases'].astype(int)
-        df['taxon_id'] = df['taxon_id'].fillna(0).astype(int)
-        df = df.sort_values(by=[
-            'taxon_id', 'avg_read_length', 'run_accession',
-            'experiment_accession', 'library_selection'
-        ])
-        df = df[out_type + ['avg_read_length']].reset_index(drop=True)
+        df["avg_read_length"] = df["bases"] / df["spots"]
+        df["spots"] = df["spots"].astype(int)
+        df["bases"] = df["bases"].astype(int)
+        df["taxon_id"] = df["taxon_id"].fillna(0).astype(int)
+        df = df.sort_values(
+            by=[
+                "taxon_id",
+                "avg_read_length",
+                "run_accession",
+                "experiment_accession",
+                "library_selection",
+            ]
+        )
+        df = df[out_type + ["avg_read_length"]].reset_index(drop=True)
         return df
 
     def search_experiment(self, srx):
         """Search for a SRX/GSM id in the experiments"""
-        if 'GSM' in srx:
+        if "GSM" in srx:
             results = self.cursor.execute(
-                'select * from EXPERIMENT where experiment_alias = "{}"'.
-                format(srx)).fetchall()
+                'select * from EXPERIMENT where experiment_alias = "{}"'.format(srx)
+            ).fetchall()
         else:
             results = self.cursor.execute(
-                'select * from EXPERIMENT where experiment_accession = "{}"'.
-                format(srx)).fetchall()
-        assert len(results) == 1, 'Got multiple hits'
+                'select * from EXPERIMENT where experiment_accession = "{}"'.format(srx)
+            ).fetchall()
+        assert len(results) == 1, "Got multiple hits"
         results = results[0]
         column_names = list(map(lambda x: x[0], self.cursor.description))
         results = dict(zip(column_names, results))
@@ -196,10 +224,10 @@ class SRAdb(object):
         """
         results = self.get_query('SELECT * from gse WHERE gse = "' + gse + '"')
         if results.shape[0] == 1:
-            #result = results[0].split(';')[0]
-            splitted = results['supplementary_file'][0].split(';')
+            # result = results[0].split(';')[0]
+            splitted = results["supplementary_file"][0].split(";")
             if len(splitted):
-                match = re.findall('SRP.*', splitted[-1])
+                match = re.findall("SRP.*", splitted[-1])
                 if len(match):
-                    srp = match[0].split('/')[-1]
+                    srp = match[0].split("/")[-1]
                     return srp

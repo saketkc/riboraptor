@@ -7,8 +7,10 @@ import operator
 # TGGAAT.. is Truseq small rna
 
 PREFERRED_KMERS = [
-    'CTGTAGGCACCATCAAT', 'AGATCGGAAGAGCACACGTCT', 'TGGAATTCTCGGGTGCCAAGG',
-    'CTGTAGGCAC'
+    "CTGTAGGCACCATCAAT",
+    "AGATCGGAAGAGCACACGTCT",
+    "TGGAATTCTCGGGTGCCAAGG",
+    "CTGTAGGCAC",
 ]
 
 
@@ -17,8 +19,8 @@ def get_top_kmer(kmer_series_dict):
     # Start from the longest kmer and stop
     # at where this criterion is met
     for kmer_length, kmer_series in sorted(
-            kmer_series_dict.items(), key=operator.itemgetter(0),
-            reverse=True):
+        kmer_series_dict.items(), key=operator.itemgetter(0), reverse=True
+    ):
         kmer_list = kmer_series.index.tolist()
         # Are any of the top 4 kmers from our PREFFERED_KMERS list?
         index_counter = 0
@@ -41,13 +43,15 @@ pass2_dir = snakemake.params.pass2_dir
 output_1 = snakemake.output.pass1_fq
 output_2 = snakemake.output.pass2_fq
 adapter = snakemake.params.adapter
-output_1_report = output_1 + '_trimming_report.txt'
-output_2_report = output_2 + '_trimming_report.txt'
+output_1_report = output_1 + "_trimming_report.txt"
+output_2_report = output_2 + "_trimming_report.txt"
 
 # Do first pass
-if adapter is None or adapter == 'default':
-    shell(r'''trim_galore -o {pass1_dir} --length {params.min_length} \
-          -q {params.phred_cutoff} {snakemake.input.R1}''')
+if adapter is None or adapter == "default":
+    shell(
+        r"""trim_galore -o {pass1_dir} --length {params.min_length} \
+          -q {params.phred_cutoff} {snakemake.input.R1}"""
+    )
     # Are there any  over-represented sequences?
     # If yes, do a second pass
     # since no adater was provided
@@ -55,19 +59,22 @@ if adapter is None or adapter == 'default':
     adapter2 = get_top_kmer(histogram)
     if adapter2 is None:
         # Else just copy
-        shell(r'''cp -r {output_1} {output_2}''')
-        shell(
-            r'''echo "No adapter found in second pass" > {output_2_report}''')
+        shell(r"""cp -r {output_1} {output_2}""")
+        shell(r"""echo "No adapter found in second pass" > {output_2_report}""")
     else:
-        shell(r'''trim_galore -o {pass2_dir} --length {params.min_length} \
+        shell(
+            r"""trim_galore -o {pass2_dir} --length {params.min_length} \
             -a {adapter2} \
-            -q {params.phred_cutoff} {output_1}''')
+            -q {params.phred_cutoff} {output_1}"""
+        )
 
 else:
-    shell(r'''trim_galore -o {pass1_dir} --length {params.min_length} \
-          -a {adapter} \
-          -q {params.phred_cutoff} {snakemake.input.R1}''')
-    shell(r'''cp -r {output_1} {output_2}''')
     shell(
-        r'''echo "Used user provided adapter for one pass only (no second pass)" > {output_2_report}'''
+        r"""trim_galore -o {pass1_dir} --length {params.min_length} \
+          -a {adapter} \
+          -q {params.phred_cutoff} {snakemake.input.R1}"""
+    )
+    shell(r"""cp -r {output_1} {output_2}""")
+    shell(
+        r"""echo "Used user provided adapter for one pass only (no second pass)" > {output_2_report}"""
     )
