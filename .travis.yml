@@ -1,14 +1,13 @@
+dist: xenial
 language: python
 python:
-- '3.5'
-  #- '3.6'
+- "3.7"
+- "3.6"
+- "3.5"
 install:
 - sudo apt-get update
 - sudo apt-get install -y gfortran
-- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-    wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
-    -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    -O miniconda.sh; fi
+- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
 - bash miniconda.sh -b -p $HOME/miniconda
 - export PATH="$HOME/miniconda/bin:$PATH"
 - hash -r
@@ -28,9 +27,7 @@ install:
     ucsc-bedsort pybedtools bx-python tqdm h5py joblib ucsc-bigwigmerge wiggletools ucsc-wigtobigwig
 - pip install click
 - pip install sphinx mock pytest-cov codecov
-- pip install numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme
-- pip install https://github.com/Syntaf/travis-sphinx/archive/master.zip
-- make install
+- pip install numpydoc ipython sphinxcontrib-fulltoc guzzle_sphinx_theme travis-sphinx
 script:
 - riboraptor
 - make test
