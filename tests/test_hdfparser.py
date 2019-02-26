@@ -69,7 +69,7 @@ def test_getchromlengths():
     hdf_filepath = "tests/data/SRX2536403_subsampled.unique.bam_coverage.hdf5"
     bam_filepath = "tests/data/SRX2536403_subsampled.unique.bam"
     bam = pysam.AlignmentFile(bam_filepath, "rb")
-    reference_and_length = dict(zip(bam.header.references, bam.header.lengths))
+    reference_and_length = dict(list(zip(bam.header.references, bam.header.lengths)))
     bam.close()
     hdf = HDFParser(hdf_filepath)
     assert hdf.chromosome_lengths == reference_and_length

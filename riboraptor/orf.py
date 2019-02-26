@@ -1,9 +1,9 @@
 """Utilities for translating ORF detection
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 import warnings
 
@@ -608,13 +608,13 @@ def align_metagenes(metagenes, read_lengths, prefix):
     print("aligning metagene profiles from different lengths...")
     psite_offsets = {}
     base = n_reads = 0
-    for length, reads in read_lengths.items():
+    for length, reads in list(read_lengths.items()):
         if reads > n_reads:
             base = length
             n_reads = reads
     reference = metagenes[base].values
     to_write = "relative lag to base: {}\n".format(base)
-    for length, meta in metagenes.items():
+    for length, meta in list(metagenes.items()):
         cov = meta.values
         xcorr = np.correlate(reference, cov, "full")
         origin = len(xcorr) // 2
@@ -644,7 +644,7 @@ def merge_lengths(alignments, psite_offsets):
     print("merging different lengths...")
     merged_alignments = defaultdict(Counter)
 
-    for length, offset in psite_offsets.items():
+    for length, offset in list(psite_offsets.items()):
         for strand in alignments[length]:
             for chrom, pos in alignments[length][strand]:
                 count = alignments[length][strand][(chrom, pos)]

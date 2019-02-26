@@ -19,7 +19,7 @@ def get_top_kmer(kmer_series_dict):
     # Start from the longest kmer and stop
     # at where this criterion is met
     for kmer_length, kmer_series in sorted(
-        kmer_series_dict.items(), key=operator.itemgetter(0), reverse=True
+        list(kmer_series_dict.items()), key=operator.itemgetter(0), reverse=True
     ):
         kmer_list = kmer_series.index.tolist()
         # Are any of the top 4 kmers from our PREFFERED_KMERS list?

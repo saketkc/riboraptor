@@ -1,9 +1,9 @@
 """Utilities for read counting operations.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 import warnings
 
@@ -959,8 +959,8 @@ def get_bam_coverage(bam, bed, outprefix=None):
         df = pd.DataFrame.from_dict(
             {
                 (i, j): coverage[i][j]
-                for i in coverage.keys()
-                for j in coverage[i].keys()
+                for i in list(coverage.keys())
+                for j in list(coverage[i].keys())
             },
             orient="index",
         )
@@ -1112,7 +1112,7 @@ def get_bam_coverage(bam, bed, outprefix=None):
 
                 dset = h5py_file.create_dataset(
                     "chrom_names",
-                    (len(reference_and_length.keys()),),
+                    (len(list(reference_and_length.keys())),),
                     dtype=dt,
                     compression="gzip",
                     compression_opts=9,
@@ -1121,7 +1121,7 @@ def get_bam_coverage(bam, bed, outprefix=None):
 
                 dset = h5py_file.create_dataset(
                     "chrom_sizes",
-                    (len(reference_and_length.values()),),
+                    (len(list(reference_and_length.values())),),
                     dtype=np.dtype("int64"),
                     compression="gzip",
                     compression_opts=9,

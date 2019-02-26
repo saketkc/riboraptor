@@ -11,7 +11,7 @@ for hdf, bam in zip(snakemake.input["hdfs"], snakemake.input["bams"]):
     protocols[protocol].append(bam)
     hdf.close()
 outputs = []
-for protocol, bams in protocols.items():
+for protocol, bams in list(protocols.items()):
     if protocol == "forward":
         count_strat = "-s 1"
     elif protocol == "unstranded":

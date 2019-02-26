@@ -48,7 +48,7 @@ def cutadapt_to_json(filepath, savetofile=None):
                 log.debug("Duplicate sample name found! Overwriting: {}".format(sample))
             trim_info[sample] = dict()
         if sample is not None:
-            for k, r in regexes.items():
+            for k, r in list(regexes.items()):
                 match = re.search(r, l)
                 if match:
                     trim_info[sample][k] = int(match.group(1).replace(",", ""))

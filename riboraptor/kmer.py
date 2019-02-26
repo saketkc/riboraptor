@@ -8,7 +8,7 @@ import numpy as np
 
 def fastq_kmer_histogram(
     fastq_file,
-    kmer_length=range(5, 31),
+    kmer_length=list(range(5, 31)),
     five_prime=False,
     max_seq=1000000,
     offset=0,
@@ -76,6 +76,6 @@ def fastq_kmer_histogram(
             pbar.update()
     handle.close()
     kmers = {}
-    for k, v in histogram.items():
+    for k, v in list(histogram.items()):
         kmers[k] = pd.Series(v).sort_values(ascending=False) / max_seq * 100
     return kmers

@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import numpy as np
 import pandas as pd
 from scipy.stats.mstats import ks_2samp
@@ -51,7 +51,7 @@ def calculate_cdf(data):
     index = data.index.tolist()
     cdf = []
     for i in range(min(index), max(index)):
-        cdf.append(np.sum(data[range(min(index), i)]) / total)
+        cdf.append(np.sum(data[list(range(min(index), i))]) / total)
     return pd.Series(cdf, index=index[1:])
 
 

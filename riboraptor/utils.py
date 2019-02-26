@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 from tqdm import tqdm
 import numpy as np
 import re
@@ -93,11 +93,11 @@ def summary_starlogs_over_runs(directory, list_of_srr):
 
 def get_enrichment_cds_stats(pickle_file):
     data = pickle.load(open(pickle_file, "rb"))
-    mean = np.nanmean(data.values())
-    median = np.nanmedian(data.values())
-    stddev = np.nanstd(data.values())
-    minx = np.nanmin(data.values())
-    maxx = np.nanmax(data.values())
+    mean = np.nanmean(list(data.values()))
+    median = np.nanmedian(list(data.values()))
+    stddev = np.nanstd(list(data.values()))
+    minx = np.nanmin(list(data.values()))
+    maxx = np.nanmax(list(data.values()))
     return minx, maxx, mean, median, stddev
 
 

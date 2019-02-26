@@ -1,5 +1,5 @@
 """Utilities to download data from NCBI SRA"""
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import sys
 from subprocess import Popen, PIPE, STDOUT
 

@@ -1,7 +1,7 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
+
 
 from collections import Counter
 from collections import defaultdict
@@ -87,7 +87,7 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use="all", output_normalized=T
     all_read_lengths = hdf["read_lengths"]
     read_counts = list(hdf["read_lengths_counts"])
     read_counts = pd.Series(read_counts, index=all_read_lengths).sort_index()
-    chrom_names = list(map(lambda x: str(x), hdf["chrom_names"]))
+    chrom_names = list([str(x) for x in hdf["chrom_names"]])
     protocol = hdf.attrs["protocol"]
     chrom_sizes = hdf["chrom_sizes"]
     # This is already sorted in the file
@@ -107,7 +107,7 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use="all", output_normalized=T
             continue
         read_total = read_counts[str(read_length)]
         read_len_group = hdf["fragments"][read_length]
-        for orientation in hdf["fragments"][read_length].keys():
+        for orientation in list(hdf["fragments"][read_length].keys()):
             orientation_group = read_len_group[orientation]
             dest_dir = os.path.abspath(os.path.join(prefixdir, str(read_length)))
             mkdir_p(dest_dir)
@@ -141,7 +141,7 @@ def hdf_to_bigwig(hdf, prefixdir, read_lengths_to_use="all", output_normalized=T
                 bws[key] = pyBigWig.open(bw, "w")
                 bws[key].addHeader(chrom_lengths, maxZooms=0)
             chrom_strand = list()
-            for c in orientation_group.keys():
+            for c in list(orientation_group.keys()):
                 chrom_strand.append((c.split("__")[0], c.split("__")[1]))
 
             chrom_strand = sorted(chrom_strand, key=lambda x: x[0])
@@ -418,7 +418,7 @@ def _gene_group_to_tsv(data):
     merged = merged.reset_index()
     merged = merged.sort_values(by=["chrom", "start", "end"])
     if strand == "+":
-        merged["index"] = range(len(merged.index))
+        merged["index"] = list(range(len(merged.index)))
     else:
         merged["index"] = np.range(len(merged.index), -1, -1)
     return merged
@@ -616,7 +616,7 @@ class HDFParser(object):
         if fragment_length == "all":
             h5py_fragments = self.h5py_obj["read_lengths"]
             fragment_length = h5py_fragments
-        fragment_length = list(map(lambda x: str(x), fragment_length))
+        fragment_length = list([str(x) for x in fragment_length])
         coverages_normalized = pd.DataFrame()
         coverages = pd.DataFrame()
         position_counter = Counter()
@@ -628,11 +628,11 @@ class HDFParser(object):
             else:
                 raise ValueError("strand ill-defined: {}".format(strand))
             root_obj = self.h5py_obj["fragments"][l][orientation]
-            if chrom_name not in root_obj.keys():
+            if chrom_name not in list(root_obj.keys()):
                 # This chromosome does not exist in the
                 # key value store
                 # So should returns zeros all way
-                coverage = pd.Series([0] * (stop - start), index=range(start, stop))
+                coverage = pd.Series([0] * (stop - start), index=list(range(start, stop)))
 
             else:
                 chrom_obj = root_obj[chrom_name]
@@ -642,7 +642,7 @@ class HDFParser(object):
                 # print(counts_series)
                 coverage = counts_series.get(list(range(start, stop)))
                 if coverage is None:
-                    coverage = pd.Series([0] * (stop - start), index=range(start, stop))
+                    coverage = pd.Series([0] * (stop - start), index=list(range(start, stop)))
                 coverage = coverage.fillna(0)
             # Mean is taken by summing the rows
             coverage_mean = coverage.mean(axis=0, skipna=True)
@@ -683,13 +683,13 @@ class HDFParser(object):
         )
 
     def get_read_length_dist(self):
-        read_lengths = list(map(lambda x: int(x), self.h5py_obj["read_lengths"]))
+        read_lengths = list([int(x) for x in self.h5py_obj["read_lengths"]])
         read_counts = list(self.h5py_obj["read_lengths_counts"])
         return pd.Series(read_counts, index=read_lengths).sort_index()
 
     def get_query_alignment_length_dist(self):
         read_lengths = list(
-            map(lambda x: int(x), self.h5py_obj["query_alignment_lengths"])
+            [int(x) for x in self.h5py_obj["query_alignment_lengths"]]
         )
         read_counts = list(self.h5py_obj["query_alignment_lengths_counts"])
         return pd.Series(read_counts, index=read_lengths).sort_index()

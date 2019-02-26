@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
+
+
+
 
 # -*- coding:UTF-8 -*-
 __author__ = "Zhengtao Xiao"
@@ -56,7 +56,7 @@ def wilcoxon_greater(x, y, zero_method="wilcox", correction=False):
     if y is None:
         d = np.asarray(x)
     else:
-        x, y = map(np.asarray, (x, y))
+        x, y = list(map(np.asarray, (x, y)))
         if len(x) != len(y):
             raise ValueError("Unequal N in wilcoxon.  Aborting.")
         d = x - y

@@ -1,5 +1,5 @@
 """All functions that are not so useful, but still useful."""
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 from collections import Counter
 from collections import OrderedDict
 from collections import defaultdict
@@ -815,7 +815,7 @@ def read_bed_as_intervaltree(filepath):
 
     bedint_tree = defaultdict(IntervalTree)
     for chrom, df in bed_grouped:
-        df_list = zip(df["start"], df["end"], df["strand"])
+        df_list = list(zip(df["start"], df["end"], df["strand"]))
         for start, end, strand in df_list:
             bedint_tree[chrom].insert(start, end, strand)
     return bedint_tree
@@ -1052,12 +1052,12 @@ def get_region_sizes(region_bed):
         ## Get rid of trailing dots
         gene_name = re.sub(r"\.[0-9]+", "", gene_name)
         # Collect all intervals at once
-        intervals = zip(
+        intervals = list(zip(
             gene_group["chrom"],
             gene_group["start"],
             gene_group["end"],
             gene_group["strand"],
-        )
+        ))
         for interval in intervals:
             if gene_name not in region_sizes:
                 # End is always 1-based so does not require +1
@@ -1153,7 +1153,7 @@ def read_htseq(htseq_f):
 
 def read_enrichment(
     read_lengths,
-    enrichment_range=range(28, 33),
+    enrichment_range=list(range(28, 33)),
     input_is_stream=False,
     input_is_file=True,
 ):
@@ -1190,14 +1190,14 @@ def read_enrichment(
     elif input_is_stream:
         counter = {}
         for line in read_lengths:
-            splitted = list(map(lambda x: int(x), line.strip().split("\t")))
+            splitted = list([int(x) for x in line.strip().split("\t")])
             counter[splitted[0]] = splitted[1]
         read_lengths = Counter(counter)
     if isinstance(read_lengths, Counter):
         read_lengths = pd.Series(read_lengths)
         if isinstance(enrichment_range, six.string_types):
-            splitted = list(map(lambda x: int(x), enrichment_range.strip().split("-")))
-        enrichment_range = range(splitted[0], splitted[1] + 1)
+            splitted = list([int(x) for x in enrichment_range.strip().split("-")])
+        enrichment_range = list(range(splitted[0], splitted[1] + 1))
     rpf_signal = read_lengths.get(list(enrichment_range)).sum()
     total_signal = read_lengths.sum()
     read_lengths = read_lengths.sort_index()

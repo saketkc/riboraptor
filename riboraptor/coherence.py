@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import pickle
 import numpy as np
 import pandas as pd
@@ -245,7 +245,7 @@ def get_periodicity(values, input_is_stream=False):
     nf = 30
     p = 0.90
     if input_is_stream:
-        values = list(map(lambda x: float(x.rstrip()), values))
+        values = list([float(x.rstrip()) for x in values])
     if isinstance(values, six.string_types):
         try:
             values = pickle.load(open(values))

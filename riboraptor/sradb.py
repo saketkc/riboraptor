@@ -60,7 +60,7 @@ Tables
 
 def _extract_first_field(data):
     """Extract first field from a list of fields"""
-    return list(next(zip(*data)))
+    return list(next(list(zip(*data))))
 
 
 class SRAdb(object):
@@ -129,14 +129,14 @@ class SRAdb(object):
         columns = ["cid", "name", "dtype", "notnull", "dflt_value", "pk"]
         data = []
         for result in results:
-            data.append(list(map(lambda x: str(x), result)))
+            data.append(list([str(x) for x in result]))
         df = pd.DataFrame(data, columns=columns)
         return df
 
     def get_query(self, query):
         results = self.cursor.execute(query).fetchall()
-        column_names = list(map(lambda x: x[0], self.cursor.description))
-        results = [dict(zip(column_names, result)) for result in results]
+        column_names = list([x[0] for x in self.cursor.description])
+        results = [dict(list(zip(column_names, result))) for result in results]
         return pd.DataFrame(results)
 
     def get_row_count(self, table):
@@ -214,8 +214,8 @@ class SRAdb(object):
             ).fetchall()
         assert len(results) == 1, "Got multiple hits"
         results = results[0]
-        column_names = list(map(lambda x: x[0], self.cursor.description))
-        results = dict(zip(column_names, results))
+        column_names = list([x[0] for x in self.cursor.description])
+        results = dict(list(zip(column_names, results)))
         return results
 
     def convert_gse_to_srp(self, gse):

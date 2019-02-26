@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -168,7 +168,7 @@ def plot_warped_timeseries(
     axX.xaxis.set_major_formatter(nullfmt)
     axY.yaxis.set_major_formatter(nullfmt)
 
-    axY.plot(list(y), range(0, len(y)), color=CBB_PALETTE[2])
+    axY.plot(list(y), list(range(0, len(y))), color=CBB_PALETTE[2])
     axX.plot(list(x), color=CBB_PALETTE[1])
     axHeatmap.imshow(
         accumulated_cost.T, origin="lower", cmap=colormap, interpolation="nearest"

@@ -154,4 +154,4 @@ def create_trackdb(bwdir, srp, orientation="5prime"):
 
 
 if __name__ == "__main__":
-    print(create_trackdb(sys.argv[1], sys.argv[2]))
+    print((create_trackdb(sys.argv[1], sys.argv[2])))
