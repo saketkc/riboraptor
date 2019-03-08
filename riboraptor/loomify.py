@@ -1,6 +1,7 @@
 """Module to store RiboCop output in loom format"""
 
 import os
+from tqdm import tqdm
 
 from .helpers import path_leaf, mkdir_p
 
@@ -138,19 +139,21 @@ def write_loom_batches(sample_list, annotation_filepath, out_root_dir, batch_siz
 
     ORF_IDS = annotation.ORF_ID.tolist()
     TX_IDS = annotation.transcript_id.tolist()
-    for batch_sample in batch(sample_list, 5):
-        # Read all the tsvs in this batch
-        print('Reading batch tsv ... ')
-        list_of_dfs, col_attrs = read_batch_tsv(batch_sample)
-        print('Done! ')
-        # For each ORF in all tsvs
-        # write a loom file
-        # organized by `transcript_id/ORF_ID.loom`
-        for tx_id, orf_id in zip(TX_IDS, ORF_IDS):
-            row_attrs = get_row_attrs_from_orf(annotation, orf_id)
-            out_dir = os.path.join(out_root_dir, tx_id)
-            mkdir_p(out_dir)
-            loom_file_path = os.path.join(out_dir, '{}.loom'.format(orf_id))
-            write_loom_for_dfs(loom_file_path, list_of_dfs, col_attrs, row_attrs, orf_id)
-        del list_of_dfs
-        del col_attrs
+    with tqdm(total=len(sample_list)//batch_size) as pbar:
+        for batch_sample in batch(sample_list, batch_size):
+            # Read all the tsvs in this batch
+            print('Reading batch tsv ... ')
+            list_of_dfs, col_attrs = read_batch_tsv(batch_sample)
+            print('Done! ')
+            # For each ORF in all tsvs
+            # write a loom file
+            # organized by `transcript_id/ORF_ID.loom`
+            for tx_id, orf_id in zip(TX_IDS, ORF_IDS):
+                row_attrs = get_row_attrs_from_orf(annotation, orf_id)
+                out_dir = os.path.join(out_root_dir, tx_id)
+                mkdir_p(out_dir)
+                loom_file_path = os.path.join(out_dir, '{}.loom'.format(orf_id))
+                write_loom_for_dfs(loom_file_path, list_of_dfs, col_attrs, row_attrs, orf_id)
+            del list_of_dfs
+            del col_attrs
+            pbar.update()
