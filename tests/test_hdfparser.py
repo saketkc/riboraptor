@@ -16,7 +16,8 @@ def test_coverage_from_hdf():
     hdf_filepath = "tests/data/SRX2536403_subsampled.unique.bam_coverage.hdf5"
     hdf = HDFParser(hdf_filepath)
     coverage, coverage_normalized, coverage_sum, coverage_normalized_sum = hdf.get_coverage(
-        region1, fragment_lengths, orientation="3prime")
+        region1, fragment_lengths, orientation="3prime"
+    )
     assert coverage.loc[coverage.start == 629916, "24"].tolist() == [1]
     hdf.close()
 
@@ -28,8 +29,9 @@ def test_length_fragments():
     bam_filepath = "tests/data/SRX2536403_subsampled.unique.bam"
     hdf = HDFParser(hdf_filepath)
     # Ensure everything is int32
-    read_lengths_bam = (pd.Series(
-        export_read_length(bam_filepath)).sort_index().astype("int64"))
+    read_lengths_bam = (
+        pd.Series(export_read_length(bam_filepath)).sort_index().astype("int64")
+    )
     read_lengths_hdf = hdf.get_read_length_dist().sort_index().astype("int64")
     assert len(read_lengths_bam) == len(read_lengths_hdf)
     assert list(read_lengths_bam.index) == list(read_lengths_hdf.index)
@@ -67,8 +69,7 @@ def test_getchromlengths():
     hdf_filepath = "tests/data/SRX2536403_subsampled.unique.bam_coverage.hdf5"
     bam_filepath = "tests/data/SRX2536403_subsampled.unique.bam"
     bam = pysam.AlignmentFile(bam_filepath, "rb")
-    reference_and_length = dict(
-        list(zip(bam.header.references, bam.header.lengths)))
+    reference_and_length = dict(list(zip(bam.header.references, bam.header.lengths)))
     bam.close()
     hdf = HDFParser(hdf_filepath)
     assert hdf.chromosome_lengths == reference_and_length

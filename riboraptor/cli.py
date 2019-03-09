@@ -709,19 +709,24 @@ def bwshift_cmd(bw, shift, outbw):
 
 
 ####################### Create Loom files ######################################
-@cli.command(
-    "loomify",
-    context_settings=CONTEXT_SETTINGS,
-    help="Create loom files",
-)
+@cli.command("loomify", context_settings=CONTEXT_SETTINGS, help="Create loom files")
 @click.option("--root-dir", type=str, help="Root directory", required=True)
 @click.option("--ribocop-dir", type=str, help="Pattern to search for", required=True)
-@click.option("--annotation", type=str, help="Path to RiboCop annotation file to", required=True)
-@click.option("--out-dir", type=str, help="Path to RiboCop annotation file to", required=True)
+@click.option(
+    "--annotation", type=str, help="Path to RiboCop annotation file to", required=True
+)
+@click.option(
+    "--out-dir", type=str, help="Path to RiboCop annotation file to", required=True
+)
 @click.option("--batch-size", type=int, help="Shift by these many bases", default=50)
 def create_loom_files(root_dir, ribocop_dir, annotation, out_dir, batch_size):
-    orf_tsv_list = glob.glob('{}/*/{}/*_translating_ORFs.tsv'.format(root_dir, ribocop_dir))
-    srx = [path_leaf(filepath).replace('_translating_ORFs.tsv', '') for filepath in orf_tsv_list]
-    srp = [filepath.split(ribocop_dir)[0].split('/')[-2] for filepath in orf_tsv_list]
-    sample_list  = list(zip(srp, srx, orf_tsv_list))
+    orf_tsv_list = glob.glob(
+        "{}/*/{}/*_translating_ORFs.tsv".format(root_dir, ribocop_dir)
+    )
+    srx = [
+        path_leaf(filepath).replace("_translating_ORFs.tsv", "")
+        for filepath in orf_tsv_list
+    ]
+    srp = [filepath.split(ribocop_dir)[0].split("/")[-2] for filepath in orf_tsv_list]
+    sample_list = list(zip(srp, srx, orf_tsv_list))
     write_loom_batches(sample_list, annotation, out_dir, batch_size=batch_size)
