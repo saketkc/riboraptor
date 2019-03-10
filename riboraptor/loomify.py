@@ -81,14 +81,23 @@ def write_loom_file(loom_file_path, matrix, col_attrs, row_attrs=None):
                     set(col_attrs[key]).intersection(set(ds.col_attrs[key]))
                 )
                 if len(common_columns) > 0:
+                    index_to_delete = []
+                    items_to_delete = []
                     # Delete common columns
                     for common_column in common_columns:
                         # Find this index of key
                         index = col_attrs[key].index(common_column)
+                        index_to_delete.append(index)
+                        items_to_delete.append(common_column)
+                    print('matrix.shape: {}'.format(matrix.shape))
+                    print('len(common_column): {}'.format(len(common_columns)))
+                    print('common_column: {}'.format(common_columns))
+
+                    for index, item in zip(index_to_delete, items_to_delete):
                         # Delete this column from matrix
                         matrix = np.delete(matrix, index, 1)
                         # Remove it from the list
-                        col_attrs[key].remove(common_column)
+                        col_attrs[key].remove(item)
                         assert matrix.shape[1] == len(col_attrs[key])
 
         # Add columns
@@ -140,7 +149,9 @@ def write_loom_for_dfs(loom_file_path, list_of_dfs, col_attrs, row_attrs, orf_id
     """
     dfs_subset = [df[df.ORF_ID == orf_id].iloc[0] for df in list_of_dfs]
     profile_stacked = [literal_eval(df.profile) for df in dfs_subset]
-    matrix = np.array(profile_stacked).T
+    profile_ncol = len(profile_stacked)
+    profile_nrow = len(profile_stacked[0])
+    matrix = np.array(profile_stacked).reshape(profile_ncol, profile_nrow)
     write_loom_file(loom_file_path, matrix, col_attrs, row_attrs)
 
 
