@@ -138,12 +138,8 @@ Usage mode 2: use riboraptor as a standalone toolkit
 
 See: https://riboraptor.readthedocs.io/en/latest/
   
-Usage mode 3: use riboraptor in a Galaxy environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Check: http://nucleus.usc.edu:8080/
 
-
-Usage mode 4: ribopod - database
+Usage mode 3: ribopod - database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In progress: http://nucleus.usc.edu:8050/
 
