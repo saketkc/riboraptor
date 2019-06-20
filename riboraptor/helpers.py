@@ -1114,7 +1114,6 @@ def counts_to_tpm(counts, sizes):
 
 def featurecounts_to_tpm(fc_f, outfile):
     """Convert htseq-counts file to tpm
-
     Parameters
     ----------
     fc_f: string
@@ -1122,14 +1121,16 @@ def featurecounts_to_tpm(fc_f, outfile):
     outfile: string
              Path to output file with tpm values
     """
-    feature_counts = pd.read_table(fc_f, skiprows=[0])
+    feature_counts = pd.read_csv(fc_f, sep='\t')
+    feature_counts = feature_counts.set_index('Geneid')
     feature_counts = feature_counts.drop(
-        columns=["Geneid", "Chr", "Start", "End", "Strand"]
+        columns=["Chr", "Start", "End", "Strand"]
     )
     lengths = feature_counts["Length"]
     feature_counts = feature_counts.drop(columns=["Length"])
     tpm = feature_counts.apply(lambda x: counts_to_tpm(x, lengths), axis=0)
-    tpm.to_csv(outfile, sep="\t", index=False, header=True)
+    tpm.columns = [col.replace('bams_unique/', '').replace('.bam', '') for col in tpm.columns]
+    tpm.to_csv(outfile, sep="\t", index=True, header=True)
 
 
 def read_htseq(htseq_f):
