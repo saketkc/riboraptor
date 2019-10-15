@@ -96,22 +96,22 @@ def write_loom_file(loom_file_path, matrix, col_attrs, row_attrs=None):
                         index_to_delete.append(index)
                         items_to_delete.append(common_column)
 
-                    print('len(common_column): {}'.format(len(common_columns)))
-                    print('common_column: {}'.format(common_columns))
+                    print("len(common_column): {}".format(len(common_columns)))
+                    print("common_column: {}".format(common_columns))
 
                     for item in items_to_delete:
                         # Remove it from the list
                         col_attrs[key].remove(item)
-                        print('common_Col_lene: {}'.format(len(col_attrs[key])))
-        print('matrix.shape: {}'.format(matrix.shape))
-        print('len(index_to_delete): {}'.format(len(index_to_delete)))
-        print('len(items_to_delete): {}'.format(len(items_to_delete)))
+                        print("common_Col_lene: {}".format(len(col_attrs[key])))
+        print("matrix.shape: {}".format(matrix.shape))
+        print("len(index_to_delete): {}".format(len(index_to_delete)))
+        print("len(items_to_delete): {}".format(len(items_to_delete)))
         for index in set(index_to_delete):
             # Delete this column from matrix
             matrix = np.delete(matrix, index, 1)
-        print('matrix.shape: {}'.format(matrix.shape))
+        print("matrix.shape: {}".format(matrix.shape))
         for key in col_attrs.keys():
-            print('len(col_attrs[{}]): {}'.format(key, len(col_attrs[key])))
+            print("len(col_attrs[{}]): {}".format(key, len(col_attrs[key])))
 
         assert matrix.shape[1] == len(col_attrs[key])
         # Add columns
@@ -167,23 +167,22 @@ def write_loom_for_dfs(loom_file_path, list_of_dfs, col_attrs, row_attrs, orf_id
     profile_ncol = len(profile_stacked)
     profile_nrow = len(profile_stacked[0])
     matrix = np.array(profile_stacked).T
-    #print('#######matrix########: {}'.format(matrix))
+    # print('#######matrix########: {}'.format(matrix))
     matrix = matrix.reshape(profile_nrow, profile_ncol)
-    #print('nrow: {}'.format(profile_nrow))
-    #print('ncol: {}'.format(profile_ncol))
-    #print('shape: {}'.format(matrix.shape))
+    # print('nrow: {}'.format(profile_nrow))
+    # print('ncol: {}'.format(profile_ncol))
+    # print('shape: {}'.format(matrix.shape))
     write_loom_file(loom_file_path, matrix, col_attrs, row_attrs)
 
+
 def _run_parallel_writer(data):
-    orf_id = data['orf_id']
-    row_attrs = data['orf_attrs']
-    loom_file_path = data['loom_file_path']
-    list_of_dfs = data['list_of_dfs']
-    col_attrs = data['col_attrs']
+    orf_id = data["orf_id"]
+    row_attrs = data["orf_attrs"]
+    loom_file_path = data["loom_file_path"]
+    list_of_dfs = data["list_of_dfs"]
+    col_attrs = data["col_attrs"]
     mkdir_p(os.path.dirname(loom_file_path))
-    write_loom_for_dfs(
-        loom_file_path, list_of_dfs, col_attrs.copy(), row_attrs, orf_id
-    )
+    write_loom_for_dfs(loom_file_path, list_of_dfs, col_attrs.copy(), row_attrs, orf_id)
 
 
 def write_loom_batches(sample_list, annotation_filepath, out_root_dir, batch_size=50):
@@ -195,20 +194,26 @@ def write_loom_batches(sample_list, annotation_filepath, out_root_dir, batch_siz
     TX_IDS = annotation.transcript_id.tolist()
     ROW_ATTRS = [get_row_attrs_from_orf(annotation, orf_id) for orf_id in ORF_IDS]
     OUT_DIRS = [os.path.join(out_root_dir, tx_id) for tx_id in TX_IDS]
-    LOOM_FILE_PATHS = [os.path.join(out_dir, "{}.loom".format(orf_id)) for out_dir, orf_id in zip(OUT_DIRS, ORF_IDS)]
+    LOOM_FILE_PATHS = [
+        os.path.join(out_dir, "{}.loom".format(orf_id))
+        for out_dir, orf_id in zip(OUT_DIRS, ORF_IDS)
+    ]
     DATA = []
-    print('Processing dict data')
-    for tx_id, orf_id, row_attrs, out_dir, loom_file_path in zip(tqdm(TX_IDS), ORF_IDS, ROW_ATTRS, OUT_DIRS, LOOM_FILE_PATHS):
-        data_dict =  {
-                      'orf_id': orf_id,
-                      'row_attrs': row_attrs,
-                      'loom_file_path': loom_file_path}
+    print("Processing dict data")
+    for tx_id, orf_id, row_attrs, out_dir, loom_file_path in zip(
+        tqdm(TX_IDS), ORF_IDS, ROW_ATTRS, OUT_DIRS, LOOM_FILE_PATHS
+    ):
+        data_dict = {
+            "orf_id": orf_id,
+            "row_attrs": row_attrs,
+            "loom_file_path": loom_file_path,
+        }
         DATA.append(data_dict)
     del TX_IDS
     del LOOM_FILE_PATHS
     del OUT_DIRS
     del ROW_ATTRS
-    print('Done!')
+    print("Done!")
     with tqdm(total=len(sample_list) // batch_size) as pbar:
         for batch_sample in batch(sample_list, batch_size):
             # Read all the tsvs in this batch
@@ -219,11 +224,11 @@ def write_loom_batches(sample_list, annotation_filepath, out_root_dir, batch_siz
             # For each ORF in all tsvs
             # write a loom file
             # organized by `transcript_id/ORF_ID.loom`
-            print('Changing dict')
+            print("Changing dict")
             for data in tqdm(DATA):
-                data['list_of_dfs'] = list_of_dfs
-                data['col_attrs'] = col_attrs
-            print('Done')
+                data["list_of_dfs"] = list_of_dfs
+                data["col_attrs"] = col_attrs
+            print("Done")
 
             Parallel(n_jobs=16)(delayed(_run_parallel_writer)(data) for data in DATA)
             """

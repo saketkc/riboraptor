@@ -1121,15 +1121,15 @@ def featurecounts_to_tpm(fc_f, outfile):
     outfile: string
              Path to output file with tpm values
     """
-    feature_counts = pd.read_csv(fc_f, sep='\t')
-    feature_counts = feature_counts.set_index('Geneid')
-    feature_counts = feature_counts.drop(
-        columns=["Chr", "Start", "End", "Strand"]
-    )
+    feature_counts = pd.read_csv(fc_f, sep="\t")
+    feature_counts = feature_counts.set_index("Geneid")
+    feature_counts = feature_counts.drop(columns=["Chr", "Start", "End", "Strand"])
     lengths = feature_counts["Length"]
     feature_counts = feature_counts.drop(columns=["Length"])
     tpm = feature_counts.apply(lambda x: counts_to_tpm(x, lengths), axis=0)
-    tpm.columns = [col.replace('bams_unique/', '').replace('.bam', '') for col in tpm.columns]
+    tpm.columns = [
+        col.replace("bams_unique/", "").replace(".bam", "") for col in tpm.columns
+    ]
     tpm.to_csv(outfile, sep="\t", index=True, header=True)
 
 
