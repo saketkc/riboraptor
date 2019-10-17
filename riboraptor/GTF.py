@@ -57,7 +57,7 @@ R_COMMA = re.compile(r"\s*,\s*")
 R_KEYVALUE = re.compile(r"(\s+|\s*=\s*)")
 
 
-def dataframe(filename):
+def gtf_to_dataframe(filename):
     """Open an optionally gzipped GTF file and return a pandas.DataFrame.
     """
     # Each column is a list stored as a value in this dict.
