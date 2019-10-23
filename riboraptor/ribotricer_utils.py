@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from .helpers import Interval
+from .fasta import FastaReader
 
 
 def counts_to_tpm(counts, sizes):
@@ -56,3 +58,40 @@ def read_raw_counts_into_matrix(count_files):
         df.columns = [filename]
         counts_df = counts_df.join(df, how="outer")
     return counts_df
+
+
+def ribotricer_index_to_fasta(ribotricer_index, fasta_file):
+    """Convert ribotricer index to fasta.
+    
+    Parameters
+    ----------
+    ribotricer_index: str or pd.DataFrame
+                      Path to ribotricer index file or read_csv version
+    fasta_file: str
+                Location of fasta
+    
+    Returns
+    -------
+    sequences: list
+               list of list with orf_id and corresponding sequence
+    
+    """
+    fasta = FastaReader(fasta_file)
+    if isinstance(ribotricer_index, str):
+        ribotricer_index = pd.read_csv(ribotricer_index, sep="\t").set_index("ORF_ID")
+
+    sequences = []
+    for idx, row in ribotricer_index.iterrows():
+        intervals = []
+        for coordinate in row.coordinate.split(","):
+            start, stop = coordinate.split("-")
+            start = int(start)
+            stop = int(stop)
+            interval = Interval(row.chrom, start, stop)
+            intervals.append(interval)
+        sequence = fasta.query(intervals)
+        sequence = "".join(sequence)
+        if row.strand == "-":
+            sequence = fasta.reverse_complement(sequence)
+        sequences.append([row.ORF_ID, sequence])
+    return sequences
