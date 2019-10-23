@@ -62,19 +62,19 @@ def read_raw_counts_into_matrix(count_files):
 
 def ribotricer_index_to_fasta(ribotricer_index, fasta_file):
     """Convert ribotricer index to fasta.
-    
+
     Parameters
     ----------
     ribotricer_index: str or pd.DataFrame
                       Path to ribotricer index file or read_csv version
     fasta_file: str
                 Location of fasta
-    
+
     Returns
     -------
     sequences: list
                list of list with orf_id and corresponding sequence
-    
+
     """
     fasta = FastaReader(fasta_file)
     if isinstance(ribotricer_index, str):
@@ -93,5 +93,5 @@ def ribotricer_index_to_fasta(ribotricer_index, fasta_file):
         sequence = "".join(sequence)
         if row.strand == "-":
             sequence = fasta.reverse_complement(sequence)
-        sequences.append([row.ORF_ID, sequence])
+        sequences.append([idx, sequence])
     return sequences
