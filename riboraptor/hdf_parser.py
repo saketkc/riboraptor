@@ -313,9 +313,16 @@ def tsv_to_bigwig(df, chrom_lengths, prefix):
 
 
 def _process_gene_group(data):
-    filepath, gene_group, chromosome_lengths, offset_5p, offset_3p, orientation, n_bases, fragment_length = (
-        data
-    )
+    (
+        filepath,
+        gene_group,
+        chromosome_lengths,
+        offset_5p,
+        offset_3p,
+        orientation,
+        n_bases,
+        fragment_length,
+    ) = data
     h5py_obj = HDFParser(filepath)
     regions = list(
         zip(
