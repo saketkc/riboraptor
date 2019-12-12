@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from .helpers import Interval
 from .fasta import FastaReader
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna, generic_rna
 
 
 def counts_to_tpm(counts, sizes):
@@ -95,3 +97,45 @@ def ribotricer_index_to_fasta(ribotricer_index, fasta_file):
             sequence = fasta.reverse_complement(sequence)
         sequences.append([idx, sequence])
     return sequences
+
+
+def get_translated_sequences(sequences):
+    for idx, row in enumerate(sequences):
+        orf_id, dna_seq = row
+        translated_seq = str(Seq(dna_seq, generic_dna).translate())
+        sequences[idx].append(translated_seq)
+    return sequences
+
+
+def ribotricer_index_row_to_fasta(ribotricer_index, fasta_file):
+    """Convert ribotricer index to fasta (just one row).
+    
+    Parameters
+    ----------
+    ribotricer_index: str or pd.DataFrame
+                      Path to ribotricer index file or read_csv version
+    fasta_file: str
+                Location of fasta
+    
+    Returns
+    -------
+    sequences: list
+               list of list with orf_id and corresponding sequence
+    
+    """
+    fasta = FastaReader(fasta_file)
+    # sequences = []
+    # idx = row.index
+
+    intervals = []
+    for coordinate in row.coordinate.split(","):
+        start, stop = coordinate.split("-")
+        start = int(start)
+        stop = int(stop)
+        interval = Interval(row.chrom, start, stop)
+        intervals.append(interval)
+    sequence = fasta.query(intervals)
+    sequence = "".join(sequence)
+    if row.strand == "-":
+        sequence = fasta.reverse_complement(sequence)
+    return sequence
