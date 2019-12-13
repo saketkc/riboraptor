@@ -99,7 +99,12 @@ def ribotricer_index_to_fasta(ribotricer_index, fasta_file):
     return sequences
 
 
-def get_translated_sequences(sequences):
+def get_translated_sequence(sequence):
+    translated_seq = str(Seq(sequence, generic_dna).translate())
+    return translated_seq
+
+
+def get_translated_sequences_row(sequences):
     for idx, row in enumerate(sequences):
         orf_id, dna_seq = row
         translated_seq = str(Seq(dna_seq, generic_dna).translate())
@@ -107,21 +112,21 @@ def get_translated_sequences(sequences):
     return sequences
 
 
-def ribotricer_index_row_to_fasta(ribotricer_index, fasta_file):
+def ribotricer_index_row_to_fasta(row, fasta_file):
     """Convert ribotricer index to fasta (just one row).
-    
+
     Parameters
     ----------
     ribotricer_index: str or pd.DataFrame
                       Path to ribotricer index file or read_csv version
     fasta_file: str
                 Location of fasta
-    
+
     Returns
     -------
     sequences: list
                list of list with orf_id and corresponding sequence
-    
+
     """
     fasta = FastaReader(fasta_file)
     # sequences = []
