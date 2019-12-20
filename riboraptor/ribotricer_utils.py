@@ -56,7 +56,6 @@ def read_raw_counts_into_matrix(count_files):
     for f in count_files:
         filename = path_leaf(f)
         filename = filename.replace("_counts_cnt.txt", "")
-        print(filename)
         df = read_ribocounts_raw_count(f)
         df.columns = [filename]
         counts_df = counts_df.join(df, how="outer")
@@ -145,3 +144,15 @@ def ribotricer_index_row_to_fasta(row, fasta_file):
     if row.strand == "-":
         sequence = fasta.reverse_complement(sequence)
     return sequence
+
+def read_orf_lengths_into_matrix(count_files):
+    lengths_dict = OrderedDict()
+    for f in count_files:
+        df = pd.read_csv(f, sep="\t").set_index('gene_id')
+        lengths = df[['length']].to_dict()['length']
+        for key, value in lengths.items():
+            if key not in lengths_dict:
+                lengths_dict[key] = value
+    lengths = pd.DataFrame.from_dict(lengths_dict, orient='index', columns=['length'])
+    lengths.index.name = 'gene_id'
+    return lengths.sort_index()
