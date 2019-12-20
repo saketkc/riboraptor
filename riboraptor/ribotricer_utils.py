@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from .helpers import Interval
+from .helpers import path_leaf
 from .fasta import FastaReader
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_dna, generic_rna
