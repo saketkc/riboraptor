@@ -159,13 +159,13 @@ def read_orf_lengths_into_matrix(count_files):
     lengths.index.name = "gene_id"
     return lengths.sort_index()
 
+
 def count_matrix_to_tpm(counts_matrix, gene_lengths):
     gene_lengths = gene_lengths.loc[counts_matrix.index]
     tpm_matrix = counts_matrix.copy()
-    if 'gene_id' in tpm_matrix.columns:
-        tpm_matrix = tpm_matrix.set_index('gene_id')
+    if "gene_id" in tpm_matrix.columns:
+        tpm_matrix = tpm_matrix.set_index("gene_id")
     tpm_matrix = tpm_matrix.fillna(0)
     for col in tpm_matrix.columns:
-        tpm_matrix[col] = counts_to_tpm(tpm_matrix[col], gene_lengths['length'])
+        tpm_matrix[col] = counts_to_tpm(tpm_matrix[col], gene_lengths["length"])
     return tpm_matrix
-    
