@@ -15,9 +15,12 @@ def test_coverage_from_hdf():
     fragment_lengths = "all"  # [24, 25, 21]
     hdf_filepath = "tests/data/SRX2536403_subsampled.unique.bam_coverage.hdf5"
     hdf = HDFParser(hdf_filepath)
-    coverage, coverage_normalized, coverage_sum, coverage_normalized_sum = hdf.get_coverage(
-        region1, fragment_lengths, orientation="3prime"
-    )
+    (
+        coverage,
+        coverage_normalized,
+        coverage_sum,
+        coverage_normalized_sum,
+    ) = hdf.get_coverage(region1, fragment_lengths, orientation="3prime")
     assert coverage.loc[coverage.start == 629916, "24"].tolist() == [1]
     hdf.close()
 

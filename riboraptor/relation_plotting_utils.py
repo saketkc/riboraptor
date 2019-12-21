@@ -20,14 +20,23 @@ def r_spearman(x, y):
 
 
 def plot_jointplot(
-    x, y, df, kind="hex", correlation="spearman", logx=False, logy=False
+    x,
+    y,
+    df,
+    kind="hex",
+    correlation="spearman",
+    logx=False,
+    logy=False,
+    reg_line_color="#e34a33",
+    point_color="#4CB391",
+    alpha=0.5,
 ):
 
     if logx:
-        df["log({})".format(x)] = np.log10(df[x])
+        df["log({})".format(x)] = np.log10(df[x] + 1)
         x = "log({})".format(x)
     if logy:
-        df["log({})".format(y)] = np.log10(df[y])
+        df["log({})".format(y)] = np.log10(df[y] + 1)
         y = "log({})".format(y)
 
     if correlation not in ["spearman", "pearson"]:
@@ -39,25 +48,19 @@ def plot_jointplot(
         r = r_pearson
     if kind == "hex":
         g = sns.jointplot(
-            x=x,
-            y=y,
-            data=df,
-            kind="hex",
-            color="#4CB391",
-            height=8,
-            stat_func=r_spearman,
+            x=x, y=y, data=df, kind="hex", color=point_color, height=8, stat_func=r,
         )
     else:
         g = sns.jointplot(
-            x=x, y=y, data=df, color="#4CB391", height=8, stat_func=r_spearman
+            x=x, y=y, data=df, color=point_color, height=8, stat_func=r, alpha=alpha,
         )
     g = g.annotate(
-        r_spearman,
+        r,
         template="{stat}: {val:.2f}",
         stat="$R$ {}".format(correlation),
         loc="upper right",
         fontsize=18,
         frameon=False,
     )
-    sns.regplot(x, y, data=df, ax=g.ax_joint, scatter=False, color="#e34a33")
+    sns.regplot(x, y, data=df, ax=g.ax_joint, scatter=False, color=reg_line_color)
     return g
