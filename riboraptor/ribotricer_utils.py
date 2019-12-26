@@ -169,3 +169,29 @@ def count_matrix_to_tpm(counts_matrix, gene_lengths):
     for col in tpm_matrix.columns:
         tpm_matrix[col] = counts_to_tpm(tpm_matrix[col], gene_lengths["length"])
     return tpm_matrix
+
+
+def get_orf_hits(ribotricer_index, chrom, target_range):
+    max_intersection = 0
+    target_orfid = ""
+    chr_orfs = ribotricer_index.loc[ribotricer_index["chrom"] == chrom]
+    for idx, row in chr_orfs.iterrows():
+        coordinates = row.coordinate
+        coordinates = coordinates.split(",")
+        for coordinate in coordinates:
+            start, end = coordinate.split("-")
+            start = int(start)
+            end = int(end)
+            if start > target_range[1]:
+                continue
+            if end < target_range[0]:
+                continue
+
+            query_range = range(start, end + 1)
+            query_length = len(query_range)
+            intersection = set(query_range).intersection(target_range)
+            intersection_length = len(intersection)
+            if intersection_length > max_intersection:
+                max_intersection = intersection_length
+                target_orfid = row.ORF_ID
+    return max_intersection, target_orfid
