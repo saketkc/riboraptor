@@ -48,11 +48,11 @@ def plot_jointplot(
         r = r_pearson
     if kind == "hex":
         g = sns.jointplot(
-            x=x, y=y, data=df, kind="hex", color=point_color, height=8, stat_func=r,
+            x=x, y=y, data=df, kind="hex", color=point_color, height=8, stat_func=r
         )
     else:
         g = sns.jointplot(
-            x=x, y=y, data=df, color=point_color, height=8, stat_func=r, alpha=alpha,
+            x=x, y=y, data=df, color=point_color, height=8, stat_func=r, alpha=alpha
         )
     g = g.annotate(
         r,
