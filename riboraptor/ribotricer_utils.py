@@ -5,7 +5,7 @@ from .helpers import Interval
 from .helpers import path_leaf
 from .fasta import FastaReader
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna, generic_rna
+from Bio.Alphabet import generic_dna
 
 
 def counts_to_tpm(counts, sizes):
