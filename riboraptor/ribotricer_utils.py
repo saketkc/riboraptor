@@ -211,3 +211,31 @@ def get_orf_hits(ribotricer_index, chrom, target_range):
                 max_intersection = intersection_length
                 target_orfid = row.ORF_ID
     return max_intersection, target_orfid
+
+
+def coordlist_to_length(coordlist):
+    "Given a list of coordinates get the length of the region" ""
+    all_coords = dict()
+    for coords in coordlist:
+        for coord in coords.split(","):
+            start, stop = coord.split("-")
+            start = int(start)
+            stop = int(stop)
+            for x in range(start, stop + 1):
+                if x not in all_coords:
+                    all_coords[x] = 0
+    return len(all_coords.keys())
+
+
+def ribotricer_index_to_gene_length(indexfile, outfile):
+    """Collapse index to gene level lengths for different ORF types"""
+    df = pd.read_csv(indexfile, sep="\t", usecols=["gene_id", "ORF_type", "coordinate"])
+    df_grouped = (
+        df.groupby(["gene_id", "ORF_type"])["coordinate"].agg(list).reset_index()
+    )
+    df_grouped["length"] = df_grouped["coordinate"].apply(
+        lambda coordlist: coordlist_to_length(coordlist)
+    )
+    df_to_write = df_grouped[["gene_id", "ORF_type", "length"]]
+    mkdir_p(os.path.dirname(outfile))
+    df_to_write.to_csv(outfile, sep="\t", index=False)
