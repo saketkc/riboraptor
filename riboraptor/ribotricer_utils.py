@@ -5,7 +5,7 @@ from .helpers import Interval
 from .helpers import path_leaf
 from .fasta import FastaReader
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna, generic_rna
+from Bio.Alphabet import generic_dna
 
 
 def counts_to_tpm(counts, sizes):
@@ -45,14 +45,26 @@ def featurecounts_to_tpm(fc_f, outfile):
 
 
 def read_ribocounts_raw_count(filepath):
+    """Read ribotricer counts as a dataframe"""
     df = pd.read_csv(filepath, sep="\t")
-    df["normalized_count"] = np.divide(1 + df["count"], df["length"])
     df = df.sort_values(by=["gene_id"])
     df = df.set_index("gene_id")
     return df[["count"]]
 
 
+def read_ribocounts_length_normalized_count(filepath):
+    """Read ribotricer counts divided by length as a dataframe"""
+    df = pd.read_csv(filepath, sep="\t")
+    if "length" not in df.columns:
+        raise Exception("length column missing in input {}".format(filepath))
+    df["normalized_count"] = np.divide(1 + df["count"], df["length"])
+    df = df.sort_values(by=["gene_id"])
+    df = df.set_index("gene_id")
+    return df[["normalized_count"]]
+
+
 def read_raw_counts_into_matrix(count_files):
+    """Read ribotricer raw counts for multiple files in a dataframe"""
     counts_df = pd.DataFrame()
     for f in count_files:
         filename = path_leaf(f)
@@ -101,11 +113,13 @@ def ribotricer_index_to_fasta(ribotricer_index, fasta_file):
 
 
 def get_translated_sequence(sequence):
+    """Translate a sequence"""
     translated_seq = str(Seq(sequence, generic_dna).translate())
     return translated_seq
 
 
 def get_translated_sequences_row(sequences):
+    """Translate a sequence for a given row from ribotricer index df"""
     for idx, row in enumerate(sequences):
         orf_id, dna_seq = row
         translated_seq = str(Seq(dna_seq, generic_dna).translate())
@@ -148,6 +162,7 @@ def ribotricer_index_row_to_fasta(row, fasta_file):
 
 
 def read_orf_lengths_into_matrix(count_files):
+    """Read gene lengths into a matrix"""
     lengths_dict = OrderedDict()
     for f in count_files:
         df = pd.read_csv(f, sep="\t").set_index("gene_id")
@@ -161,6 +176,7 @@ def read_orf_lengths_into_matrix(count_files):
 
 
 def count_matrix_to_tpm(counts_matrix, gene_lengths):
+    """Convert counts matrix to TPM matrix"""
     gene_lengths = gene_lengths.loc[counts_matrix.index]
     tpm_matrix = counts_matrix.copy()
     if "gene_id" in tpm_matrix.columns:
