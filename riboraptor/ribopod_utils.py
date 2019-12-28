@@ -5,7 +5,7 @@ from .helpers import mkdir_p
 from .ribotricer_utils import read_raw_counts_into_matrix
 
 
-def get_mean_median_std_ribotricer(translating_orf_file, orf_type):
+def get_mean_median_std_ribotricer_orftype(translating_orf_file, orf_type):
     """Get mean, median, and standard deviation of protein-coding ORFs"""
     if isinstance(orf_type, str):
         orf_type = [orf_type]
@@ -22,7 +22,7 @@ def get_mean_median_std_ribotricer(translating_orf_file, orf_type):
     return pd.Series([mean, median, std])
 
 
-def row_mean_median_std(row, orf_type):
+def row_mean_median_std_ribotricer_orftype(row, orf_type):
     """Get mean, median, and standard deviation for a row of translating_ORFs"""
     srx = row.experiment_accession
     path = row.srp_path
@@ -30,7 +30,39 @@ def row_mean_median_std(row, orf_type):
         path, "ribotricer_results", "{}_translating_ORFs.tsv".format(srx)
     )
     if os.path.exists(filepath):
-        return get_mean_median_std_ribotricer(filepath, orf_type)
+        return get_mean_median_std_ribotricer_orftype(filepath, orf_type)
+    return pd.Series([np.nan, np.nan, np.nan])
+
+
+def get_mean_median_std_ribotricer_txtype(translating_orf_file, txtype):
+    """Get mean, median, and standard deviation of given transcript type
+
+    txtype: list
+
+    """
+    if isinstance(txtype, str):
+        txtype = [txtype]
+    df = pd.read_csv(
+        translating_orf_file,
+        sep="\t",
+        usecols=["phase_score", "ORF_type", "transcript_type"],
+    )
+    df_subset = df[df.transcript_type.isin(txtype)]
+    mean = np.mean(df_subset.phase_score)
+    median = np.median(df_subset.phase_score)
+    std = np.std(df_subset.phase_score)
+    return pd.Series([mean, median, std])
+
+
+def row_mean_median_std_ribotricer_txtype(row, txtype):
+    """Get mean, median, and standard deviation for a row of translating_ORFs"""
+    srx = row.experiment_accession
+    path = row.srp_path
+    filepath = os.path.join(
+        path, "ribotricer_results", "{}_translating_ORFs.tsv".format(srx)
+    )
+    if os.path.exists(filepath):
+        return get_mean_median_std_ribotricer_txtype(filepath, txtype)
     return pd.Series([np.nan, np.nan, np.nan])
 
 
