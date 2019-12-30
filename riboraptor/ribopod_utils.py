@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from .helpers import mkdir_p
+from .helpers import path_leaf
 from .ribotricer_utils import read_raw_counts_into_matrix
 
 
@@ -143,3 +144,80 @@ def aggregate_ribotricer_output_to_gene(infile, outfile):
             index=False,
         )
     df_grouped.to_csv(outfile, sep="\t", header=True, index=False)
+
+
+def read_ribotricer_output(filepath):
+    experiment = path_leaf(filepath)
+    experiment = experiment.replace("_translating_ORFs.tsv", "")
+    df = pd.read_csv(
+        filepath,
+        sep="\t",
+        usecols=["ORF_ID", "phase_score", "valid_codons", "length", "read_count"],
+    ).set_index("ORF_ID")
+    df["valid_codon_ratio"] = df["valid_codons"].divide(df["length"])
+
+    df_phase_score = df[["phase_score"]].rename(columns={"phase_score": experiment})
+    df_vcr = df[["valid_codon_ratio"]].rename(columns={"valid_codon_ratio": experiment})
+    df_rc = df[["read_count"]].rename(columns={"read_count": experiment})
+    return df_phase_score, df_vcr, df_rc
+
+
+def read_phase_score_vcr_rc(files):
+    phase_score_df = pd.DataFrame()
+    vcr_df = pd.DataFrame()
+    rc_df = pd.DataFrame()
+    for filepath in files:
+        p_df, v_df, r_df = read_ribotricer_output(filepath)
+        phase_score_df = phase_score_df.join(p_df)
+        vcr_df = vcr_df.join(v_df)
+        rc_df = rc_df.join(r_df)
+    return phase_score_df, vcr_df, rc_df
+
+
+def _rename_cols(collected_df, assembly, srp):
+    collected_df.columns = [
+        "{}_{}_{}".format(assembly, srp, srx) for srx in collected_df.columns
+    ]
+    collected_df = collected_df.reset_index()
+    return collected_df
+
+
+def collect_ribotricer_orfs(srp_df):
+    srp = srp_df.study_accession.tolist()[0]
+    srp_assembly_grouped = srp_df.groupby("assembly")
+    for assembly, srp_assembly_df in srp_assembly_grouped:
+        srp_path = srp_assembly_df.srp_path.tolist()[0]
+        experiments = list(sorted(srp_assembly_df.experiment_accession.unique()))
+        files = [
+            os.path.join(
+                srp_path,
+                "ribotricer_results",
+                "{}_translating_ORFs.tsv".format(experiment),
+            )
+            for experiment in experiments
+        ]
+
+        files = [f for f in files if os.path.exists(f)]
+        if not files:
+            continue
+
+        phase_score_df, vcr_df, rc_df = read_phase_score_vcr_rc(files)
+
+        dir_to_write = os.path.join(
+            srp_path, "ribotricer_results", "ribotricer_orfs_df"
+        )
+        mkdir_p(dir_to_write)
+        file_to_write = os.path.join(dir_to_write, "{}_{}".format(assembly, srp))
+        phase_score_df = _rename_cols(phase_score_df, assembly, srp)
+        vcr_df = _rename_cols(vcr_df, assembly, srp)
+        rc_df = _rename_cols(rc_df, assembly, srp)
+
+        phase_score_df.to_csv(
+            file_to_write + "_phase_score.tsv", sep="\t", index=False, header=True
+        )
+        vcr_df.to_csv(
+            file_to_write + "_phase_score.tsv", sep="\t", index=False, header=True
+        )
+        rc_df.to_csv(
+            file_to_write + "_read_count.tsv", sep="\t", index=False, header=True
+        )
