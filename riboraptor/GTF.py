@@ -81,9 +81,12 @@ def lines(filename):
     """Open an optionally gzipped GTF file and generate a dict for each line.
     """
     fn_open = gzip.open if filename.endswith(".gz") else open
+    read_mode = "rb" if filename.endswith(".gz") else "r"
 
-    with fn_open(filename) as fh:
+    with fn_open(filename, read_mode) as fh:
         for line in fh:
+            if read_mode == "rb":
+                line = line.decode()
             if line.startswith("#"):
                 continue
             else:
