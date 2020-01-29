@@ -64,7 +64,7 @@ def get_gene_mean_median_max_std_ribotricer(translating_orf_file, only_ATG=True)
     df = pd.read_csv(
         translating_orf_file,
         sep="\t",
-        usecols=["phase_score", "ORF_type", "start_codon"],
+        usecols=["phase_score", "ORF_type", "start_codon", "gene_id"],
     )
     if only_ATG:
         df = df.loc[df.start_codon == "ATG"]
