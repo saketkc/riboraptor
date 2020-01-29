@@ -79,6 +79,31 @@ def get_gene_mean_median_max_std_ribotricer(translating_orf_file, only_ATG=True)
     )
     return df_subset
 
+def get_transcript_mean_median_max_std_ribotricer(translating_orf_file, only_ATG=True):
+    """Get mean, median, and standard deviation of given transcript type
+
+    txtype: list
+
+    """
+    df = pd.read_csv(
+        translating_orf_file,
+        sep="\t",
+        usecols=["phase_score", "ORF_type", "start_codon", "transcript_id"],
+    )
+    if only_ATG:
+        df = df.loc[df.start_codon == "ATG"]
+    df_subset = df.loc[df.ORF_type == "annotated"]
+    df_subset = df_subset.groupby("transcript_id").agg(
+        min_phase_score=pd.NamedAgg(column="phase_score", aggfunc="min"),
+        max_phase_score=pd.NamedAgg(column="phase_score", aggfunc="max"),
+        median_phase_score=pd.NamedAgg(column="phase_score", aggfunc="median"),
+        mean_phase_score=pd.NamedAgg(column="phase_score", aggfunc="mean"),
+        std_phase_score=pd.NamedAgg(column="phase_score", aggfunc="std"),
+        n_orfs=pd.NamedAgg(column="phase_score", aggfunc="count"),
+    )
+    return df_subset
+
+
 
 def row_mean_median_std_ribotricer_txtype(row, txtype):
     """Get mean, median, and standard deviation for a row of translating_ORFs"""
