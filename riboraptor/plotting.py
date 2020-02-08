@@ -182,7 +182,7 @@ def plot_read_length_dist(
         ax.set_title("Total reads = {}".format(reads_total))
     if millify_labels:
         ax.set_yticklabels(list([millify(x) for x in ax.get_yticks()]))
-    #sns.despine(trim=True, offset=20)
+    # sns.despine(trim=True, offset=20)
     if saveto:
         fig.tight_layout()
         if ".dat" in saveto:
@@ -418,7 +418,7 @@ def plot_read_counts(
         ax.set_ylabel(ylabel)
     if title:
         ax.set_title(title)
-    #sns.despine(trim=True, offset=10)
+    # sns.despine(trim=True, offset=10)
     if saveto:
         fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)
@@ -475,7 +475,7 @@ def plot_featurewise_barplot(
         ax=ax, axis="y", majorticks=max_counts // 10, minorticks=max_counts // 20
     )
     ax.set_ylabel("# RPFs")
-    #sns.despine(trim=True, offset=10)
+    # sns.despine(trim=True, offset=10)
     if saveto:
         fig.tight_layout()
         fig.savefig(saveto, dpi=DPI)

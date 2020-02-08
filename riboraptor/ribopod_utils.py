@@ -79,6 +79,7 @@ def get_gene_mean_median_max_std_ribotricer(translating_orf_file, only_ATG=True)
     )
     return df_subset
 
+
 def get_transcript_mean_median_max_std_ribotricer(translating_orf_file, only_ATG=True):
     """Get mean, median, and standard deviation of given transcript type
 
@@ -102,7 +103,6 @@ def get_transcript_mean_median_max_std_ribotricer(translating_orf_file, only_ATG
         n_orfs=pd.NamedAgg(column="phase_score", aggfunc="count"),
     )
     return df_subset
-
 
 
 def row_mean_median_std_ribotricer_txtype(row, txtype):

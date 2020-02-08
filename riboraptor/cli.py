@@ -47,6 +47,7 @@ from .hdf_parser import HDFParser
 from .hdf_parser import normalize_bw_hdf
 from .helpers import bwsum
 from .helpers import bwshift
+from .orf_seq import orf_seq
 
 click.disable_unicode_literals_warning = True
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -730,3 +731,53 @@ def create_loom_files(root_dir, ribocop_dir, annotation, out_dir, batch_size):
     srp = [filepath.split(ribocop_dir)[0].split("/")[-2] for filepath in orf_tsv_list]
     sample_list = list(zip(srp, srx, orf_tsv_list))
     write_loom_batches(sample_list, annotation, out_dir, batch_size=batch_size)
+
+
+###################### orfs-seq function #########################################
+@cli.command(
+    "orfs-seq",
+    context_settings=CONTEXT_SETTINGS,
+    help="Generate sequence for ORFs in ribotricer's index",
+)
+@click.option(
+    "--ribotricer_index",
+    help=(
+        "Path to the index file of ribotricer\n"
+        "This file should be generated using ribotricer prepare-orfs"
+    ),
+    required=True,
+)
+@click.option("--fasta", help="Path to FASTA file", required=True)
+@click.option("--saveto", help="Path to output file", required=True)
+@click.option(
+    "--offset_5p",
+    help="Number of upstream bases to count(5')",
+    type=int,
+    default=0,
+    show_default=True,
+)
+@click.option(
+    "--offset_3p",
+    help="Number of downstream bases to count(3')",
+    type=int,
+    default=0,
+    show_default=True,
+)
+@click.option(
+    "--protein", help="Output protein sequence instead of nucleotide", is_flag=True
+)
+def orf_seq_cmd(ribotricer_index, fasta, saveto, offset_5p, offset_3p, protein):
+    if not os.path.isfile(ribotricer_index):
+        sys.exit("Error: ribotricer index file not found")
+
+    if not os.path.isfile(fasta):
+        sys.exit("Error: fasta file not found")
+
+    orf_seq(
+        ribotricer_index,
+        fasta,
+        saveto,
+        upstream_5p_offset=offset_5p,
+        downstream_3p_offset=offset_3p,
+        translate=protein,
+    )
