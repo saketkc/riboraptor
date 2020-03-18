@@ -136,3 +136,15 @@ def _get_value(value):
         return None
 
     return value
+
+
+def gtf_to_bed(
+    gtf, cols=["seqname", "start", "end", "transcript_id", "frame", "strand"]
+):
+    bed = gtf[cols]
+    bed.loc[:, "frame"] = "."
+    bed.loc[:, "start"] = bed["start"].astype(int)
+    bed.loc[:, "end"] = bed["end"].astype(int)
+
+    bed.loc[:, "start"] = bed["start"] - 1
+    return bed

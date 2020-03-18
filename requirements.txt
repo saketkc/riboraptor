@@ -15,6 +15,6 @@ HTSeq>=0.9.1
 Biopython>=1.70
 pytest>=2.8.7
 tqdm>=4.23.4
-bx-python>=0.8.0
+bx-python>=1.12.0
 h5py>=2.8.0
 joblib>=0.12.3

@@ -55,14 +55,14 @@ lint: ## check style with flake8
 
 test: ## run tests quickly with the default Python
 	coverage run --branch -m pytest -s && coverage report -m
-	
+
 
 test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
 	coverage run --source riboraptor -m pytest
-	
+
 		coverage report -m
 		coverage html
 		$(BROWSER) htmlcov/index.html
@@ -88,4 +88,5 @@ dist: clean ## builds source and wheel package
 	ls -l dist
 
 install: clean ## install the package to the active Python's site-packages
-	python setup.py install
+	#python setup.py install --no-deps
+	pip install . --no-deps

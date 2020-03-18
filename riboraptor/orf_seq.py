@@ -1,3 +1,4 @@
+import numpy as np
 import pyfaidx
 import sys
 from tqdm import tqdm
@@ -28,11 +29,11 @@ def orf_seq(
     translate=False,
 ):
     """Generate sequence for ribotricer annotation.
-  
+
   Parameters
   -----------
   ribotricer_index: string
-                         Path to ribotricer generate annotation 
+                         Path to ribotricer generate annotation
   genome_Fasta: string
                 Path to genome fasta
   saveto: string
@@ -47,7 +48,10 @@ def orf_seq(
             orf_id = row.ORF_ID
             coordinates = row.coordinate.split(",")
             strand = row.strand
-            chrom_size = fasta.chromosomes[chrom]
+            try:
+                chrom_size = fasta.chromosomes[chrom]
+            except:
+                chrom_size = np.inf
             intervals = []
             seq = ""
             for index, coordinate in enumerate(coordinates):
