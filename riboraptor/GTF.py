@@ -147,4 +147,8 @@ def gtf_to_bed(
     bed.loc[:, "end"] = bed["end"].astype(int)
 
     bed.loc[:, "start"] = bed["start"] - 1
+    bed = bed.rename(columns={"transcript_id": "name", "seqname": "chrom"})
+    bed["name"] = (
+        bed["name"] + "_" + bed["start"].astype(str) + "_" + bed["end"].astype(str)
+    )
     return bed
