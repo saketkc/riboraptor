@@ -38,9 +38,11 @@ For more information, please refer to <http://unlicense.org/>
 
 from collections import defaultdict
 import gzip
-import pandas as pd
 import re
 
+import pandas as pd
+import pybedtools
+from tqdm.notebook import tqdm
 
 GTF_HEADER = [
     "seqname",
@@ -148,7 +150,25 @@ def gtf_to_bed(
 
     bed.loc[:, "start"] = bed["start"] - 1
     bed = bed.rename(columns={"transcript_id": "name", "seqname": "chrom"})
-    #bed["name"] = (
+    # bed["name"] = (
     #    bed["name"] + "_" + bed["start"].astype(str) + "_" + bed["end"].astype(str)
-    #)
+    # )
     return bed
+
+
+def get_dist_to_other(bed_df):
+    colnames = ["chrom", "start", "end", "name", "score", "strand"]
+    a_colnames = ["source_" + x for x in colnames]
+    b_colnames = ["target_" + x for x in colnames]
+
+    names = bed_df["name"].tolist()
+
+    bedtools_bed = pybedtools.BedTool.from_dataframe(bed_df).sort()
+    distance_bed_df = pd.DataFrame()
+    for name in tqdm(names):
+        a_bed = bedtools_bed.filter(lambda x: x["name"] == name)
+        b_bed = bedtools_bed.filter(lambda x: x["name"] != name)
+        distance = a_bed.closest(b_bed, D="b")
+        tmp_bed = distance.to_dataframe(names=a_colnames + b_colnames + ["distance"])
+        distance_bed_df = pd.concat([distance_bed_df, tmp_bed])
+    return distance_bed_df
