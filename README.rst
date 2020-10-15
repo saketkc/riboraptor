@@ -141,7 +141,7 @@ See: https://riboraptor.readthedocs.io/en/latest/
 
 Usage mode 3: ribopod - database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In progress: http://nucleus.usc.edu:8050/
+In progress: http://ribopod.usc.edu/
 
 
 Features
